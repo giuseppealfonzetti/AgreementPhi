@@ -205,7 +205,7 @@ double model::continuous::E0_dmu0dmu1(
 }
 
 double sample::ordinal::item_loglik(
-    const Eigen::Ref<const Eigen::VectorXd> Y, 
+    const std::vector<double>& Y, 
     const std::vector<std::vector<int>> DICT,
     const int ITEM,
     const double ALPHA,
@@ -227,7 +227,7 @@ double sample::ordinal::item_loglik(
         double dwrtmu = 0;
         double dwrtmu2 = 0;
         ll += model::ordinal::loglik(
-            Y(obs_id),
+            Y.at(obs_id),
             mu,
             PHI,
             K,
@@ -250,9 +250,9 @@ double sample::ordinal::item_loglik(
 }
 
 double sample::ordinal::log_det_obs_info(
-            const Eigen::Ref<const Eigen::VectorXd> Y, 
+            const std::vector<double>& Y, 
             const std::vector<std::vector<int>> DICT,
-            const Eigen::Ref<const Eigen::VectorXd> ALPHA,
+            const std::vector<double>& ALPHA,
             const double PHI,
             const int K)
 {
@@ -261,9 +261,9 @@ double sample::ordinal::log_det_obs_info(
     const int J = ALPHA.size();
 
 
-    Eigen::VectorXd eta = ALPHA;
-    Eigen::VectorXd mu = eta.unaryExpr(&LinkFuns::logit::mu);
-
+    std::vector<double> mu(ALPHA.size());
+    std::transform(ALPHA.begin(), ALPHA.end(), mu.begin(), LinkFuns::logit::mu);
+    
     double logdetobs=0;
 
 
@@ -273,7 +273,7 @@ double sample::ordinal::log_det_obs_info(
         double dalpha  =0;
         double dalpha2 =0;
         double ll=sample::ordinal::item_loglik(
-                Y, DICT, j, ALPHA(j), PHI, K, dalpha, dalpha2, 2
+                Y, DICT, j, ALPHA.at(j), PHI, K, dalpha, dalpha2, 2
             );
         
         out += log(-dalpha2);
@@ -287,26 +287,26 @@ double sample::ordinal::log_det_obs_info(
 
 double sample::ordinal::log_det_E0d0d1(
             const std::vector<std::vector<int>> DICT,
-            const Eigen::Ref<const Eigen::VectorXd> ALPHA0,
-            const Eigen::Ref<const Eigen::VectorXd> ALPHA1,
+            const std::vector<double>& ALPHA0,
+            const std::vector<double>& ALPHA1,
             const double PHI0,
             const double PHI1,
             const int K
 ){
     const int J = ALPHA0.size();
 
-    Eigen::VectorXd eta0 = ALPHA0;
-    Eigen::VectorXd mu0 = eta0.unaryExpr(&LinkFuns::logit::mu);
+    std::vector<double> mu0(ALPHA0.size());
+    std::transform(ALPHA0.begin(), ALPHA0.end(), mu0.begin(), LinkFuns::logit::mu);
 
-    Eigen::VectorXd eta1 = ALPHA1;
-    Eigen::VectorXd mu1 = eta1.unaryExpr(&LinkFuns::logit::mu);
+    std::vector<double> mu1(ALPHA1.size());
+    std::transform(ALPHA1.begin(), ALPHA1.end(), mu1.begin(), LinkFuns::logit::mu);
 
     double out=0;
 
     for(int j=0; j<J; j++){
-        double e = model::ordinal::E0_dmu0dmu1(mu0(j), PHI0, mu1(j), PHI1, K);
-        double dmu0 = LinkFuns::logit::dmu(mu0(j));
-        double dmu1 = LinkFuns::logit::dmu(mu1(j));
+        double e = model::ordinal::E0_dmu0dmu1(mu0.at(j), PHI0, mu1.at(j), PHI1, K);
+        double dmu0 = LinkFuns::logit::dmu(mu0.at(j));
+        double dmu1 = LinkFuns::logit::dmu(mu1.at(j));
         double n_obs_per_item = static_cast<double>(DICT.at(j).size());
         double outj = n_obs_per_item*dmu0 * dmu1 * e; 
         out += std::log(outj);
@@ -317,7 +317,7 @@ double sample::ordinal::log_det_E0d0d1(
 }
 
 double sample::continuous::item_loglik(
-    const Eigen::Ref<const Eigen::VectorXd> Y, 
+    const std::vector<double>& Y, 
     const std::vector<std::vector<int>> DICT,
     const int ITEM,
     const double ALPHA,
@@ -337,7 +337,7 @@ double sample::continuous::item_loglik(
         double dwrtmu = 0;
         double dwrtmu2 = 0;
         ll += model::continuous::loglik(
-            Y(obs_id),
+            Y.at(obs_id),
             mu,
             PHI,
             dwrtmu,
@@ -357,22 +357,22 @@ double sample::continuous::item_loglik(
 }
 
 double sample::continuous::log_det_obs_info(
-    const Eigen::Ref<const Eigen::VectorXd> Y, 
+    const std::vector<double>& Y, 
     const std::vector<std::vector<int>> DICT,
-    const Eigen::Ref<const Eigen::VectorXd> ALPHA,
+    const std::vector<double>& ALPHA,
     const double PHI
 ){
     const int J = ALPHA.size();
     
-    Eigen::VectorXd eta = ALPHA;
-    Eigen::VectorXd mu = eta.unaryExpr(&LinkFuns::logit::mu);
+    std::vector<double> mu(ALPHA.size());
+    std::transform(ALPHA.begin(), ALPHA.end(), mu.begin(), LinkFuns::logit::mu);
 
     double out = 0;
     for(int j=0; j<J; j++){
         double dalpha = 0;
         double dalpha2 = 0;
         double ll = sample::continuous::item_loglik(
-            Y, DICT, j, ALPHA(j), PHI, dalpha, dalpha2, 2
+            Y, DICT, j, ALPHA.at(j), PHI, dalpha, dalpha2, 2
         );
         
         out += log(-dalpha2);
@@ -383,25 +383,26 @@ double sample::continuous::log_det_obs_info(
 
 double sample::continuous::log_det_E0d0d1(
     const std::vector<std::vector<int>> DICT,
-    const Eigen::Ref<const Eigen::VectorXd> ALPHA0,
-    const Eigen::Ref<const Eigen::VectorXd> ALPHA1,
+    const std::vector<double>& ALPHA0,
+    const std::vector<double>& ALPHA1,
     const double PHI0,
     const double PHI1
 ){
     const int J = ALPHA0.size();
 
-    Eigen::VectorXd eta0 = ALPHA0;
-    Eigen::VectorXd mu0 = eta0.unaryExpr(&LinkFuns::logit::mu);
+    std::vector<double> mu0(J);
+    std::transform(ALPHA0.begin(), ALPHA0.end(), mu0.begin(), LinkFuns::logit::mu);
 
-    Eigen::VectorXd eta1 = ALPHA1;
-    Eigen::VectorXd mu1 = eta1.unaryExpr(&LinkFuns::logit::mu);
+
+    std::vector<double> mu1(J);
+    std::transform(ALPHA1.begin(), ALPHA1.end(), mu1.begin(), LinkFuns::logit::mu);
 
     double out = 0;
 
     for(int j=0; j<J; j++){
-        double e = model::continuous::E0_dmu0dmu1(mu0(j), PHI0, mu1(j), PHI1);
-        double dmu0 = LinkFuns::logit::dmu(mu0(j));
-        double dmu1 = LinkFuns::logit::dmu(mu1(j));
+        double e = model::continuous::E0_dmu0dmu1(mu0.at(j), PHI0, mu1.at(j), PHI1);
+        double dmu0 = LinkFuns::logit::dmu(mu0.at(j));
+        double dmu1 = LinkFuns::logit::dmu(mu1.at(j));
         double n_obs_per_item = static_cast<double>(DICT.at(j).size());
         double outj = n_obs_per_item * dmu0 * dmu1 * e; 
         out += std::log(outj);

@@ -5,14 +5,14 @@
 ///////////////////
 std::vector<std::vector<int>> utils::items_dicts(
         const int J,
-        const Eigen::Ref<const Eigen::VectorXd> ITEM_INDS
+        const std::vector<double>& ITEM_INDS
     ){
 
     const int n = ITEM_INDS.size();
     std::vector<std::vector<int>> dict(J);
 
     for(int i = 0; i < n; ++i){
-        int item_id = static_cast<int>(ITEM_INDS(i)-1);
+        int item_id = static_cast<int>(ITEM_INDS.at(i)-1);
         dict.at(item_id).push_back(i);
     }
 

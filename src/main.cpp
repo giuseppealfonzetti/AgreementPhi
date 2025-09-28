@@ -1,7 +1,4 @@
 #include <Rcpp.h>
-#define EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
-#define EIGEN_DONT_PARALLELIZE
-#include <RcppEigen.h>
 #include "TestFuns.h"
 #include <boost/math/tools/minima.hpp>
 #include <boost/math/differentiation/finite_difference.hpp>
@@ -11,7 +8,7 @@ namespace profile{
     namespace ordinal{
         // Brent search to profile item related nuisance parameter
         double Brent(
-            const Eigen::Ref<const Eigen::VectorXd> Y, 
+            const std::vector<double>& Y, 
             const std::vector<std::vector<int>> DICT,
             const int ITEM,
             const double ALPHA_START,
@@ -42,7 +39,7 @@ namespace profile{
         }
         // Newton-Raphson to profile item related nuisance parameter
         double Newton_Raphson(
-            const Eigen::Ref<const Eigen::VectorXd> Y, 
+            const std::vector<double>& Y, 
             const std::vector<std::vector<int>> DICT,
             const int ITEM,
             const double ALPHA_START,
@@ -78,9 +75,9 @@ namespace profile{
         // Profile likelihood for phi
         double loglik(
             double PHI,
-            const Eigen::Ref<const Eigen::VectorXd> Y, 
+            const std::vector<double>& Y, 
             const std::vector<std::vector<int>> DICT,
-            const Eigen::Ref<const Eigen::VectorXd> ALPHA_START,
+            const std::vector<double>& ALPHA_START,
             const int K,
             const int J,
             const int RANGE,
@@ -90,24 +87,24 @@ namespace profile{
 
             double grad, grad2;
             double ll = 0;
-            Eigen::VectorXd alpha=Eigen::VectorXd::Zero(J);
+            std::vector<double> alpha(J);
             for(int j=0; j<J; j++){
 
                 // profiling
                 if(METHOD==0){
                     double hatalpha = profile::ordinal::Brent(
-                        Y, DICT, j, ALPHA_START(j), PHI, K, RANGE, MAX_ITER
+                        Y, DICT, j, ALPHA_START.at(j), PHI, K, RANGE, MAX_ITER
                     );
-                    alpha(j)=hatalpha;
+                    alpha.at(j)=hatalpha;
                 }else{
                     double hatalpha = profile::ordinal::Newton_Raphson(
-                        Y, DICT, j, ALPHA_START(j), PHI, K, RANGE, MAX_ITER
+                        Y, DICT, j, ALPHA_START.at(j), PHI, K, RANGE, MAX_ITER
                     );
-                    alpha(j)=hatalpha;
+                    alpha.at(j)=hatalpha;
                 }
 
                 // Evaluate ll contribution
-                double llj = sample::ordinal::item_loglik(Y, DICT, j, alpha(j), PHI, K, grad, grad2, 0);
+                double llj = sample::ordinal::item_loglik(Y, DICT, j, alpha.at(j), PHI, K, grad, grad2, 0);
 
                 ll+=llj;
             }
@@ -118,9 +115,9 @@ namespace profile{
 
         // Compute the maximum profile likelihood estimator of phi
         std::pair<double, double> get_phi_mle(
-            const Eigen::Ref<const Eigen::VectorXd> Y, 
+            const std::vector<double>& Y, 
             const std::vector<std::vector<int>> DICT,
-            const Eigen::Ref<const Eigen::VectorXd> ALPHA_START,
+            const std::vector<double>& ALPHA_START,
             const double PHI_START,
             const int K,
             const int J,
@@ -153,10 +150,10 @@ namespace profile{
         // Modified Profile likelihood for phi
         double mp_loglik(
             double PHI,
-            const Eigen::Ref<const Eigen::VectorXd> Y, 
+            const std::vector<double>& Y, 
             const std::vector<std::vector<int>> DICT,
-            const Eigen::Ref<const Eigen::VectorXd> ALPHA_START,
-            const Eigen::Ref<const Eigen::VectorXd> ALPHA_MLE,
+            const std::vector<double>& ALPHA_START,
+            const std::vector<double>& ALPHA_MLE,
             const double PHI_MLE,
             const int K,
             const int J,
@@ -167,24 +164,24 @@ namespace profile{
 
             double grad, grad2;
             double ll = 0;
-            Eigen::VectorXd prof_alpha=Eigen::VectorXd::Zero(J);
+            std::vector<double> prof_alpha(J);
             for(int j=0; j<J; j++){
 
                 // profiling
                 if(PROF_METHOD==0){
                     double hatalpha = profile::ordinal::Brent(
-                        Y, DICT, j, ALPHA_START(j), PHI, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
+                        Y, DICT, j, ALPHA_START.at(j), PHI, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
                     );
-                    prof_alpha(j)=hatalpha;
+                    prof_alpha.at(j)=hatalpha;
                 }else{
                     double hatalpha = profile::ordinal::Newton_Raphson(
-                        Y, DICT, j, ALPHA_START(j), PHI, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
+                        Y, DICT, j, ALPHA_START.at(j), PHI, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
                     );
-                    prof_alpha(j)=hatalpha;
+                    prof_alpha.at(j)=hatalpha;
                 }
 
                 // Evaluate ll contribution
-                double llj = sample::ordinal::item_loglik(Y, DICT, j, prof_alpha(j), PHI, K, grad, grad2, 0);
+                double llj = sample::ordinal::item_loglik(Y, DICT, j, prof_alpha.at(j), PHI, K, grad, grad2, 0);
 
                 ll+=llj;
             }
@@ -199,9 +196,9 @@ namespace profile{
 
         // Compute the maximum modified profile likelihood estimator of phi
         std::vector<double> get_phi_mp(
-            const Eigen::Ref<const Eigen::VectorXd> Y, 
+            const std::vector<double>& Y, 
             const std::vector<std::vector<int>> DICT,
-            const Eigen::Ref<const Eigen::VectorXd> ALPHA_START,
+            const std::vector<double>& ALPHA_START,
             const double PHI_START,
             const int K,
             const int J,
@@ -223,19 +220,19 @@ namespace profile{
             if(VERBOSE) Rcpp::Rcout<< "Non-adjusted agreement: " << utils::prec2agr(phi_mle.first) << "\n";
 
             // get mle for alpha
-            Eigen::VectorXd alpha_mle=Eigen::VectorXd::Zero(J);
+            std::vector<double> alpha_mle(J);
             for(int j=0; j<J; j++){
 
                 if(PROF_METHOD==0){
                     double hatalpha = profile::ordinal::Brent(
-                        Y, DICT, j, ALPHA_START(j), phi_mle.first, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
+                        Y, DICT, j, ALPHA_START.at(j), phi_mle.first, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
                     );
-                    alpha_mle(j)=hatalpha;
+                    alpha_mle.at(j)=hatalpha;
                 }else{
                     double hatalpha = profile::ordinal::Newton_Raphson(
-                        Y, DICT, j, ALPHA_START(j), phi_mle.first, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
+                        Y, DICT, j, ALPHA_START.at(j), phi_mle.first, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
                     );
-                    alpha_mle(j)=hatalpha;
+                    alpha_mle.at(j)=hatalpha;
                 }
             }
 
@@ -277,7 +274,7 @@ namespace profile{
     namespace continuous{
         // Brent search to profile item related nuisance parameter
         double Brent(
-            const Eigen::Ref<const Eigen::VectorXd> Y, 
+            const std::vector<double> Y, 
             const std::vector<std::vector<int>> DICT,
             const int ITEM,
             const double ALPHA_START,
@@ -306,7 +303,7 @@ namespace profile{
 
         // Newton-Raphson to profile item related nuisance parameter
         double Newton_Raphson(
-            const Eigen::Ref<const Eigen::VectorXd> Y, 
+            const std::vector<double> Y, 
             const std::vector<std::vector<int>> DICT,
             const int ITEM,
             const double ALPHA_START,
@@ -341,9 +338,9 @@ namespace profile{
         // Profile likelihood for phi
         double loglik(
             double PHI,
-            const Eigen::Ref<const Eigen::VectorXd> Y, 
+            const std::vector<double> Y, 
             const std::vector<std::vector<int>> DICT,
-            const Eigen::Ref<const Eigen::VectorXd> ALPHA_START,
+            const std::vector<double> ALPHA_START,
             const int J,
             const int RANGE,
             const int MAX_ITER,
@@ -351,24 +348,24 @@ namespace profile{
         ){
             double grad, grad2;
             double ll = 0;
-            Eigen::VectorXd alpha = Eigen::VectorXd::Zero(J);
+            std::vector<double> alpha(J);
             for(int j=0; j<J; j++){
 
                 // profiling
                 if(METHOD==0){
                     double hatalpha = profile::continuous::Brent(
-                        Y, DICT, j, ALPHA_START(j), PHI, RANGE, MAX_ITER
+                        Y, DICT, j, ALPHA_START.at(j), PHI, RANGE, MAX_ITER
                     );
-                    alpha(j) = hatalpha;
+                    alpha.at(j) = hatalpha;
                 }else{
                     double hatalpha = profile::continuous::Newton_Raphson(
-                        Y, DICT, j, ALPHA_START(j), PHI, RANGE, MAX_ITER
+                        Y, DICT, j, ALPHA_START.at(j), PHI, RANGE, MAX_ITER
                     );
-                    alpha(j) = hatalpha;
+                    alpha.at(j) = hatalpha;
                 }
 
                 // Evaluate ll contribution
-                double llj = sample::continuous::item_loglik(Y, DICT, j, alpha(j), PHI, grad, grad2, 0);
+                double llj = sample::continuous::item_loglik(Y, DICT, j, alpha.at(j), PHI, grad, grad2, 0);
 
                 ll += llj;
             }
@@ -378,9 +375,9 @@ namespace profile{
 
         // Compute the maximum profile likelihood estimator of phi
         std::pair<double, double> get_phi_mle(
-            const Eigen::Ref<const Eigen::VectorXd> Y, 
+            const std::vector<double> Y, 
             const std::vector<std::vector<int>> DICT,
-            const Eigen::Ref<const Eigen::VectorXd> ALPHA_START,
+            const std::vector<double> ALPHA_START,
             const double PHI_START,
             const int J,
             const int SEARCH_RANGE,
@@ -413,10 +410,10 @@ namespace profile{
         // Modified Profile likelihood for phi
         double mp_loglik(
             double PHI,
-            const Eigen::Ref<const Eigen::VectorXd> Y, 
+            const std::vector<double> Y, 
             const std::vector<std::vector<int>> DICT,
-            const Eigen::Ref<const Eigen::VectorXd> ALPHA_START,
-            const Eigen::Ref<const Eigen::VectorXd> ALPHA_MLE,
+            const std::vector<double> ALPHA_START,
+            const std::vector<double> ALPHA_MLE,
             const double PHI_MLE,
             const int J,
             const int PROF_SEARCH_RANGE,
@@ -425,24 +422,24 @@ namespace profile{
         ){
             double grad, grad2;
             double ll = 0;
-            Eigen::VectorXd prof_alpha = Eigen::VectorXd::Zero(J);
+            std::vector<double> prof_alpha(J);
             for(int j=0; j<J; j++){
 
                 // profiling
                 if(PROF_METHOD==0){
                     double hatalpha = profile::continuous::Brent(
-                        Y, DICT, j, ALPHA_START(j), PHI, PROF_SEARCH_RANGE, PROF_MAX_ITER
+                        Y, DICT, j, ALPHA_START.at(j), PHI, PROF_SEARCH_RANGE, PROF_MAX_ITER
                     );
-                    prof_alpha(j) = hatalpha;
+                    prof_alpha.at(j) = hatalpha;
                 }else{
                     double hatalpha = profile::continuous::Newton_Raphson(
-                        Y, DICT, j, ALPHA_START(j), PHI, PROF_SEARCH_RANGE, PROF_MAX_ITER
+                        Y, DICT, j, ALPHA_START.at(j), PHI, PROF_SEARCH_RANGE, PROF_MAX_ITER
                     );
-                    prof_alpha(j) = hatalpha;
+                    prof_alpha.at(j) = hatalpha;
                 }
 
                 // Evaluate ll contribution
-                double llj = sample::continuous::item_loglik(Y, DICT, j, prof_alpha(j), PHI, grad, grad2, 0);
+                double llj = sample::continuous::item_loglik(Y, DICT, j, prof_alpha.at(j), PHI, grad, grad2, 0);
 
                 ll += llj;
             }
@@ -457,9 +454,9 @@ namespace profile{
 
         // Compute the maximum modified profile likelihood estimator of phi
         std::vector<double> get_phi_mp(
-            const Eigen::Ref<const Eigen::VectorXd> Y, 
+            const std::vector<double> Y, 
             const std::vector<std::vector<int>> DICT,
-            const Eigen::Ref<const Eigen::VectorXd> ALPHA_START,
+            const std::vector<double> ALPHA_START,
             const double PHI_START,
             const int J,
             const int SEARCH_RANGE,
@@ -479,19 +476,19 @@ namespace profile{
             if(VERBOSE) Rcpp::Rcout<< "Non-adjusted agreement: " << utils::prec2agr(phi_mle.first) << "\n";
 
             // get mle for alpha
-            Eigen::VectorXd alpha_mle = Eigen::VectorXd::Zero(J);
+            std::vector<double> alpha_mle(J);
             for(int j=0; j<J; j++){
 
                 if(PROF_METHOD==0){
                     double hatalpha = profile::continuous::Brent(
-                        Y, DICT, j, ALPHA_START(j), phi_mle.first, PROF_SEARCH_RANGE, PROF_MAX_ITER
+                        Y, DICT, j, ALPHA_START.at(j), phi_mle.first, PROF_SEARCH_RANGE, PROF_MAX_ITER
                     );
-                    alpha_mle(j) = hatalpha;
+                    alpha_mle.at(j) = hatalpha;
                 }else{
                     double hatalpha = profile::continuous::Newton_Raphson(
-                        Y, DICT, j, ALPHA_START(j), phi_mle.first, PROF_SEARCH_RANGE, PROF_MAX_ITER
+                        Y, DICT, j, ALPHA_START.at(j), phi_mle.first, PROF_SEARCH_RANGE, PROF_MAX_ITER
                     );
-                    alpha_mle(j) = hatalpha;
+                    alpha_mle.at(j) = hatalpha;
                 }
             }
 
@@ -530,9 +527,9 @@ namespace profile{
 
 // [[Rcpp::export]]
 std::vector<double> cpp_get_phi_mle(
-    Eigen::Map<Eigen::VectorXd> Y,
-    Eigen::Map<Eigen::VectorXd> ITEM_INDS,
-    Eigen::Map<Eigen::VectorXd> ALPHA_START,
+    const std::vector<double> Y,
+    const std::vector<double> ITEM_INDS,
+    const std::vector<double> ALPHA_START,
     const double PHI_START,
     const int K,
     const int J,
@@ -570,9 +567,9 @@ std::vector<double> cpp_get_phi_mle(
 
 // [[Rcpp::export]]
 std::vector<double> cpp_get_phi_mp(
-    Eigen::Map<Eigen::VectorXd> Y,
-    Eigen::Map<Eigen::VectorXd> ITEM_INDS,
-    Eigen::Map<Eigen::VectorXd> ALPHA_START,
+    const std::vector<double> Y,
+    const std::vector<double> ITEM_INDS,
+    const std::vector<double> ALPHA_START,
     const double PHI_START,
     const int K,
     const int J,
@@ -609,9 +606,9 @@ std::vector<double> cpp_get_phi_mp(
 
 // [[Rcpp::export]]
 double cpp_profile_likelihood(
-    Eigen::Map<Eigen::VectorXd> Y,
-    Eigen::Map<Eigen::VectorXd> ITEM_INDS,
-    Eigen::Map<Eigen::VectorXd> ALPHA_START,
+    const std::vector<double> Y,
+    const std::vector<double> ITEM_INDS,
+    const std::vector<double> ALPHA_START,
     const double PHI,
     const int K,
     const int J,
@@ -639,9 +636,9 @@ double cpp_profile_likelihood(
 
 // [[Rcpp::export]]
 double cpp_modified_profile_likelihood(
-    Eigen::Map<Eigen::VectorXd> Y,
-    Eigen::Map<Eigen::VectorXd> ITEM_INDS,
-    Eigen::Map<Eigen::VectorXd> ALPHA_START,
+    const std::vector<double> Y,
+    const std::vector<double> ITEM_INDS,
+    const std::vector<double> ALPHA_START,
     const double PHI_MLE,
     const double PHI,
     const int K,
@@ -662,38 +659,38 @@ double cpp_modified_profile_likelihood(
     double out;
     if(CONTINUOUS){
         // get mle for alpha
-        Eigen::VectorXd alpha_mle = Eigen::VectorXd::Zero(J);
+        std::vector<double> alpha_mle(J);
         for(int j=0; j<J; j++){
 
             if(PROF_METHOD==0){
                 double hatalpha = profile::continuous::Brent(
-                    Y, dict, j, ALPHA_START(j), PHI_MLE, PROF_SEARCH_RANGE, PROF_MAX_ITER
+                    Y, dict, j, ALPHA_START.at(j), PHI_MLE, PROF_SEARCH_RANGE, PROF_MAX_ITER
                 );
-                alpha_mle(j) = hatalpha;
+                alpha_mle.at(j) = hatalpha;
             }else{
                 double hatalpha = profile::continuous::Newton_Raphson(
-                    Y, dict, j, ALPHA_START(j), PHI_MLE, PROF_SEARCH_RANGE, PROF_MAX_ITER
+                    Y, dict, j, ALPHA_START.at(j), PHI_MLE, PROF_SEARCH_RANGE, PROF_MAX_ITER
                 );
-                alpha_mle(j) = hatalpha;
+                alpha_mle.at(j) = hatalpha;
             }
         }
         out = profile::continuous::mp_loglik(
                 PHI, Y, dict, alpha_mle, alpha_mle, PHI_MLE, J, 
                 PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD);
     }else{
-        Eigen::VectorXd alpha_mle = Eigen::VectorXd::Zero(J);
+        std::vector<double> alpha_mle(J);
         for(int j=0; j<J; j++){
 
             if(PROF_METHOD==0){
                 double hatalpha = profile::ordinal::Brent(
-                    Y, dict, j, ALPHA_START(j), PHI_MLE, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
+                    Y, dict, j, ALPHA_START.at(j), PHI_MLE, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
                 );
-                alpha_mle(j) = hatalpha;
+                alpha_mle.at(j) = hatalpha;
             }else{
                 double hatalpha = profile::ordinal::Newton_Raphson(
-                    Y, dict, j, ALPHA_START(j), PHI_MLE, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
+                    Y, dict, j, ALPHA_START.at(j), PHI_MLE, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
                 );
-                alpha_mle(j) = hatalpha;
+                alpha_mle.at(j) = hatalpha;
             }
         }
         
@@ -708,9 +705,9 @@ double cpp_modified_profile_likelihood(
 
 // [[Rcpp::export]]
 double cpp_get_se(
-    Eigen::Map<Eigen::VectorXd> Y,
-    Eigen::Map<Eigen::VectorXd> ITEM_INDS,
-    Eigen::Map<Eigen::VectorXd> ALPHA_START,
+    const std::vector<double> Y,
+    const std::vector<double> ITEM_INDS,
+    const std::vector<double> ALPHA_START,
     const double PHI_EVAL,
     const double PHI_MLE,
     const int K,

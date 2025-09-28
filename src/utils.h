@@ -3,7 +3,6 @@
 #include <unordered_map>    
 #include <vector>           
 #include <string>  
-#include <RcppEigen.h>
 #include <boost/math/special_functions/beta.hpp>
 #include <boost/math/quadrature/tanh_sinh.hpp>
 
@@ -12,7 +11,7 @@ namespace utils{
 
     std::vector<std::vector<int>> items_dicts(
         const int J,
-        const Eigen::Ref<const Eigen::VectorXd> ITEM_INDS
+        const std::vector<double>& ITEM_INDS
     );
 
     double prec2agr(double PRECISION);

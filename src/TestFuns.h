@@ -31,8 +31,8 @@ Rcpp::List cpp_ordinal_loglik(const double Y, const double MU, const double PHI,
 
 // [[Rcpp::export]]
 Rcpp::List cpp_ordinal_item_loglik(
-    Eigen::Map<Eigen::VectorXd> Y, 
-    Eigen::Map<Eigen::VectorXd> ITEM_INDS,
+    const std::vector<double> Y, 
+    const std::vector<double> ITEM_INDS,
     const double ALPHA,
     const double PHI,
     const int K,
@@ -41,18 +41,18 @@ Rcpp::List cpp_ordinal_item_loglik(
 
 // [[Rcpp::export]]
 double cpp_log_det_obs_info(
-    Eigen::Map<Eigen::VectorXd> Y, 
-    Eigen::Map<Eigen::VectorXd> ITEM_INDS,
-    Eigen::Map<Eigen::VectorXd> ALPHA,
+    const std::vector<double> Y, 
+    const std::vector<double> ITEM_INDS,
+    const std::vector<double> ALPHA,
     const double PHI,
     const int K,
     const int J);
 
 // [[Rcpp::export]]
 double cpp_log_det_E0d0d1(
-    Eigen::Map<Eigen::VectorXd> ITEM_INDS,
-    Eigen::Map<Eigen::VectorXd> ALPHA0,
-    Eigen::Map<Eigen::VectorXd> ALPHA1,
+    const std::vector<double> ITEM_INDS,
+    const std::vector<double> ALPHA0,
+    const std::vector<double> ALPHA1,
     const double PHI0,
     const double PHI1,
     const int K,
