@@ -6,3 +6,6 @@ miscellanea.R
 .httr-oauth
 .DS_Store
 .quarto
+inst/doc
+/doc/
+/Meta/
