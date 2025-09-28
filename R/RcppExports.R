@@ -2,54 +2,54 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 cpp_beta_funs <- function(A, B) {
-    .Call(`_betaphi_cpp_beta_funs`, A, B)
+    .Call(`_AgreementPhi_cpp_beta_funs`, A, B)
 }
 
 cpp_ibeta_funs <- function(X, A, B) {
-    .Call(`_betaphi_cpp_ibeta_funs`, X, A, B)
+    .Call(`_AgreementPhi_cpp_ibeta_funs`, X, A, B)
 }
 
 cpp_cdfbeta_funs <- function(X, A, B) {
-    .Call(`_betaphi_cpp_cdfbeta_funs`, X, A, B)
+    .Call(`_AgreementPhi_cpp_cdfbeta_funs`, X, A, B)
 }
 
 cpp_cdfbeta_muphi_funs <- function(X, MU, PHI) {
-    .Call(`_betaphi_cpp_cdfbeta_muphi_funs`, X, MU, PHI)
+    .Call(`_AgreementPhi_cpp_cdfbeta_muphi_funs`, X, MU, PHI)
 }
 
 cpp_ordinal_loglik <- function(Y, MU, PHI, K) {
-    .Call(`_betaphi_cpp_ordinal_loglik`, Y, MU, PHI, K)
+    .Call(`_AgreementPhi_cpp_ordinal_loglik`, Y, MU, PHI, K)
 }
 
 cpp_ordinal_item_loglik <- function(Y, ITEM_INDS, ALPHA, PHI, K, J, ITEM) {
-    .Call(`_betaphi_cpp_ordinal_item_loglik`, Y, ITEM_INDS, ALPHA, PHI, K, J, ITEM)
+    .Call(`_AgreementPhi_cpp_ordinal_item_loglik`, Y, ITEM_INDS, ALPHA, PHI, K, J, ITEM)
 }
 
 cpp_log_det_obs_info <- function(Y, ITEM_INDS, ALPHA, PHI, K, J) {
-    .Call(`_betaphi_cpp_log_det_obs_info`, Y, ITEM_INDS, ALPHA, PHI, K, J)
+    .Call(`_AgreementPhi_cpp_log_det_obs_info`, Y, ITEM_INDS, ALPHA, PHI, K, J)
 }
 
 cpp_log_det_E0d0d1 <- function(ITEM_INDS, ALPHA0, ALPHA1, PHI0, PHI1, K, J) {
-    .Call(`_betaphi_cpp_log_det_E0d0d1`, ITEM_INDS, ALPHA0, ALPHA1, PHI0, PHI1, K, J)
+    .Call(`_AgreementPhi_cpp_log_det_E0d0d1`, ITEM_INDS, ALPHA0, ALPHA1, PHI0, PHI1, K, J)
 }
 
 cpp_get_phi_mle <- function(Y, ITEM_INDS, ALPHA_START, PHI_START, K, J, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, VERBOSE = FALSE, CONTINUOUS = FALSE) {
-    .Call(`_betaphi_cpp_get_phi_mle`, Y, ITEM_INDS, ALPHA_START, PHI_START, K, J, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, VERBOSE, CONTINUOUS)
+    .Call(`_AgreementPhi_cpp_get_phi_mle`, Y, ITEM_INDS, ALPHA_START, PHI_START, K, J, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, VERBOSE, CONTINUOUS)
 }
 
 cpp_get_phi_mp <- function(Y, ITEM_INDS, ALPHA_START, PHI_START, K, J, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, VERBOSE = FALSE, CONTINUOUS = FALSE) {
-    .Call(`_betaphi_cpp_get_phi_mp`, Y, ITEM_INDS, ALPHA_START, PHI_START, K, J, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, VERBOSE, CONTINUOUS)
+    .Call(`_AgreementPhi_cpp_get_phi_mp`, Y, ITEM_INDS, ALPHA_START, PHI_START, K, J, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, VERBOSE, CONTINUOUS)
 }
 
 cpp_profile_likelihood <- function(Y, ITEM_INDS, ALPHA_START, PHI, K, J, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, CONTINUOUS) {
-    .Call(`_betaphi_cpp_profile_likelihood`, Y, ITEM_INDS, ALPHA_START, PHI, K, J, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, CONTINUOUS)
+    .Call(`_AgreementPhi_cpp_profile_likelihood`, Y, ITEM_INDS, ALPHA_START, PHI, K, J, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, CONTINUOUS)
 }
 
 cpp_modified_profile_likelihood <- function(Y, ITEM_INDS, ALPHA_START, PHI_MLE, PHI, K, J, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, CONTINUOUS) {
-    .Call(`_betaphi_cpp_modified_profile_likelihood`, Y, ITEM_INDS, ALPHA_START, PHI_MLE, PHI, K, J, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, CONTINUOUS)
+    .Call(`_AgreementPhi_cpp_modified_profile_likelihood`, Y, ITEM_INDS, ALPHA_START, PHI_MLE, PHI, K, J, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, CONTINUOUS)
 }
 
 cpp_get_se <- function(Y, ITEM_INDS, ALPHA_START, PHI_EVAL, PHI_MLE, K, J, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, MODIFIED = TRUE, CONTINUOUS = TRUE) {
-    .Call(`_betaphi_cpp_get_se`, Y, ITEM_INDS, ALPHA_START, PHI_EVAL, PHI_MLE, K, J, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, MODIFIED, CONTINUOUS)
+    .Call(`_AgreementPhi_cpp_get_se`, Y, ITEM_INDS, ALPHA_START, PHI_EVAL, PHI_MLE, K, J, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, MODIFIED, CONTINUOUS)
 }
 

@@ -13,7 +13,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // cpp_beta_funs
 Rcpp::List cpp_beta_funs(const double A, const double B);
-RcppExport SEXP _betaphi_cpp_beta_funs(SEXP ASEXP, SEXP BSEXP) {
+RcppExport SEXP _AgreementPhi_cpp_beta_funs(SEXP ASEXP, SEXP BSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -25,7 +25,7 @@ END_RCPP
 }
 // cpp_ibeta_funs
 Rcpp::List cpp_ibeta_funs(const double X, const double A, const double B);
-RcppExport SEXP _betaphi_cpp_ibeta_funs(SEXP XSEXP, SEXP ASEXP, SEXP BSEXP) {
+RcppExport SEXP _AgreementPhi_cpp_ibeta_funs(SEXP XSEXP, SEXP ASEXP, SEXP BSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -38,7 +38,7 @@ END_RCPP
 }
 // cpp_cdfbeta_funs
 Rcpp::List cpp_cdfbeta_funs(const double X, const double A, const double B);
-RcppExport SEXP _betaphi_cpp_cdfbeta_funs(SEXP XSEXP, SEXP ASEXP, SEXP BSEXP) {
+RcppExport SEXP _AgreementPhi_cpp_cdfbeta_funs(SEXP XSEXP, SEXP ASEXP, SEXP BSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -51,7 +51,7 @@ END_RCPP
 }
 // cpp_cdfbeta_muphi_funs
 Rcpp::List cpp_cdfbeta_muphi_funs(const double X, const double MU, const double PHI);
-RcppExport SEXP _betaphi_cpp_cdfbeta_muphi_funs(SEXP XSEXP, SEXP MUSEXP, SEXP PHISEXP) {
+RcppExport SEXP _AgreementPhi_cpp_cdfbeta_muphi_funs(SEXP XSEXP, SEXP MUSEXP, SEXP PHISEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -64,7 +64,7 @@ END_RCPP
 }
 // cpp_ordinal_loglik
 Rcpp::List cpp_ordinal_loglik(const double Y, const double MU, const double PHI, const int K);
-RcppExport SEXP _betaphi_cpp_ordinal_loglik(SEXP YSEXP, SEXP MUSEXP, SEXP PHISEXP, SEXP KSEXP) {
+RcppExport SEXP _AgreementPhi_cpp_ordinal_loglik(SEXP YSEXP, SEXP MUSEXP, SEXP PHISEXP, SEXP KSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -78,7 +78,7 @@ END_RCPP
 }
 // cpp_ordinal_item_loglik
 Rcpp::List cpp_ordinal_item_loglik(Eigen::Map<Eigen::VectorXd> Y, Eigen::Map<Eigen::VectorXd> ITEM_INDS, const double ALPHA, const double PHI, const int K, const int J, const int ITEM);
-RcppExport SEXP _betaphi_cpp_ordinal_item_loglik(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHASEXP, SEXP PHISEXP, SEXP KSEXP, SEXP JSEXP, SEXP ITEMSEXP) {
+RcppExport SEXP _AgreementPhi_cpp_ordinal_item_loglik(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHASEXP, SEXP PHISEXP, SEXP KSEXP, SEXP JSEXP, SEXP ITEMSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -95,7 +95,7 @@ END_RCPP
 }
 // cpp_log_det_obs_info
 double cpp_log_det_obs_info(Eigen::Map<Eigen::VectorXd> Y, Eigen::Map<Eigen::VectorXd> ITEM_INDS, Eigen::Map<Eigen::VectorXd> ALPHA, const double PHI, const int K, const int J);
-RcppExport SEXP _betaphi_cpp_log_det_obs_info(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHASEXP, SEXP PHISEXP, SEXP KSEXP, SEXP JSEXP) {
+RcppExport SEXP _AgreementPhi_cpp_log_det_obs_info(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHASEXP, SEXP PHISEXP, SEXP KSEXP, SEXP JSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -111,7 +111,7 @@ END_RCPP
 }
 // cpp_log_det_E0d0d1
 double cpp_log_det_E0d0d1(Eigen::Map<Eigen::VectorXd> ITEM_INDS, Eigen::Map<Eigen::VectorXd> ALPHA0, Eigen::Map<Eigen::VectorXd> ALPHA1, const double PHI0, const double PHI1, const int K, const int J);
-RcppExport SEXP _betaphi_cpp_log_det_E0d0d1(SEXP ITEM_INDSSEXP, SEXP ALPHA0SEXP, SEXP ALPHA1SEXP, SEXP PHI0SEXP, SEXP PHI1SEXP, SEXP KSEXP, SEXP JSEXP) {
+RcppExport SEXP _AgreementPhi_cpp_log_det_E0d0d1(SEXP ITEM_INDSSEXP, SEXP ALPHA0SEXP, SEXP ALPHA1SEXP, SEXP PHI0SEXP, SEXP PHI1SEXP, SEXP KSEXP, SEXP JSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -128,7 +128,7 @@ END_RCPP
 }
 // cpp_get_phi_mle
 std::vector<double> cpp_get_phi_mle(Eigen::Map<Eigen::VectorXd> Y, Eigen::Map<Eigen::VectorXd> ITEM_INDS, Eigen::Map<Eigen::VectorXd> ALPHA_START, const double PHI_START, const int K, const int J, const int SEARCH_RANGE, const int MAX_ITER, const int PROF_SEARCH_RANGE, const int PROF_MAX_ITER, const int PROF_METHOD, const bool VERBOSE, const bool CONTINUOUS);
-RcppExport SEXP _betaphi_cpp_get_phi_mle(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP PHI_STARTSEXP, SEXP KSEXP, SEXP JSEXP, SEXP SEARCH_RANGESEXP, SEXP MAX_ITERSEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_METHODSEXP, SEXP VERBOSESEXP, SEXP CONTINUOUSSEXP) {
+RcppExport SEXP _AgreementPhi_cpp_get_phi_mle(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP PHI_STARTSEXP, SEXP KSEXP, SEXP JSEXP, SEXP SEARCH_RANGESEXP, SEXP MAX_ITERSEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_METHODSEXP, SEXP VERBOSESEXP, SEXP CONTINUOUSSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -151,7 +151,7 @@ END_RCPP
 }
 // cpp_get_phi_mp
 std::vector<double> cpp_get_phi_mp(Eigen::Map<Eigen::VectorXd> Y, Eigen::Map<Eigen::VectorXd> ITEM_INDS, Eigen::Map<Eigen::VectorXd> ALPHA_START, const double PHI_START, const int K, const int J, const int SEARCH_RANGE, const int MAX_ITER, const int PROF_SEARCH_RANGE, const int PROF_MAX_ITER, const int PROF_METHOD, const bool VERBOSE, const bool CONTINUOUS);
-RcppExport SEXP _betaphi_cpp_get_phi_mp(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP PHI_STARTSEXP, SEXP KSEXP, SEXP JSEXP, SEXP SEARCH_RANGESEXP, SEXP MAX_ITERSEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_METHODSEXP, SEXP VERBOSESEXP, SEXP CONTINUOUSSEXP) {
+RcppExport SEXP _AgreementPhi_cpp_get_phi_mp(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP PHI_STARTSEXP, SEXP KSEXP, SEXP JSEXP, SEXP SEARCH_RANGESEXP, SEXP MAX_ITERSEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_METHODSEXP, SEXP VERBOSESEXP, SEXP CONTINUOUSSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -174,7 +174,7 @@ END_RCPP
 }
 // cpp_profile_likelihood
 double cpp_profile_likelihood(Eigen::Map<Eigen::VectorXd> Y, Eigen::Map<Eigen::VectorXd> ITEM_INDS, Eigen::Map<Eigen::VectorXd> ALPHA_START, const double PHI, const int K, const int J, const int PROF_SEARCH_RANGE, const int PROF_MAX_ITER, const int PROF_METHOD, const bool CONTINUOUS);
-RcppExport SEXP _betaphi_cpp_profile_likelihood(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP PHISEXP, SEXP KSEXP, SEXP JSEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_METHODSEXP, SEXP CONTINUOUSSEXP) {
+RcppExport SEXP _AgreementPhi_cpp_profile_likelihood(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP PHISEXP, SEXP KSEXP, SEXP JSEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_METHODSEXP, SEXP CONTINUOUSSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -194,7 +194,7 @@ END_RCPP
 }
 // cpp_modified_profile_likelihood
 double cpp_modified_profile_likelihood(Eigen::Map<Eigen::VectorXd> Y, Eigen::Map<Eigen::VectorXd> ITEM_INDS, Eigen::Map<Eigen::VectorXd> ALPHA_START, const double PHI_MLE, const double PHI, const int K, const int J, const int SEARCH_RANGE, const int MAX_ITER, const int PROF_SEARCH_RANGE, const int PROF_MAX_ITER, const int PROF_METHOD, const bool CONTINUOUS);
-RcppExport SEXP _betaphi_cpp_modified_profile_likelihood(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP PHI_MLESEXP, SEXP PHISEXP, SEXP KSEXP, SEXP JSEXP, SEXP SEARCH_RANGESEXP, SEXP MAX_ITERSEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_METHODSEXP, SEXP CONTINUOUSSEXP) {
+RcppExport SEXP _AgreementPhi_cpp_modified_profile_likelihood(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP PHI_MLESEXP, SEXP PHISEXP, SEXP KSEXP, SEXP JSEXP, SEXP SEARCH_RANGESEXP, SEXP MAX_ITERSEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_METHODSEXP, SEXP CONTINUOUSSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -217,7 +217,7 @@ END_RCPP
 }
 // cpp_get_se
 double cpp_get_se(Eigen::Map<Eigen::VectorXd> Y, Eigen::Map<Eigen::VectorXd> ITEM_INDS, Eigen::Map<Eigen::VectorXd> ALPHA_START, const double PHI_EVAL, const double PHI_MLE, const int K, const int J, const int SEARCH_RANGE, const int MAX_ITER, const int PROF_SEARCH_RANGE, const int PROF_MAX_ITER, const int PROF_METHOD, const bool MODIFIED, const bool CONTINUOUS);
-RcppExport SEXP _betaphi_cpp_get_se(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP PHI_EVALSEXP, SEXP PHI_MLESEXP, SEXP KSEXP, SEXP JSEXP, SEXP SEARCH_RANGESEXP, SEXP MAX_ITERSEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_METHODSEXP, SEXP MODIFIEDSEXP, SEXP CONTINUOUSSEXP) {
+RcppExport SEXP _AgreementPhi_cpp_get_se(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP PHI_EVALSEXP, SEXP PHI_MLESEXP, SEXP KSEXP, SEXP JSEXP, SEXP SEARCH_RANGESEXP, SEXP MAX_ITERSEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_METHODSEXP, SEXP MODIFIEDSEXP, SEXP CONTINUOUSSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -241,23 +241,23 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_betaphi_cpp_beta_funs", (DL_FUNC) &_betaphi_cpp_beta_funs, 2},
-    {"_betaphi_cpp_ibeta_funs", (DL_FUNC) &_betaphi_cpp_ibeta_funs, 3},
-    {"_betaphi_cpp_cdfbeta_funs", (DL_FUNC) &_betaphi_cpp_cdfbeta_funs, 3},
-    {"_betaphi_cpp_cdfbeta_muphi_funs", (DL_FUNC) &_betaphi_cpp_cdfbeta_muphi_funs, 3},
-    {"_betaphi_cpp_ordinal_loglik", (DL_FUNC) &_betaphi_cpp_ordinal_loglik, 4},
-    {"_betaphi_cpp_ordinal_item_loglik", (DL_FUNC) &_betaphi_cpp_ordinal_item_loglik, 7},
-    {"_betaphi_cpp_log_det_obs_info", (DL_FUNC) &_betaphi_cpp_log_det_obs_info, 6},
-    {"_betaphi_cpp_log_det_E0d0d1", (DL_FUNC) &_betaphi_cpp_log_det_E0d0d1, 7},
-    {"_betaphi_cpp_get_phi_mle", (DL_FUNC) &_betaphi_cpp_get_phi_mle, 13},
-    {"_betaphi_cpp_get_phi_mp", (DL_FUNC) &_betaphi_cpp_get_phi_mp, 13},
-    {"_betaphi_cpp_profile_likelihood", (DL_FUNC) &_betaphi_cpp_profile_likelihood, 10},
-    {"_betaphi_cpp_modified_profile_likelihood", (DL_FUNC) &_betaphi_cpp_modified_profile_likelihood, 13},
-    {"_betaphi_cpp_get_se", (DL_FUNC) &_betaphi_cpp_get_se, 14},
+    {"_AgreementPhi_cpp_beta_funs", (DL_FUNC) &_AgreementPhi_cpp_beta_funs, 2},
+    {"_AgreementPhi_cpp_ibeta_funs", (DL_FUNC) &_AgreementPhi_cpp_ibeta_funs, 3},
+    {"_AgreementPhi_cpp_cdfbeta_funs", (DL_FUNC) &_AgreementPhi_cpp_cdfbeta_funs, 3},
+    {"_AgreementPhi_cpp_cdfbeta_muphi_funs", (DL_FUNC) &_AgreementPhi_cpp_cdfbeta_muphi_funs, 3},
+    {"_AgreementPhi_cpp_ordinal_loglik", (DL_FUNC) &_AgreementPhi_cpp_ordinal_loglik, 4},
+    {"_AgreementPhi_cpp_ordinal_item_loglik", (DL_FUNC) &_AgreementPhi_cpp_ordinal_item_loglik, 7},
+    {"_AgreementPhi_cpp_log_det_obs_info", (DL_FUNC) &_AgreementPhi_cpp_log_det_obs_info, 6},
+    {"_AgreementPhi_cpp_log_det_E0d0d1", (DL_FUNC) &_AgreementPhi_cpp_log_det_E0d0d1, 7},
+    {"_AgreementPhi_cpp_get_phi_mle", (DL_FUNC) &_AgreementPhi_cpp_get_phi_mle, 13},
+    {"_AgreementPhi_cpp_get_phi_mp", (DL_FUNC) &_AgreementPhi_cpp_get_phi_mp, 13},
+    {"_AgreementPhi_cpp_profile_likelihood", (DL_FUNC) &_AgreementPhi_cpp_profile_likelihood, 10},
+    {"_AgreementPhi_cpp_modified_profile_likelihood", (DL_FUNC) &_AgreementPhi_cpp_modified_profile_likelihood, 13},
+    {"_AgreementPhi_cpp_get_se", (DL_FUNC) &_AgreementPhi_cpp_get_se, 14},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_betaphi(DllInfo *dll) {
+RcppExport void R_init_AgreementPhi(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

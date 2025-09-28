@@ -4,7 +4,7 @@
 NULL
 
 ## usethis namespace: start
-#' @useDynLib betaphi, .registration = TRUE
+#' @useDynLib AgreementPhi, .registration = TRUE
 ## usethis namespace: end
 NULL
 
