@@ -127,11 +127,10 @@ Rcpp::List cpp_cdfbeta_muphi_funs(const double X, const double MU, const double 
   return(output);
 }
 
-Rcpp::List cpp_items_dict(const int J, Eigen::Map<Eigen::VectorXd> ITEM_INDS){  
+Rcpp::List cpp_items_dict(const int J, const std::vector<double> ITEM_INDS){  
 
-    Eigen::VectorXd item_inds = ITEM_INDS;
 
-    std::vector<std::vector<int>> dict = utils::items_dicts(J, item_inds);
+    std::vector<std::vector<int>> dict = utils::items_dicts(J, ITEM_INDS);
 
     Rcpp::List output(J);
     for (int j = 0; j < J; ++j) {
@@ -158,8 +157,8 @@ Rcpp::List cpp_ordinal_loglik(const double Y, const double MU, const double PHI,
 
 
 Rcpp::List cpp_ordinal_item_loglik(
-    Eigen::Map<Eigen::VectorXd> Y, 
-    Eigen::Map<Eigen::VectorXd> ITEM_INDS,
+    const std::vector<double> Y, 
+    const std::vector<double> ITEM_INDS,
     const double ALPHA,
     const double PHI,
     const int K,
@@ -187,9 +186,9 @@ Rcpp::List cpp_ordinal_item_loglik(
 }
 
 double cpp_log_det_obs_info(
-    Eigen::Map<Eigen::VectorXd> Y, 
-    Eigen::Map<Eigen::VectorXd> ITEM_INDS,
-    Eigen::Map<Eigen::VectorXd> ALPHA,
+    const std::vector<double> Y, 
+    const std::vector<double> ITEM_INDS,
+    const std::vector<double> ALPHA,
     const double PHI,
     const int K,
     const int J)
@@ -204,9 +203,9 @@ double cpp_log_det_obs_info(
 
 
 double cpp_log_det_E0d0d1(
-    Eigen::Map<Eigen::VectorXd> ITEM_INDS,
-    Eigen::Map<Eigen::VectorXd> ALPHA0,
-    Eigen::Map<Eigen::VectorXd> ALPHA1,
+    const std::vector<double> ITEM_INDS,
+    const std::vector<double> ALPHA0,
+    const std::vector<double> ALPHA1,
     const double PHI0,
     const double PHI1,
     const int K,
