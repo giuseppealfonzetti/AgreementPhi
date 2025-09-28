@@ -5,6 +5,7 @@
 
 <!-- badges: start -->
 
+[![R-CMD-check](https://github.com/giuseppealfonzetti/AgreementPhi/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/giuseppealfonzetti/AgreementPhi/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![CRAN
@@ -87,7 +88,7 @@ and also construct confidence intervals for the estimated agreement
 
 ``` r
 get_ci(fit_c_mp)$agreement_ci
-#> [1] 0.6558677 0.7185760
+#> [1] 0.6558683 0.7185755
 ```
 
 Consider now ratings collected on Likert-type rating. To allow for a
@@ -160,7 +161,7 @@ and construct confidence intervals
 
 ``` r
 get_ci(fit_k3_mp)$agreement_ci
-#> [1] 0.6637606 0.7698086
+#> [1] 0.6637616 0.7698076
 get_ci(fit_k7_mp)$agreement_ci
-#> [1] 0.6716127 0.7418278
+#> [1] 0.6716134 0.7418271
 ```
