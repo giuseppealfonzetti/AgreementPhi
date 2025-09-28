@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(betaphi)
+library(AgreementPhi)
 
-test_check("betaphi")
+test_check("AgreementPhi")
