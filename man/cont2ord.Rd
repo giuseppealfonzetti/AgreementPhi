@@ -7,9 +7,9 @@
 cont2ord(X, K)
 }
 \arguments{
-\item{X}{Vector of continuous data in (0,1)}
+\item{X}{Vector of continuous data in (0,1).}
 
-\item{K}{Number of ordinal categories}
+\item{K}{Number of ordinal categories.}
 }
 \value{
 Discretised vector

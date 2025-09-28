@@ -7,10 +7,10 @@
 prec2agr(X)
 }
 \arguments{
-\item{X}{precision parameter}
+\item{X}{Precision parameter.}
 }
 \value{
-General agreement
+General agreement.
 }
 \description{
 From precision to agreement
