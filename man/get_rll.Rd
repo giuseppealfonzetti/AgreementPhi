@@ -7,11 +7,11 @@
 get_rll(X, RANGE = 0.2, PLOT = TRUE, GRID_LENGTH = 15)
 }
 \arguments{
-\item{X}{Object fitted with \code{agreement()} function}
+\item{X}{Object fitted with \code{\link[=agreement]{agreement()}} function.}
 
-\item{RANGE}{Range around agreement mle}
+\item{RANGE}{Range around agreement mle.}
 
-\item{PLOT}{Plot relative log-likelihood}
+\item{PLOT}{Plot relative log-likelihood.}
 
 \item{GRID_LENGTH}{Number of points to be evaluated within RANGE.}
 }

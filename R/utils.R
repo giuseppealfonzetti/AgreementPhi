@@ -1,8 +1,8 @@
 #' From precision to agreement
 #'
-#' @param X precision parameter
+#' @param X Precision parameter.
 #'
-#' @return General agreement
+#' @return General agreement.
 #'
 #' @export
 prec2agr <- function(X) {
@@ -13,9 +13,9 @@ prec2agr <- function(X) {
 
 #' From agreement to precision
 #'
-#' @param X General agreement
+#' @param X General agreement.
 #'
-#' @return precision parameter
+#' @return Precision parameter.
 #'
 #' @export
 agr2prec <- function(X) {
@@ -26,23 +26,31 @@ agr2prec <- function(X) {
 
 #' Discretise continuous data
 #'
-#' @param X Vector of continuous data in (0,1)
-#' @param K Number of ordinal categories
+#' @param X Vector of continuous data in (0,1).
+#' @param K Number of ordinal categories.
 #'
 #' @return Discretised vector
 #'
 #' @export
 cont2ord <- function(X, K) {
+  stopifnot(is.numeric(X))
+  stopifnot(all(X <= 1))
+  stopifnot(all(X >= 0))
+  stopifnot(K %% 1 == 0)
+  stopifnot(K > 1)
+
   breaks <- (0:K) / K
-  findInterval(X, breaks, left.open = TRUE)
+  out <- findInterval(X, breaks, left.open = TRUE)
+  out[X == 0] <- 1
+  return(out)
 }
 
 #' Get relative log-likelihood
 #'
-#' @param X Object fitted with `agreement()` function
-#' @param RANGE Range around agreement mle
+#' @param X Object fitted with [agreement()] function.
+#' @param RANGE Range around agreement mle.
 #' @param GRID_LENGTH Number of points to be evaluated within RANGE.
-#' @param PLOT Plot relative log-likelihood
+#' @param PLOT Plot relative log-likelihood.
 #'
 #' @return Return a data.frame with GRID_LENGTH rows and columns
 #' `precision`, `agreement`, `profile_rll` and `modified_rll`.
@@ -51,6 +59,12 @@ cont2ord <- function(X, K) {
 #' @importFrom stats plogis rbeta
 #' @export
 get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
+  stopifnot(is.numeric(RANGE))
+  stopifnot(RANGE > 0)
+  stopifnot(RANGE <= 1)
+  stopifnot(is.logical(PLOT))
+  stopifnot(GRID_LENGTH > 0)
+
   args <- X$cpp_args
 
   agreement_range <- seq(
@@ -133,10 +147,18 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
 
 #' Get Agreement confidence interval
 #'
-#' @param X Object fitted with `agreement()` function
+#' @param X Object fitted with [agreement()] function.
+#' @param CONFIDENCE Confidence level.
 #'
+#' @return Returns a list with estimate, standard error and confidence interval
+#'
+#' @importFrom stats qnorm
 #' @export
-get_ci <- function(X) {
+get_ci <- function(X, CONFIDENCE = 0.95) {
+  stopifnot(is.numeric(CONFIDENCE))
+  stopifnot(CONFIDENCE < 1)
+  stopifnot(CONFIDENCE > 0)
+
   mle <- X$pl_precision
 
   agr_se <- NA
@@ -180,9 +202,12 @@ get_ci <- function(X) {
     est <- X$pl_agreement
   }
 
+  alpha <- 1 - CONFIDENCE
+  z <- qnorm(1 - alpha / 2)
+
   return(list(
     agreement_est = est,
     agreement_se = agr_se,
-    agreement_ci = c(est - 1.96 * agr_se, est + 1.96 * agr_se)
+    agreement_ci = c(est - z * agr_se, est + z * agr_se)
   ))
 }

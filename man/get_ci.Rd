@@ -4,10 +4,15 @@
 \alias{get_ci}
 \title{Get Agreement confidence interval}
 \usage{
-get_ci(X)
+get_ci(X, CONFIDENCE = 0.95)
 }
 \arguments{
-\item{X}{Object fitted with \code{agreement()} function}
+\item{X}{Object fitted with \code{\link[=agreement]{agreement()}} function.}
+
+\item{CONFIDENCE}{Confidence level.}
+}
+\value{
+Returns a list with estimate, standard error and confidence interval
 }
 \description{
 Get Agreement confidence interval
