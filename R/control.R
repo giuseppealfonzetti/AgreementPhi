@@ -65,7 +65,7 @@ validate_data <- function(RATINGS, ITEM_INDS, VERBOSE = TRUE) {
   out$n_items <- length(unique(out$item_ids))
 
   if (VERBOSE) {
-    message(paste0("Detected ", out$n_items, " unique items."))
+    message(paste0("Detected ", out$n_items, " non-degenerate items."))
   }
   out$data_type <- detect_data_type(RATINGS = out$ratings)
 
@@ -83,6 +83,13 @@ validate_data <- function(RATINGS, ITEM_INDS, VERBOSE = TRUE) {
 
   out$ave_ratings_per_item <- mean(table(out$item_ids))
 
+  if (VERBOSE) {
+    message(paste0(
+      "Average number of observed ratings per item is ",
+      out$ave_ratings_per_item,
+      "."
+    ))
+  }
   return(out)
 }
 
@@ -108,7 +115,7 @@ validate_cpp_control <- function(LIST) {
 
   # search range for profiling
   if (is.null(LIST$PROF_SEARCH_RANGE)) {
-    LIST$PROF_SEARCH_RANGE <- 10
+    LIST$PROF_SEARCH_RANGE <- 5
   }
   stopifnot(is.numeric(LIST$PROF_SEARCH_RANGE))
   stopifnot(LIST$PROF_SEARCH_RANGE > 0)

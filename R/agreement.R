@@ -52,8 +52,9 @@ agreement <- function(
   METHOD <- match.arg(METHOD)
 
   if (val_data$ave_ratings_per_item^3 < val_data$n_items) {
-    warning("Average number of ratings per item is lower than reccomended")
-    CONTROL$PROF_METHOD <- 1
+    if (VERBOSE) {
+      message("Average number of ratings per item is lower than reccomended")
+    }
   }
 
   if (is.null(ALPHA_START)) {
@@ -86,7 +87,7 @@ agreement <- function(
 
   out <- list(
     "cpp_args" = args,
-    "data" = val_data,
+    "data_type" = val_data$data_type,
     "method" = METHOD
   )
   if (METHOD == "modified") {
