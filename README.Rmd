@@ -41,7 +41,7 @@ set.seed(123)
 
 # setting dimension
 items <- 100 
-budget_per_item <- 10
+budget_per_item <- 5
 n_obs <- items * budget_per_item
 
 # item-specific intercepts to generate the data
@@ -95,8 +95,7 @@ Consider now ratings collected on Likert-type rating. To allow for a direct comp
 
 ```{r discretise}
 rating_k3 <- cont2ord(dt$rating, K=3)
-rating_k5 <- cont2ord(dt$rating, K=5)
-rating_k7 <- cont2ord(dt$rating, K=7)
+rating_k6 <- cont2ord(dt$rating, K=6)
 ```
 
 Now, we evaluate the agreement on the discretised data. The fitting function automatically detects the ordinal ratings scale.
@@ -114,29 +113,18 @@ fit_k3_mp <- agreement(
   METHOD = "modified")
 fit_k3_mp$mpl_agreement
 
-fit_k5_p <- agreement(
-  RATINGS = rating_k5,
+fit_k6_p <- agreement(
+  RATINGS = rating_k6,
   ITEM_INDS = dt$id_item,
   METHOD = "profile")
-fit_k5_p$pl_agreement
+fit_k6_p$pl_agreement
 
-fit_k5_mp <- agreement(
-  RATINGS = rating_k5,
+fit_k6_mp <- agreement(
+  RATINGS = rating_k6,
   ITEM_INDS = dt$id_item,
   METHOD = "modified")
-fit_k5_mp$mpl_agreement
+fit_k6_mp$mpl_agreement
 
-fit_k7_p <- agreement(
-  RATINGS = rating_k7,
-  ITEM_INDS = dt$id_item,
-  METHOD = "profile")
-fit_k7_p$pl_agreement
-
-fit_k7_mp <- agreement(
-  RATINGS = rating_k7,
-  ITEM_INDS = dt$id_item,
-  METHOD = "modified")
-fit_k7_mp$mpl_agreement
 
 ```
 
@@ -144,7 +132,7 @@ Also in case of ordinal data we can plot the profiles of the relative log-likeli
 
 
 ```{r}
-rll <- get_rll(fit_k3_mp, PLOT = TRUE)
+rll <- get_rll(fit_k6_mp, PLOT = TRUE)
 ```
 
 and construct confidence intervals
@@ -152,6 +140,6 @@ and construct confidence intervals
 
 ```{r}
 get_ci(fit_k3_mp)$agreement_ci
-get_ci(fit_k7_mp)$agreement_ci
+get_ci(fit_k6_mp)$agreement_ci
 ```
 
