@@ -44,22 +44,20 @@ agreement <- function(
   CONTROL = list(),
   VERBOSE = FALSE
 ) {
-  stopifnot(is.numeric(RATINGS))
-  stopifnot(is.numeric(ITEM_INDS))
-  stopifnot(length(RATINGS) == length(ITEM_INDS))
-  data_type <- detect_data_type(RATINGS = RATINGS, VERBOSE = VERBOSE)
+  val_data <- validate_data(
+    RATINGS = RATINGS,
+    ITEM_INDS = ITEM_INDS,
+    VERBOSE = VERBOSE
+  )
   METHOD <- match.arg(METHOD)
-  n_items <- max(ITEM_INDS)
-  k <- max(RATINGS)
 
-  b <- mean(table(ITEM_INDS))
-  if (b^3 < n_items) {
+  if (val_data$ave_ratings_per_item^3 < val_data$n_items) {
     warning("Average number of ratings per item is lower than reccomended")
     CONTROL$PROF_METHOD <- 1
   }
 
   if (is.null(ALPHA_START)) {
-    ALPHA_START <- rep(0, n_items)
+    ALPHA_START <- rep(0, val_data$n_items)
   }
 
   if (is.null(PHI_START)) {
@@ -67,19 +65,19 @@ agreement <- function(
   }
 
   continuous <- TRUE
-  if (data_type == "ordinal") {
+  if (val_data$data_type == "ordinal") {
     continuous <- FALSE
   }
 
   CONTROL <- validate_cpp_control(CONTROL)
   args <- c(
     list(
-      Y = RATINGS * 1.0,
-      ITEM_INDS = ITEM_INDS,
+      Y = val_data$ratings * 1.0,
+      ITEM_INDS = val_data$item_ids,
       ALPHA_START = ALPHA_START,
       PHI = PHI_START,
-      K = k,
-      J = n_items,
+      K = val_data$K,
+      J = val_data$n_items,
       VERBOSE = VERBOSE,
       CONTINUOUS = continuous
     ),
@@ -88,8 +86,8 @@ agreement <- function(
 
   out <- list(
     "cpp_args" = args,
-    "method" = METHOD,
-    "data_type" = data_type
+    "data" = val_data,
+    "method" = METHOD
   )
   if (METHOD == "modified") {
     opt <- do.call(cpp_get_phi_mp, args)
