@@ -276,6 +276,7 @@ double sample::ordinal::log_det_obs_info(
                 Y, DICT, j, ALPHA.at(j), PHI, K, dalpha, dalpha2, 2
             );
         
+        // Rcpp::Rcout <<"Trace from log_det_obs_info | Item "<< j <<" | PHI: "<< PHI<< " | Alpha: "<<ALPHA.at(j)<< " | dalpha: "<< dalpha << " | -dalpha2: "<<-dalpha2<<" | log(-dalpha2): "<<std::log(-dalpha2) <<  " | ll: "<<ll << "\n";
         out += log(-dalpha2);
     }
 
@@ -309,6 +310,7 @@ double sample::ordinal::log_det_E0d0d1(
         double dmu1 = LinkFuns::logit::dmu(mu1.at(j));
         double n_obs_per_item = static_cast<double>(DICT.at(j).size());
         double outj = n_obs_per_item*dmu0 * dmu1 * e; 
+        // Rcpp::Rcout <<"Trace from log_det_E0d0d1 | Item "<< j <<" | phi0: "<< PHI0<< " | phi1: "<< PHI1 << " | Alpha0: "<<ALPHA0.at(j)<< " | Alpha1: "<<ALPHA1.at(j)<< " | mu0: "<<mu0.at(j)<<  " | mu1: "<<mu1.at(j) << " | dmu0: "<< dmu0 << " | dmu1: " << dmu1 << " | e: " << e << " | outj: " << outj << " | log(outj): " << std::log(outj) << "\n";
         out += std::log(outj);
     }
 
@@ -405,6 +407,7 @@ double sample::continuous::log_det_E0d0d1(
         double dmu1 = LinkFuns::logit::dmu(mu1.at(j));
         double n_obs_per_item = static_cast<double>(DICT.at(j).size());
         double outj = n_obs_per_item * dmu0 * dmu1 * e; 
+        
         out += std::log(outj);
     }
 
