@@ -44,8 +44,6 @@ validate_data <- function(RATINGS, ITEM_INDS, VERBOSE = TRUE) {
 
   out <- list()
   if (length(degen_collect > 0)) {
-    warning("Dropping degenerate items: ", degen_collect)
-
     # drop degenerate items
     informative_ids <- ITEM_INDS[!(ITEM_INDS %in% degen_collect)]
     informative_rts <- RATINGS[!(ITEM_INDS %in% degen_collect)]
