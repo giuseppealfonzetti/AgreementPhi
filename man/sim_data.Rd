@@ -7,21 +7,28 @@
 sim_data(
   J,
   B,
+  W = J,
   AGREEMENT,
   ALPHA,
+  BETA = NULL,
+  MODEL_TYPE = c("one-way", "two-way"),
   DATA_TYPE = c("ordinal", "continuous"),
-  K = 5,
+  K = 6,
   SEED = 123
 )
 }
 \arguments{
 \item{J}{Number of items.}
 
-\item{B}{Budget per item.}
+\item{B}{Budget per item (i.e. number of workers assigned to each item).}
+
+\item{W}{Number of workers.}
 
 \item{AGREEMENT}{General agreement.}
 
 \item{ALPHA}{Item-specific intercepts.}
+
+\item{MODEL_TYPE}{Choose between \code{one-way}, if only item-specific effects are considered, or \code{two-way}, to account for both item and worker-specific effects.}
 
 \item{DATA_TYPE}{Choose between \code{ordinal} or \code{continuous}.}
 
@@ -30,7 +37,7 @@ sim_data(
 \item{SEED}{RNG seed.}
 }
 \value{
-Returns a dataframe with columns id_items, id_items_obs, rating
+Returns a dataframe with columns id_items, id_worker and rating
 }
 \description{
 Simulate ordinal or continuous (0,1) ratings
