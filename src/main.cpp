@@ -3,6 +3,8 @@
 #include <boost/math/tools/minima.hpp>
 #include <boost/math/differentiation/finite_difference.hpp>
 #include <functional>
+#include <Eigen/Dense>
+#include "LBFGS.h"
 
 namespace profile{
     namespace ordinal{
