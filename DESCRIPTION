@@ -2,9 +2,10 @@ Package: AgreementPhi
 Title: General Agreement Phi
 Version: 0.0.0.9000
 Authors@R: 
-    person("Giuseppe", "Alfonzetti", , "giuseppe.alfonzetti@uniud.it", role = c("aut", "cre"))
-Description: Compute phi agreement via beta regression. The package rely on Boost and Eigen, and includes
-License: MIT + file LICENSE
+    c(person("Giuseppe", "Alfonzetti", , "giuseppe.alfonzetti@uniud.it", role = c("aut", "cre")),
+    person("Yixuan", "Qiu", role = "cph",
+           comment = "Author of the included LBFGSpp library"))
+Description: Compute phi agreement via beta regression.
 Suggests: 
     testthat (>= 3.0.0),
     numDeriv,

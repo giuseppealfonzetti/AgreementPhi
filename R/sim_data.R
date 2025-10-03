@@ -5,6 +5,7 @@
 #' @param W Maximum number of workers.
 #' @param AGREEMENT General agreement.
 #' @param ALPHA Item-specific intercepts.
+#' @param BETA Worker-specific intercepts.
 #' @param DATA_TYPE Choose between `ordinal` or `continuous`.
 #' @param K Number of categories in case of ordinal data.
 #' @param SEED RNG seed.

@@ -30,6 +30,7 @@ detect_data_type <- function(RATINGS) {
   }
 }
 
+#' @importFrom stats setNames
 validate_data <- function(RATINGS, ITEM_INDS, VERBOSE = TRUE) {
   stopifnot(is.numeric(RATINGS))
   stopifnot(is.numeric(ITEM_INDS))
