@@ -3,7 +3,7 @@ Title: General Agreement Phi
 Version: 0.0.0.9000
 Authors@R: 
     person("Giuseppe", "Alfonzetti", , "giuseppe.alfonzetti@uniud.it", role = c("aut", "cre"))
-Description: Compute phi agreement via beta regression.
+Description: Compute phi agreement via beta regression. The package rely on Boost and Eigen, and includes
 License: MIT + file LICENSE
 Suggests: 
     testthat (>= 3.0.0),
@@ -16,7 +16,8 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 LinkingTo:
     Rcpp,
-    BH
+    BH,
+    RcppEigen
 Imports: 
     Rcpp (>= 1.1.0),
 URL: https://github.com/giuseppealfonzetti/AgreementPhi
