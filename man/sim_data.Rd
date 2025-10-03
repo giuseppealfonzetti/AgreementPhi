@@ -7,11 +7,10 @@
 sim_data(
   J,
   B,
-  W = J,
+  W = J * 2,
   AGREEMENT,
   ALPHA,
   BETA = NULL,
-  MODEL_TYPE = c("one-way", "two-way"),
   DATA_TYPE = c("ordinal", "continuous"),
   K = 6,
   SEED = 123
@@ -22,13 +21,13 @@ sim_data(
 
 \item{B}{Budget per item (i.e. number of workers assigned to each item).}
 
-\item{W}{Number of workers.}
+\item{W}{Maximum number of workers.}
 
 \item{AGREEMENT}{General agreement.}
 
 \item{ALPHA}{Item-specific intercepts.}
 
-\item{MODEL_TYPE}{Choose between \code{one-way}, if only item-specific effects are considered, or \code{two-way}, to account for both item and worker-specific effects.}
+\item{BETA}{Worker-specific intercepts.}
 
 \item{DATA_TYPE}{Choose between \code{ordinal} or \code{continuous}.}
 

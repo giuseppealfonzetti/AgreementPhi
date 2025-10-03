@@ -171,6 +171,7 @@ phi <- agr2prec(agr)
 dt <- sim_data(
   J = items,
   B = budget_per_item,
+  W = 10,
   AGREEMENT = agr,
   ALPHA = alphas,
   DATA_TYPE = "ordinal",

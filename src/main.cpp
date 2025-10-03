@@ -1,529 +1,20 @@
 #include <Rcpp.h>
-#include "TestFuns.h"
 #include <boost/math/tools/minima.hpp>
 #include <boost/math/differentiation/finite_difference.hpp>
 #include <functional>
 #include <Eigen/Dense>
 #include "LBFGS.h"
 
-namespace profile{
-    namespace ordinal{
-        // Brent search to profile item related nuisance parameter
-        double Brent(
-            const std::vector<double>& Y, 
-            const std::vector<std::vector<int>> DICT,
-            const int ITEM,
-            const double ALPHA_START,
-            const double PHI,
-            const int K,
-            const int RANGE,
-            const int MAX_ITER
-        ){
+#include "rcpptests.h"
+#include "utilities/beta_functions.h"
+#include "utilities/link_functions.h"
+#include "utilities/utils_functions.h"
+#include "ratings/continuous.h"
+#include "ratings/ordinal.h"
+#include "models/oneway.h"
+#include "inference/profile.h"
 
-            double grad, grad2;
-            auto neg_ll = [&](double alpha){
-                double ll = sample::ordinal::item_loglik(Y, DICT, ITEM, alpha, PHI, K, grad, grad2, 0);
-                return -ll; 
-            };
 
-            double lower = ALPHA_START - RANGE; 
-            double upper = ALPHA_START + RANGE;
-
-
-            const int digits = std::numeric_limits<double>::digits;
-            boost::uintmax_t max_iter = MAX_ITER;
-            auto result = boost::math::tools::brent_find_minima(
-                neg_ll, lower, upper, digits, max_iter
-            );
-
-            double opt = result.first; 
-            return opt;
-        }
-        // Newton-Raphson to profile item related nuisance parameter
-        double Newton_Raphson(
-            const std::vector<double>& Y, 
-            const std::vector<std::vector<int>> DICT,
-            const int ITEM,
-            const double ALPHA_START,
-            const double PHI,
-            const int K,
-            const int RANGE,
-            const int MAX_ITER
-        ){
-            auto neg_ll = [&](double alpha){
-                double grad = 0;
-                double grad2 = 0;
-                double ll = sample::ordinal::item_loglik(Y, DICT, ITEM, alpha, PHI, K, grad, grad2, 2);
-                return std::make_pair(grad, grad2); 
-            };
-
-            double lower = ALPHA_START - RANGE; 
-            double upper = ALPHA_START + RANGE;
-
-            const int digits = std::numeric_limits<double>::digits;
-            int get_digits = static_cast<int>(digits * 0.4);
-            boost::uintmax_t max_iter = MAX_ITER;
-            double out = boost::math::tools::newton_raphson_iterate(
-                neg_ll,           
-                ALPHA_START,     
-                lower,           
-                upper,           
-                get_digits,      
-                max_iter);
-
-            return out;
-        }
-
-        // Profile likelihood for phi
-        double loglik(
-            double PHI,
-            const std::vector<double>& Y, 
-            const std::vector<std::vector<int>> DICT,
-            const std::vector<double>& ALPHA_START,
-            const int K,
-            const int J,
-            const int RANGE,
-            const int MAX_ITER,
-            const int METHOD
-        ){
-
-            double grad, grad2;
-            double ll = 0;
-            std::vector<double> alpha(J);
-            for(int j=0; j<J; j++){
-
-                // profiling
-                if(METHOD==0){
-                    double hatalpha = profile::ordinal::Brent(
-                        Y, DICT, j, ALPHA_START.at(j), PHI, K, RANGE, MAX_ITER
-                    );
-                    alpha.at(j)=hatalpha;
-                }else{
-                    double hatalpha = profile::ordinal::Newton_Raphson(
-                        Y, DICT, j, ALPHA_START.at(j), PHI, K, RANGE, MAX_ITER
-                    );
-                    alpha.at(j)=hatalpha;
-                }
-
-                // Evaluate ll contribution
-                double llj = sample::ordinal::item_loglik(Y, DICT, j, alpha.at(j), PHI, K, grad, grad2, 0);
-
-                ll+=llj;
-            }
-
-
-            return ll;
-        }
-
-        // Compute the maximum profile likelihood estimator of phi
-        std::pair<double, double> get_phi_mle(
-            const std::vector<double>& Y, 
-            const std::vector<std::vector<int>> DICT,
-            const std::vector<double>& ALPHA_START,
-            const double PHI_START,
-            const int K,
-            const int J,
-            const int SEARCH_RANGE,
-            const int MAX_ITER,
-            const int PROF_SEARCH_RANGE,
-            const int PROF_MAX_ITER,
-            const int PROF_METHOD)
-        {
-            auto neg_profile_likelihood = [&](double phi){
-                double ll = profile::ordinal::loglik(
-                    phi, Y, DICT, ALPHA_START, K, J, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD);
-                return -ll; 
-            };
-
-            double lower = 1e-8; 
-            double upper = PHI_START + SEARCH_RANGE;
-
-
-            const int digits = std::numeric_limits<double>::digits;
-            boost::uintmax_t max_iter = MAX_ITER;
-            auto result = boost::math::tools::brent_find_minima(
-                neg_profile_likelihood, lower, upper, digits, max_iter
-            );
-
-            // double opt = result.first; 
-            return result;
-        }
-
-        // Modified Profile likelihood for phi
-        double mp_loglik(
-            double PHI,
-            const std::vector<double>& Y, 
-            const std::vector<std::vector<int>> DICT,
-            const std::vector<double>& ALPHA_START,
-            const std::vector<double>& ALPHA_MLE,
-            const double PHI_MLE,
-            const int K,
-            const int J,
-            const int PROF_SEARCH_RANGE,
-            const int PROF_MAX_ITER,
-            const int PROF_METHOD
-        ){
-
-            double grad, grad2;
-            double ll = 0;
-            std::vector<double> prof_alpha(J);
-            for(int j=0; j<J; j++){
-
-                // profiling
-                if(PROF_METHOD==0){
-                    double hatalpha = profile::ordinal::Brent(
-                        Y, DICT, j, ALPHA_START.at(j), PHI, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
-                    );
-                    prof_alpha.at(j)=hatalpha;
-                }else{
-                    double hatalpha = profile::ordinal::Newton_Raphson(
-                        Y, DICT, j, ALPHA_START.at(j), PHI, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
-                    );
-                    prof_alpha.at(j)=hatalpha;
-                }
-
-                // Evaluate ll contribution
-                double llj = sample::ordinal::item_loglik(Y, DICT, j, prof_alpha.at(j), PHI, K, grad, grad2, 0);
-
-                ll+=llj;
-            }
-
-            // add modifier
-            ll +=.5*sample::ordinal::log_det_obs_info(Y, DICT, prof_alpha, PHI, K);
-
-            ll -= sample::ordinal::log_det_E0d0d1(DICT, ALPHA_MLE, prof_alpha, PHI_MLE, PHI, K);
-
-            return ll;
-        }
-
-        // Compute the maximum modified profile likelihood estimator of phi
-        std::vector<double> get_phi_mp(
-            const std::vector<double>& Y, 
-            const std::vector<std::vector<int>> DICT,
-            const std::vector<double>& ALPHA_START,
-            const double PHI_START,
-            const int K,
-            const int J,
-            const int SEARCH_RANGE,
-            const int MAX_ITER,
-            const int PROF_SEARCH_RANGE,
-            const int PROF_MAX_ITER,
-            const int PROF_METHOD,
-            const bool VERBOSE = false)
-        {
-
-            // get mle for phi
-            std::pair<double, double> phi_mle = profile::ordinal::get_phi_mle(
-                Y, DICT, ALPHA_START, PHI_START, K, J,
-                SEARCH_RANGE, MAX_ITER,
-                PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD
-            );
-
-            if(VERBOSE) Rcpp::Rcout<< "Non-adjusted agreement: " << utils::prec2agr(phi_mle.first) << "\n";
-
-            // get mle for alpha
-            std::vector<double> alpha_mle(J);
-            for(int j=0; j<J; j++){
-
-                if(PROF_METHOD==0){
-                    double hatalpha = profile::ordinal::Brent(
-                        Y, DICT, j, ALPHA_START.at(j), phi_mle.first, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
-                    );
-                    alpha_mle.at(j)=hatalpha;
-                }else{
-                    double hatalpha = profile::ordinal::Newton_Raphson(
-                        Y, DICT, j, ALPHA_START.at(j), phi_mle.first, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
-                    );
-                    alpha_mle.at(j)=hatalpha;
-                }
-            }
-
-
-            // negative log-likelihood to minimize
-            auto neg_modified_profile_likelihood = [&](double phi){
-                double ll = profile::ordinal::mp_loglik(
-                    phi, Y, DICT, alpha_mle, alpha_mle, phi_mle.first, K, J, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD);
-                return -ll; 
-            };
-
-            double lower = 1e-8; 
-            double upper = phi_mle.first + SEARCH_RANGE;
-
-
-            const int digits = std::numeric_limits<double>::digits;
-            boost::uintmax_t max_iter = MAX_ITER;
-            auto result = boost::math::tools::brent_find_minima(
-                neg_modified_profile_likelihood, lower, upper, digits, max_iter
-            );
-
-            // double opt = result.first; 
-
-            if(VERBOSE) Rcpp::Rcout<< "Adjusted agreement: " << utils::prec2agr(result.first) << "\n";
-
-            std::vector<double> out(3); 
-            out[0] = result.first;
-            out[1] = -result.second;
-            out[2] = phi_mle.first;
-
-            return out;
-
-
-        }
-
-
-    }
-
-    namespace continuous{
-        // Brent search to profile item related nuisance parameter
-        double Brent(
-            const std::vector<double> Y, 
-            const std::vector<std::vector<int>> DICT,
-            const int ITEM,
-            const double ALPHA_START,
-            const double PHI,
-            const int RANGE,
-            const int MAX_ITER
-        ){
-            double grad, grad2;
-            auto neg_ll = [&](double alpha){
-                double ll = sample::continuous::item_loglik(Y, DICT, ITEM, alpha, PHI, grad, grad2, 0);
-                return -ll; 
-            };
-
-            double lower = ALPHA_START - RANGE; 
-            double upper = ALPHA_START + RANGE;
-
-            const int digits = std::numeric_limits<double>::digits;
-            boost::uintmax_t max_iter = MAX_ITER;
-            auto result = boost::math::tools::brent_find_minima(
-                neg_ll, lower, upper, digits, max_iter
-            );
-
-            double opt = result.first; 
-            return opt;
-        }
-
-        // Newton-Raphson to profile item related nuisance parameter
-        double Newton_Raphson(
-            const std::vector<double> Y, 
-            const std::vector<std::vector<int>> DICT,
-            const int ITEM,
-            const double ALPHA_START,
-            const double PHI,
-            const int RANGE,
-            const int MAX_ITER
-        ){
-            auto neg_ll = [&](double alpha){
-                double grad = 0;
-                double grad2 = 0;
-                double ll = sample::continuous::item_loglik(Y, DICT, ITEM, alpha, PHI, grad, grad2, 2);
-                return std::make_pair(grad, grad2); 
-            };
-
-            double lower = ALPHA_START - RANGE; 
-            double upper = ALPHA_START + RANGE;
-
-            const int digits = std::numeric_limits<double>::digits;
-            int get_digits = static_cast<int>(digits * 0.4);
-            boost::uintmax_t max_iter = MAX_ITER;
-            double out = boost::math::tools::newton_raphson_iterate(
-                neg_ll,           
-                ALPHA_START,     
-                lower,           
-                upper,           
-                get_digits,      
-                max_iter);
-
-            return out;
-        }
-
-        // Profile likelihood for phi
-        double loglik(
-            double PHI,
-            const std::vector<double> Y, 
-            const std::vector<std::vector<int>> DICT,
-            const std::vector<double> ALPHA_START,
-            const int J,
-            const int RANGE,
-            const int MAX_ITER,
-            const int METHOD
-        ){
-            double grad, grad2;
-            double ll = 0;
-            std::vector<double> alpha(J);
-            for(int j=0; j<J; j++){
-
-                // profiling
-                if(METHOD==0){
-                    double hatalpha = profile::continuous::Brent(
-                        Y, DICT, j, ALPHA_START.at(j), PHI, RANGE, MAX_ITER
-                    );
-                    alpha.at(j) = hatalpha;
-                }else{
-                    double hatalpha = profile::continuous::Newton_Raphson(
-                        Y, DICT, j, ALPHA_START.at(j), PHI, RANGE, MAX_ITER
-                    );
-                    alpha.at(j) = hatalpha;
-                }
-
-                // Evaluate ll contribution
-                double llj = sample::continuous::item_loglik(Y, DICT, j, alpha.at(j), PHI, grad, grad2, 0);
-
-                ll += llj;
-            }
-
-            return ll;
-        }
-
-        // Compute the maximum profile likelihood estimator of phi
-        std::pair<double, double> get_phi_mle(
-            const std::vector<double> Y, 
-            const std::vector<std::vector<int>> DICT,
-            const std::vector<double> ALPHA_START,
-            const double PHI_START,
-            const int J,
-            const int SEARCH_RANGE,
-            const int MAX_ITER,
-            const int PROF_SEARCH_RANGE,
-            const int PROF_MAX_ITER,
-            const int PROF_METHOD)
-        {
-            auto neg_profile_likelihood = [&](double phi){
-                double ll = profile::continuous::loglik(
-                    phi, Y, DICT, ALPHA_START, J, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD);
-                return -ll; 
-            };
-
-            double lower = 1e-8; 
-            double upper = PHI_START + SEARCH_RANGE;
-
-            const int digits = std::numeric_limits<double>::digits;
-            boost::uintmax_t max_iter = MAX_ITER;
-            auto result = boost::math::tools::brent_find_minima(
-                neg_profile_likelihood, lower, upper, digits, max_iter
-            );
-
-            // double opt = result.first; 
-            // return opt;
-
-            return result;
-        }
-
-        // Modified Profile likelihood for phi
-        double mp_loglik(
-            double PHI,
-            const std::vector<double> Y, 
-            const std::vector<std::vector<int>> DICT,
-            const std::vector<double> ALPHA_START,
-            const std::vector<double> ALPHA_MLE,
-            const double PHI_MLE,
-            const int J,
-            const int PROF_SEARCH_RANGE,
-            const int PROF_MAX_ITER,
-            const int PROF_METHOD
-        ){
-            double grad, grad2;
-            double ll = 0;
-            std::vector<double> prof_alpha(J);
-            for(int j=0; j<J; j++){
-
-                // profiling
-                if(PROF_METHOD==0){
-                    double hatalpha = profile::continuous::Brent(
-                        Y, DICT, j, ALPHA_START.at(j), PHI, PROF_SEARCH_RANGE, PROF_MAX_ITER
-                    );
-                    prof_alpha.at(j) = hatalpha;
-                }else{
-                    double hatalpha = profile::continuous::Newton_Raphson(
-                        Y, DICT, j, ALPHA_START.at(j), PHI, PROF_SEARCH_RANGE, PROF_MAX_ITER
-                    );
-                    prof_alpha.at(j) = hatalpha;
-                }
-
-                // Evaluate ll contribution
-                double llj = sample::continuous::item_loglik(Y, DICT, j, prof_alpha.at(j), PHI, grad, grad2, 0);
-
-                ll += llj;
-            }
-
-            // add modifier
-            ll += .5*sample::continuous::log_det_obs_info(Y, DICT, prof_alpha, PHI);
-
-            ll -= sample::continuous::log_det_E0d0d1(DICT, ALPHA_MLE, prof_alpha, PHI_MLE, PHI);
-
-            return ll;
-        }
-
-        // Compute the maximum modified profile likelihood estimator of phi
-        std::vector<double> get_phi_mp(
-            const std::vector<double> Y, 
-            const std::vector<std::vector<int>> DICT,
-            const std::vector<double> ALPHA_START,
-            const double PHI_START,
-            const int J,
-            const int SEARCH_RANGE,
-            const int MAX_ITER,
-            const int PROF_SEARCH_RANGE,
-            const int PROF_MAX_ITER,
-            const int PROF_METHOD,
-            const bool VERBOSE = false)
-        {
-            // get mle for phi
-            std::pair<double, double> phi_mle = profile::continuous::get_phi_mle(
-                Y, DICT, ALPHA_START, PHI_START, J,
-                SEARCH_RANGE, MAX_ITER,
-                PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD
-            );
-
-            if(VERBOSE) Rcpp::Rcout<< "Non-adjusted agreement: " << utils::prec2agr(phi_mle.first) << "\n";
-
-            // get mle for alpha
-            std::vector<double> alpha_mle(J);
-            for(int j=0; j<J; j++){
-
-                if(PROF_METHOD==0){
-                    double hatalpha = profile::continuous::Brent(
-                        Y, DICT, j, ALPHA_START.at(j), phi_mle.first, PROF_SEARCH_RANGE, PROF_MAX_ITER
-                    );
-                    alpha_mle.at(j) = hatalpha;
-                }else{
-                    double hatalpha = profile::continuous::Newton_Raphson(
-                        Y, DICT, j, ALPHA_START.at(j), phi_mle.first, PROF_SEARCH_RANGE, PROF_MAX_ITER
-                    );
-                    alpha_mle.at(j) = hatalpha;
-                }
-            }
-
-            // negative log-likelihood to minimize
-            auto neg_modified_profile_likelihood = [&](double phi){
-                double ll = profile::continuous::mp_loglik(
-                    phi, Y, DICT, alpha_mle, alpha_mle, phi_mle.first, J, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD);
-                return -ll; 
-            };
-
-            double lower = 1e-8; 
-            double upper = phi_mle.first + SEARCH_RANGE;
-
-            const int digits = std::numeric_limits<double>::digits;
-            boost::uintmax_t max_iter = MAX_ITER;
-            auto result = boost::math::tools::brent_find_minima(
-                neg_modified_profile_likelihood, lower, upper, digits, max_iter
-            );
-
-
-            if(VERBOSE) Rcpp::Rcout<< "Adjusted agreement: " << utils::prec2agr(result.first) << "\n";
-
-            std::vector<double> out(3); 
-            out[0] = result.first;
-            out[1] = -result.second;
-            out[2] = phi_mle.first;
-
-            return out;
-        }
-
-
-    }
-}
 
 
 
@@ -543,17 +34,17 @@ std::vector<double> cpp_get_phi_mle(
     const bool VERBOSE = false,
     const bool CONTINUOUS = false)
 {
-    std::vector<std::vector<int>> dict = utils::items_dicts(J, ITEM_INDS);
+    std::vector<std::vector<int>> dict = AgreementPhi::utils::oneway_items_dict(J, ITEM_INDS);
     
     std::pair<double, double> opt;
     if(CONTINUOUS){
-        opt = profile::continuous::get_phi_mle(
+        opt = AgreementPhi::continuous::oneway::inference::get_phi_profile(
             Y, dict, ALPHA_START, PHI_START, J,
             SEARCH_RANGE, MAX_ITER,
             PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD
         );
     }else{
-        opt = profile::ordinal::get_phi_mle(
+        opt = AgreementPhi::ordinal::oneway::inference::get_phi_profile(
             Y, dict, ALPHA_START, PHI_START, K, J,
             SEARCH_RANGE, MAX_ITER,
             PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD
@@ -583,17 +74,17 @@ std::vector<double> cpp_get_phi_mp(
     const bool VERBOSE = false,
     const bool CONTINUOUS = false)
 {
-    std::vector<std::vector<int>> dict = utils::items_dicts(J, ITEM_INDS);
+    std::vector<std::vector<int>> dict = AgreementPhi::utils::oneway_items_dict(J, ITEM_INDS);
     
     std::vector<double> opt;
     if(CONTINUOUS){
-        opt = profile::continuous::get_phi_mp(
+        opt = AgreementPhi::continuous::oneway::inference::get_phi_modified_profile(
             Y, dict, ALPHA_START, PHI_START, J,
             SEARCH_RANGE, MAX_ITER,
             PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, VERBOSE
         );
     }else{
-        opt = profile::ordinal::get_phi_mp(
+        opt = AgreementPhi::ordinal::oneway::inference::get_phi_modified_profile(
             Y, dict, ALPHA_START, PHI_START, K, J,
             SEARCH_RANGE, MAX_ITER,
             PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, VERBOSE
@@ -619,15 +110,15 @@ double cpp_profile_likelihood(
     const int PROF_METHOD,
     const bool CONTINUOUS
 ){
-    std::vector<std::vector<int>> dict = utils::items_dicts(J, ITEM_INDS);
+    std::vector<std::vector<int>> dict = AgreementPhi::utils::oneway_items_dict(J, ITEM_INDS);
 
     double out;
     if(CONTINUOUS){
-        out = profile::continuous::loglik(
+        out = AgreementPhi::continuous::oneway::inference::profile_loglik(
                 PHI, Y, dict, ALPHA_START, J,
                 PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD);
     }else{
-        out = profile::ordinal::loglik(
+        out = AgreementPhi::ordinal::oneway::inference::profile_loglik(
                 PHI, Y, dict, ALPHA_START, K, J,
                 PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD);
     }
@@ -653,7 +144,7 @@ double cpp_modified_profile_likelihood(
     const bool CONTINUOUS
 ){
     // get mle for phi
-    std::vector<std::vector<int>> dict = utils::items_dicts(J, ITEM_INDS);
+    std::vector<std::vector<int>> dict = AgreementPhi::utils::oneway_items_dict(J, ITEM_INDS);
 
     
     
@@ -665,18 +156,18 @@ double cpp_modified_profile_likelihood(
         for(int j=0; j<J; j++){
 
             if(PROF_METHOD==0){
-                double hatalpha = profile::continuous::Brent(
+                double hatalpha = AgreementPhi::continuous::oneway::inference::profiling_brent(
                     Y, dict, j, ALPHA_START.at(j), PHI_MLE, PROF_SEARCH_RANGE, PROF_MAX_ITER
                 );
                 alpha_mle.at(j) = hatalpha;
             }else{
-                double hatalpha = profile::continuous::Newton_Raphson(
+                double hatalpha = AgreementPhi::continuous::oneway::inference::profiling_newtonraphson(
                     Y, dict, j, ALPHA_START.at(j), PHI_MLE, PROF_SEARCH_RANGE, PROF_MAX_ITER
                 );
                 alpha_mle.at(j) = hatalpha;
             }
         }
-        out = profile::continuous::mp_loglik(
+        out = AgreementPhi::continuous::oneway::inference::modified_profile_loglik(
                 PHI, Y, dict, alpha_mle, alpha_mle, PHI_MLE, J, 
                 PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD);
     }else{
@@ -684,19 +175,19 @@ double cpp_modified_profile_likelihood(
         for(int j=0; j<J; j++){
 
             if(PROF_METHOD==0){
-                double hatalpha = profile::ordinal::Brent(
+                double hatalpha = AgreementPhi::ordinal::oneway::inference::profiling_brent(
                     Y, dict, j, ALPHA_START.at(j), PHI_MLE, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
                 );
                 alpha_mle.at(j) = hatalpha;
             }else{
-                double hatalpha = profile::ordinal::Newton_Raphson(
+                double hatalpha = AgreementPhi::ordinal::oneway::inference::profiling_newtonraphson(
                     Y, dict, j, ALPHA_START.at(j), PHI_MLE, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
                 );
                 alpha_mle.at(j) = hatalpha;
             }
         }
         
-        out = profile::ordinal::mp_loglik(
+        out = AgreementPhi::ordinal::oneway::inference::modified_profile_loglik(
                 PHI, Y, dict, alpha_mle, alpha_mle, PHI_MLE, K, J, 
                 PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD);
     }
@@ -723,13 +214,13 @@ double cpp_get_se(
     const bool CONTINUOUS = true
 ) {
         
-    double agr = utils::prec2agr(PHI_EVAL);
+    double agr = AgreementPhi::utils::prec2agr(PHI_EVAL);
     
     std::function<double(double)> f;
     
     if(MODIFIED){
         f = [&](double agr){
-            double phi = utils::agr2prec(agr);
+            double phi = AgreementPhi::utils::agr2prec(agr);
             
             double out = cpp_modified_profile_likelihood(
                 Y, ITEM_INDS, ALPHA_START, 
@@ -742,7 +233,7 @@ double cpp_get_se(
         };
     }else{
         f = [&](double agr){
-            double phi = utils::agr2prec(agr);
+            double phi = AgreementPhi::utils::agr2prec(agr);
             
             double out = cpp_profile_likelihood(
                 Y, ITEM_INDS, ALPHA_START, 
