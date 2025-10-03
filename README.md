@@ -65,7 +65,7 @@ fit_c_p <- agreement(
   ITEM_INDS = dt$id_item,
   METHOD = "profile")
 fit_c_p$pl_agreement
-#> [1] 0.7261697
+#> [1] 0.7352999
 
 # fit via modified profile likelihood
 fit_c_mp <- agreement(
@@ -73,7 +73,7 @@ fit_c_mp <- agreement(
   ITEM_INDS = dt$id_item,
   METHOD = "modified")
 fit_c_mp$mpl_agreement
-#> [1] 0.6872219
+#> [1] 0.696586
 ```
 
 We can plot the relative loglikelihood profiles
@@ -88,7 +88,7 @@ and also construct confidence intervals for the estimated agreement
 
 ``` r
 get_ci(fit_c_mp)$agreement_ci
-#> [1] 0.6558683 0.7185755
+#> [1] 0.6652919 0.7278800
 ```
 
 Consider now ratings collected on Likert-type rating. To allow for a
@@ -97,8 +97,7 @@ continuous ratings generated previously
 
 ``` r
 rating_k3 <- cont2ord(dt$rating, K=3)
-rating_k5 <- cont2ord(dt$rating, K=5)
-rating_k7 <- cont2ord(dt$rating, K=7)
+rating_k6 <- cont2ord(dt$rating, K=6)
 ```
 
 Now, we evaluate the agreement on the discretised data. The fitting
@@ -110,49 +109,35 @@ fit_k3_p <- agreement(
   ITEM_INDS = dt$id_item,
   METHOD = "profile")
 fit_k3_p$pl_agreement
-#> [1] 0.7599315
+#> [1] 0.7246408
 
 fit_k3_mp <- agreement(
   RATINGS = rating_k3,
   ITEM_INDS = dt$id_item,
   METHOD = "modified")
 fit_k3_mp$mpl_agreement
-#> [1] 0.7167846
+#> [1] 0.6809393
 
-fit_k5_p <- agreement(
-  RATINGS = rating_k5,
+fit_k6_p <- agreement(
+  RATINGS = rating_k6,
   ITEM_INDS = dt$id_item,
   METHOD = "profile")
-fit_k5_p$pl_agreement
-#> [1] 0.7333303
+fit_k6_p$pl_agreement
+#> [1] 0.7331879
 
-fit_k5_mp <- agreement(
-  RATINGS = rating_k5,
+fit_k6_mp <- agreement(
+  RATINGS = rating_k6,
   ITEM_INDS = dt$id_item,
   METHOD = "modified")
-fit_k5_mp$mpl_agreement
-#> [1] 0.6940051
-
-fit_k7_p <- agreement(
-  RATINGS = rating_k7,
-  ITEM_INDS = dt$id_item,
-  METHOD = "profile")
-fit_k7_p$pl_agreement
-#> [1] 0.7446112
-
-fit_k7_mp <- agreement(
-  RATINGS = rating_k7,
-  ITEM_INDS = dt$id_item,
-  METHOD = "modified")
-fit_k7_mp$mpl_agreement
-#> [1] 0.7067203
+fit_k6_mp$mpl_agreement
+#> [1] 0.6948001
 ```
 
 Also in case of ordinal data we can plot the profiles of the relative
 log-likelihoods
 
 ``` r
-rll <- get_rll(fit_k3_mp, PLOT = TRUE)
+rll <- get_rll(fit_k6_mp, PLOT = TRUE)
 ```
 
 <img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
@@ -161,7 +146,7 @@ and construct confidence intervals
 
 ``` r
 get_ci(fit_k3_mp)$agreement_ci
-#> [1] 0.6637616 0.7698076
-get_ci(fit_k7_mp)$agreement_ci
-#> [1] 0.6716134 0.7418271
+#> [1] 0.6259187 0.7359599
+get_ci(fit_k6_mp)$agreement_ci
+#> [1] 0.6579160 0.7316841
 ```
