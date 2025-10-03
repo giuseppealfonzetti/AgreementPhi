@@ -6,6 +6,7 @@ Authors@R:
     person("Yixuan", "Qiu", role = "cph",
            comment = "Author of the included LBFGSpp library"))
 Description: Compute phi agreement via beta regression.
+License: MIT + file LICENSE
 Suggests: 
     testthat (>= 3.0.0),
     numDeriv,
