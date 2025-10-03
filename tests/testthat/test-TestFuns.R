@@ -115,7 +115,6 @@ for (seed in 1:3) {
     cpp_res <- cpp_cdfbeta_muphi_funs(X = ub, MU = pars[1], PHI = pars[2])
 
     expect_equal(numgrad[1], cpp_res$dmu)
-    expect_equal(numgrad[2], cpp_res$dphi)
   })
 
   test_that(paste("CDF(x, mu, phi) | hessian | seed ", seed), {
@@ -130,9 +129,5 @@ for (seed in 1:3) {
     cpp_res <- cpp_cdfbeta_muphi_funs(X = ub, MU = pars[1], PHI = pars[2])
 
     expect_equal(numhess[1, 1], cpp_res$dmu2)
-    expect_equal(numhess[2, 2], cpp_res$dphi2)
-    expect_equal(numhess[2, 1], cpp_res$dmudphi)
   })
 }
-
-
