@@ -34,7 +34,7 @@ library(AgreementPhi)
 set.seed(123)
 
 # setting dimension
-items <- 200 
+items <- 100 
 budget_per_item <- 10
 n_obs <- items * budget_per_item
 
@@ -65,7 +65,7 @@ fit_c_p <- agreement(
   ITEM_INDS = dt$id_item,
   METHOD = "profile")
 fit_c_p$pl_agreement
-#> [1] 0.7484841
+#> [1] 0.7352999
 
 # fit via modified profile likelihood
 fit_c_mp <- agreement(
@@ -73,7 +73,7 @@ fit_c_mp <- agreement(
   ITEM_INDS = dt$id_item,
   METHOD = "modified")
 fit_c_mp$mpl_agreement
-#> [1] 0.710219
+#> [1] 0.696586
 ```
 
 We can plot the relative loglikelihood profiles
@@ -88,7 +88,7 @@ and also construct confidence intervals for the estimated agreement
 
 ``` r
 get_ci(fit_c_mp)$agreement_ci
-#> [1] 0.6882283 0.7322098
+#> [1] 0.6652919 0.7278800
 ```
 
 Consider now ratings collected on Likert-type rating. To allow for a
@@ -109,28 +109,28 @@ fit_k3_p <- agreement(
   ITEM_INDS = dt$id_item,
   METHOD = "profile")
 fit_k3_p$pl_agreement
-#> [1] 0.7800485
+#> [1] 0.7246408
 
 fit_k3_mp <- agreement(
   RATINGS = rating_k3,
   ITEM_INDS = dt$id_item,
   METHOD = "modified")
 fit_k3_mp$mpl_agreement
-#> [1] 0.7379317
+#> [1] 0.6809393
 
 fit_k6_p <- agreement(
   RATINGS = rating_k6,
   ITEM_INDS = dt$id_item,
   METHOD = "profile")
 fit_k6_p$pl_agreement
-#> [1] 0.7546466
+#> [1] 0.7331879
 
 fit_k6_mp <- agreement(
   RATINGS = rating_k6,
   ITEM_INDS = dt$id_item,
   METHOD = "modified")
 fit_k6_mp$mpl_agreement
-#> [1] 0.7164941
+#> [1] 0.6948001
 ```
 
 Also in case of ordinal data we can plot the profiles of the relative
@@ -146,7 +146,7 @@ and construct confidence intervals
 
 ``` r
 get_ci(fit_k3_mp)$agreement_ci
-#> [1] 0.7010484 0.7748151
+#> [1] 0.6259187 0.7359599
 get_ci(fit_k6_mp)$agreement_ci
-#> [1] 0.6907040 0.7422842
+#> [1] 0.6579160 0.7316841
 ```

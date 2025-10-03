@@ -40,7 +40,7 @@ library(AgreementPhi)
 set.seed(123)
 
 # setting dimension
-items <- 200 
+items <- 100 
 budget_per_item <- 10
 n_obs <- items * budget_per_item
 
