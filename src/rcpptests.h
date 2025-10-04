@@ -235,7 +235,7 @@ double cpp_log_det_E0d0d1(
 
 
 // [[Rcpp::export]]
-Rcpp::List cpp_twoway_joint_loglik(
+Rcpp::List cpp_continuous_twoway_joint_loglik(
     const std::vector<double> Y,
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
@@ -268,4 +268,38 @@ Rcpp::List cpp_twoway_joint_loglik(
     return output;
 }
 
+// [[Rcpp::export]]
+Rcpp::List cpp_ordinal_twoway_joint_loglik(
+    const std::vector<double> Y,
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const Eigen::VectorXd LAMBDA,
+    const double PHI,
+    const int J,
+    const int W,
+    const int K,
+    const int GRADFLAG = 0
+){
+    const int n = Y.size();
+    
+    Eigen::VectorXd dlambda = Eigen::VectorXd::Zero(J + W - 1);
+    Eigen::VectorXd jalphaalpha = Eigen::VectorXd::Zero(J);
+    Eigen::VectorXd jbetabeta = Eigen::VectorXd::Zero(W - 1);
+    Eigen::MatrixXd jalphabeta = Eigen::MatrixXd::Zero(J, W - 1);
+    
+    double ll = AgreementPhi::ordinal::twoway::joint_loglik(
+        Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W, K, 
+        dlambda, jalphaalpha, jbetabeta, jalphabeta, GRADFLAG
+    );
+    
+    Rcpp::List output = Rcpp::List::create(
+        Rcpp::Named("ll") = ll,
+        Rcpp::Named("dlambda") = dlambda,
+        Rcpp::Named("jalphaalpha") = jalphaalpha,
+        Rcpp::Named("jbetabeta") = jbetabeta,
+        Rcpp::Named("jalphabeta") = jalphabeta
+    );
+    
+    return output;
+}
 #endif

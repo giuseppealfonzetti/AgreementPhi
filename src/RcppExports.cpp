@@ -239,9 +239,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// cpp_twoway_joint_loglik
-Rcpp::List cpp_twoway_joint_loglik(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const Eigen::VectorXd LAMBDA, const double PHI, const int J, const int W, const int GRADFLAG);
-RcppExport SEXP _AgreementPhi_cpp_twoway_joint_loglik(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP LAMBDASEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP GRADFLAGSEXP) {
+// cpp_continuous_twoway_joint_loglik
+Rcpp::List cpp_continuous_twoway_joint_loglik(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const Eigen::VectorXd LAMBDA, const double PHI, const int J, const int W, const int GRADFLAG);
+RcppExport SEXP _AgreementPhi_cpp_continuous_twoway_joint_loglik(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP LAMBDASEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP GRADFLAGSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -253,7 +253,26 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type J(JSEXP);
     Rcpp::traits::input_parameter< const int >::type W(WSEXP);
     Rcpp::traits::input_parameter< const int >::type GRADFLAG(GRADFLAGSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_twoway_joint_loglik(Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W, GRADFLAG));
+    rcpp_result_gen = Rcpp::wrap(cpp_continuous_twoway_joint_loglik(Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W, GRADFLAG));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_ordinal_twoway_joint_loglik
+Rcpp::List cpp_ordinal_twoway_joint_loglik(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const Eigen::VectorXd LAMBDA, const double PHI, const int J, const int W, const int K, const int GRADFLAG);
+RcppExport SEXP _AgreementPhi_cpp_ordinal_twoway_joint_loglik(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP LAMBDASEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP GRADFLAGSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type LAMBDA(LAMBDASEXP);
+    Rcpp::traits::input_parameter< const double >::type PHI(PHISEXP);
+    Rcpp::traits::input_parameter< const int >::type J(JSEXP);
+    Rcpp::traits::input_parameter< const int >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const int >::type GRADFLAG(GRADFLAGSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_ordinal_twoway_joint_loglik(Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W, K, GRADFLAG));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -272,7 +291,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_AgreementPhi_cpp_ordinal_item_loglik", (DL_FUNC) &_AgreementPhi_cpp_ordinal_item_loglik, 7},
     {"_AgreementPhi_cpp_log_det_obs_info", (DL_FUNC) &_AgreementPhi_cpp_log_det_obs_info, 6},
     {"_AgreementPhi_cpp_log_det_E0d0d1", (DL_FUNC) &_AgreementPhi_cpp_log_det_E0d0d1, 7},
-    {"_AgreementPhi_cpp_twoway_joint_loglik", (DL_FUNC) &_AgreementPhi_cpp_twoway_joint_loglik, 8},
+    {"_AgreementPhi_cpp_continuous_twoway_joint_loglik", (DL_FUNC) &_AgreementPhi_cpp_continuous_twoway_joint_loglik, 8},
+    {"_AgreementPhi_cpp_ordinal_twoway_joint_loglik", (DL_FUNC) &_AgreementPhi_cpp_ordinal_twoway_joint_loglik, 9},
     {NULL, NULL, 0}
 };
 
