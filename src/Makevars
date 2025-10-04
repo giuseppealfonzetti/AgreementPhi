@@ -1,7 +1,6 @@
 SOURCES = \
   RcppExports.cpp \
   main.cpp \
-  inference/profiling.cpp \
   inference/profile.cpp \
   models/oneway.cpp \
   models/twoway.cpp \
