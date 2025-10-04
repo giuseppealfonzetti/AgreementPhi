@@ -9,6 +9,7 @@
 #include "models/oneway.h"
 #include "models/twoway.h"
 #include "inference/profile.h"
+#include "inference/profiling.h"
 
 // [[Rcpp::export]]
 Rcpp::List cpp_beta_funs(const double A, const double B){
@@ -301,5 +302,38 @@ Rcpp::List cpp_ordinal_twoway_joint_loglik(
     );
     
     return output;
+}
+
+// [[Rcpp::export]]
+Eigen::VectorXd cpp_continuous_twoway_profiling(
+    const std::vector<double> Y,
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const Eigen::VectorXd LAMBDA_START,
+    const double PHI,
+    const int J,
+    const int W,
+    const int MAX_ITER = 100
+){
+    return AgreementPhi::continuous::twoway::inference::profiling_lbfgs(
+        Y, ITEM_INDS, WORKER_INDS, LAMBDA_START, PHI, J, W, MAX_ITER
+    );
+}
+
+// [[Rcpp::export]]
+Eigen::VectorXd cpp_ordinal_twoway_profiling(
+    const std::vector<double> Y,
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const Eigen::VectorXd LAMBDA_START,
+    const double PHI,
+    const int K,
+    const int J,
+    const int W,
+    const int MAX_ITER = 100
+){
+    return AgreementPhi::ordinal::twoway::inference::profiling_lbfgs(
+        Y, ITEM_INDS, WORKER_INDS, LAMBDA_START, PHI, J, W, K, MAX_ITER
+    );
 }
 #endif
