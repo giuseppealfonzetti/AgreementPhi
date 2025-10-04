@@ -1,10 +1,7 @@
 Package: AgreementPhi
 Title: General Agreement Phi
 Version: 0.0.0.9000
-Authors@R: 
-    c(person("Giuseppe", "Alfonzetti", , "giuseppe.alfonzetti@uniud.it", role = c("aut", "cre")),
-    person("Yixuan", "Qiu", role = "cph",
-           comment = "Author of the included LBFGSpp library"))
+Authors@R: person("Giuseppe", "Alfonzetti", , "giuseppe.alfonzetti@uniud.it", role = c("aut", "cre"))
 Description: Compute phi agreement via beta regression.
 License: MIT + file LICENSE
 Suggests: 
@@ -22,6 +19,7 @@ LinkingTo:
     RcppEigen
 Imports: 
     Rcpp (>= 1.1.0),
+    lbfgs
 URL: https://github.com/giuseppealfonzetti/AgreementPhi
 BugReports: https://github.com/giuseppealfonzetti/AgreementPhi/issues
 VignetteBuilder: knitr

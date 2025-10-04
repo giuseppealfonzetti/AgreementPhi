@@ -1,14 +1,14 @@
 SOURCES = \
   RcppExports.cpp \
   main.cpp \
-  inference/optimizer.cpp \
+  inference/profiling.cpp \
   inference/profile.cpp \
   models/oneway.cpp \
   models/twoway.cpp \
   ratings/continuous.cpp \
   ratings/ordinal.cpp 
 
-OBJECTS = $(SOURCES:.cpp=.o)
+OBJECTS = $(SOURCES:.cpp=.o) 
 
 PKG_CPPFLAGS = -I../inst/include
 
