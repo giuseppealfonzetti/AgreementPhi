@@ -23,6 +23,27 @@ namespace AgreementPhi{
                 Eigen::Ref<Eigen::MatrixXd> JALPHABETA,
                 const int GRADFLAG
             );
+
+            double log_det_obs_info(
+                const std::vector<double>& Y,
+                const std::vector<int>& ITEM_INDS,
+                const std::vector<int>& WORKER_INDS,
+                const Eigen::Ref<const Eigen::VectorXd> LAMBDA,
+                const double PHI,
+                const int J,
+                const int W
+            );
+
+            double log_det_E0d0d1(
+                const std::vector<int>& ITEM_INDS,
+                const std::vector<int>& WORKER_INDS,
+                const Eigen::Ref<const Eigen::VectorXd> LAMBDA0,
+                const Eigen::Ref<const Eigen::VectorXd> LAMBDA1,
+                const double PHI0,
+                const double PHI1,
+                const int J,
+                const int W
+            );
         }
     }
 
@@ -42,6 +63,29 @@ namespace AgreementPhi{
                 Eigen::Ref<Eigen::VectorXd> JBETABETA,
                 Eigen::Ref<Eigen::MatrixXd> JALPHABETA,
                 const int GRADFLAG
+            );
+
+            double log_det_obs_info(
+                const std::vector<double>& Y,
+                const std::vector<int>& ITEM_INDS,
+                const std::vector<int>& WORKER_INDS,
+                const Eigen::Ref<const Eigen::VectorXd> LAMBDA,
+                const double PHI,
+                const int J,
+                const int W,
+                const int K
+            );
+
+            double log_det_E0d0d1(
+                const std::vector<int>& ITEM_INDS,
+                const std::vector<int>& WORKER_INDS,
+                const Eigen::Ref<const Eigen::VectorXd> LAMBDA0,
+                const Eigen::Ref<const Eigen::VectorXd> LAMBDA1,
+                const double PHI0,
+                const double PHI1,
+                const int J,
+                const int W,
+                const int K
             );
 
         }

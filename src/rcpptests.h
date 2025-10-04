@@ -9,7 +9,6 @@
 #include "models/oneway.h"
 #include "models/twoway.h"
 #include "inference/profile.h"
-#include "inference/profiling.h"
 
 // [[Rcpp::export]]
 Rcpp::List cpp_beta_funs(const double A, const double B){
@@ -304,36 +303,68 @@ Rcpp::List cpp_ordinal_twoway_joint_loglik(
     return output;
 }
 
+
 // [[Rcpp::export]]
-Eigen::VectorXd cpp_continuous_twoway_profiling(
+double cpp_continuous_twoway_log_det_obs_info(
     const std::vector<double> Y,
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
-    const Eigen::VectorXd LAMBDA_START,
+    const Eigen::VectorXd LAMBDA,
     const double PHI,
     const int J,
-    const int W,
-    const int MAX_ITER = 100
+    const int W
 ){
-    return AgreementPhi::continuous::twoway::inference::profiling_lbfgs(
-        Y, ITEM_INDS, WORKER_INDS, LAMBDA_START, PHI, J, W, MAX_ITER
+    return AgreementPhi::continuous::twoway::log_det_obs_info(
+        Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W
     );
 }
 
 // [[Rcpp::export]]
-Eigen::VectorXd cpp_ordinal_twoway_profiling(
+double cpp_continuous_twoway_log_det_E0d0d1(
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const Eigen::VectorXd LAMBDA0,
+    const Eigen::VectorXd LAMBDA1,
+    const double PHI0,
+    const double PHI1,
+    const int J,
+    const int W
+){
+    return AgreementPhi::continuous::twoway::log_det_E0d0d1(
+        ITEM_INDS, WORKER_INDS, LAMBDA0, LAMBDA1, PHI0, PHI1, J, W
+    );
+}
+
+// [[Rcpp::export]]
+double cpp_ordinal_twoway_log_det_obs_info(
     const std::vector<double> Y,
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
-    const Eigen::VectorXd LAMBDA_START,
+    const Eigen::VectorXd LAMBDA,
     const double PHI,
     const int K,
     const int J,
-    const int W,
-    const int MAX_ITER = 100
+    const int W
 ){
-    return AgreementPhi::ordinal::twoway::inference::profiling_lbfgs(
-        Y, ITEM_INDS, WORKER_INDS, LAMBDA_START, PHI, J, W, K, MAX_ITER
+    return AgreementPhi::ordinal::twoway::log_det_obs_info(
+        Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W, K
+    );
+}
+
+// [[Rcpp::export]]
+double cpp_ordinal_twoway_log_det_E0d0d1(
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const Eigen::VectorXd LAMBDA0,
+    const Eigen::VectorXd LAMBDA1,
+    const double PHI0,
+    const double PHI1,
+    const int J,
+    const int W,
+    const int K
+){
+    return AgreementPhi::ordinal::twoway::log_det_E0d0d1(
+        ITEM_INDS, WORKER_INDS, LAMBDA0, LAMBDA1, PHI0, PHI1, J, W, K
     );
 }
 #endif
