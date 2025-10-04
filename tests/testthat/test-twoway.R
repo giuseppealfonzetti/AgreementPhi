@@ -4,8 +4,8 @@ items <- 3
 workers <- 5
 budget <- 4
 agr <- 0.7
-alphas <- rnorm(J, 0, 0.5)
-betas <- c(0, rnorm(W - 1, 0, 0.3))
+alphas <- rnorm(items, 0, 0.5)
+betas <- c(0, rnorm(workers - 1, 0, 0.3))
 
 dt2 <- sim_data(
   J = items,
@@ -242,6 +242,7 @@ test_that("log_det_obs_info matches numerical Hessian for continuous data", {
 })
 
 #### Derivatives ordinal ####
+set.seed(321)
 items <- 20
 budget_per_item <- 5
 workers <- 10
