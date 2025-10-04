@@ -61,11 +61,19 @@ cpp_ordinal_twoway_joint_loglik <- function(Y, ITEM_INDS, WORKER_INDS, LAMBDA, P
     .Call(`_AgreementPhi_cpp_ordinal_twoway_joint_loglik`, Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W, K, GRADFLAG)
 }
 
-cpp_continuous_twoway_profiling <- function(Y, ITEM_INDS, WORKER_INDS, LAMBDA_START, PHI, J, W, MAX_ITER = 100L) {
-    .Call(`_AgreementPhi_cpp_continuous_twoway_profiling`, Y, ITEM_INDS, WORKER_INDS, LAMBDA_START, PHI, J, W, MAX_ITER)
+cpp_continuous_twoway_log_det_obs_info <- function(Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W) {
+    .Call(`_AgreementPhi_cpp_continuous_twoway_log_det_obs_info`, Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W)
 }
 
-cpp_ordinal_twoway_profiling <- function(Y, ITEM_INDS, WORKER_INDS, LAMBDA_START, PHI, K, J, W, MAX_ITER = 100L) {
-    .Call(`_AgreementPhi_cpp_ordinal_twoway_profiling`, Y, ITEM_INDS, WORKER_INDS, LAMBDA_START, PHI, K, J, W, MAX_ITER)
+cpp_continuous_twoway_log_det_E0d0d1 <- function(ITEM_INDS, WORKER_INDS, LAMBDA0, LAMBDA1, PHI0, PHI1, J, W) {
+    .Call(`_AgreementPhi_cpp_continuous_twoway_log_det_E0d0d1`, ITEM_INDS, WORKER_INDS, LAMBDA0, LAMBDA1, PHI0, PHI1, J, W)
+}
+
+cpp_ordinal_twoway_log_det_obs_info <- function(Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, K, J, W) {
+    .Call(`_AgreementPhi_cpp_ordinal_twoway_log_det_obs_info`, Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, K, J, W)
+}
+
+cpp_ordinal_twoway_log_det_E0d0d1 <- function(ITEM_INDS, WORKER_INDS, LAMBDA0, LAMBDA1, PHI0, PHI1, J, W, K) {
+    .Call(`_AgreementPhi_cpp_ordinal_twoway_log_det_E0d0d1`, ITEM_INDS, WORKER_INDS, LAMBDA0, LAMBDA1, PHI0, PHI1, J, W, K)
 }
 
