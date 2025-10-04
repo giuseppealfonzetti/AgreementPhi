@@ -4,7 +4,8 @@
 #include <functional>
 #include <Eigen/Dense>
 #include "LBFGS.h"
-
+#define EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
+#define EIGEN_DONT_PARALLELIZE
 #include "rcpptests.h"
 #include "utilities/beta_functions.h"
 #include "utilities/link_functions.h"
@@ -12,6 +13,7 @@
 #include "ratings/continuous.h"
 #include "ratings/ordinal.h"
 #include "models/oneway.h"
+#include "models/twoway.h"
 #include "inference/profile.h"
 
 

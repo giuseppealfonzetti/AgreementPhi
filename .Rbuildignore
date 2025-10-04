@@ -6,3 +6,4 @@
 ^doc$
 ^Meta$
 ^\.github$
+^src/.*\.o$

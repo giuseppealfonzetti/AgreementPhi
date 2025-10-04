@@ -1,12 +1,13 @@
 #ifndef AGREEMENTPHI_RCPPTESTS_H
 #define AGREEMENTPHI_RCPPTESTS_H
-
+#include <RcppEigen.h>
 #include "utilities/beta_functions.h"
 #include "utilities/link_functions.h"
 #include "utilities/utils_functions.h"
 #include "ratings/continuous.h"
 #include "ratings/ordinal.h"
 #include "models/oneway.h"
+#include "models/twoway.h"
 #include "inference/profile.h"
 
 // [[Rcpp::export]]
@@ -227,6 +228,44 @@ double cpp_log_det_E0d0d1(
     );
 
     return out;
+}
+
+
+
+
+
+// [[Rcpp::export]]
+Rcpp::List cpp_twoway_joint_loglik(
+    const std::vector<double> Y,
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const Eigen::VectorXd LAMBDA,
+    const double PHI,
+    const int J,
+    const int W,
+    const int GRADFLAG = 0
+){
+    const int n = Y.size();
+    
+    Eigen::VectorXd dlambda = Eigen::VectorXd::Zero(J + W - 1);
+    Eigen::VectorXd jalphaalpha = Eigen::VectorXd::Zero(J);
+    Eigen::VectorXd jbetabeta = Eigen::VectorXd::Zero(W - 1);
+    Eigen::MatrixXd jalphabeta = Eigen::MatrixXd::Zero(J, W - 1);
+    
+    double ll = AgreementPhi::continuous::twoway::joint_loglik(
+        Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W,
+        dlambda, jalphaalpha, jbetabeta, jalphabeta, GRADFLAG
+    );
+    
+    Rcpp::List output = Rcpp::List::create(
+        Rcpp::Named("ll") = ll,
+        Rcpp::Named("dlambda") = dlambda,
+        Rcpp::Named("jalphaalpha") = jalphaalpha,
+        Rcpp::Named("jbetabeta") = jbetabeta,
+        Rcpp::Named("jalphabeta") = jalphabeta
+    );
+    
+    return output;
 }
 
 #endif
