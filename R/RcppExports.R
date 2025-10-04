@@ -53,7 +53,11 @@ cpp_log_det_E0d0d1 <- function(ITEM_INDS, ALPHA0, ALPHA1, PHI0, PHI1, K, J) {
     .Call(`_AgreementPhi_cpp_log_det_E0d0d1`, ITEM_INDS, ALPHA0, ALPHA1, PHI0, PHI1, K, J)
 }
 
-cpp_twoway_joint_loglik <- function(Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W, GRADFLAG = 0L) {
-    .Call(`_AgreementPhi_cpp_twoway_joint_loglik`, Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W, GRADFLAG)
+cpp_continuous_twoway_joint_loglik <- function(Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W, GRADFLAG = 0L) {
+    .Call(`_AgreementPhi_cpp_continuous_twoway_joint_loglik`, Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W, GRADFLAG)
+}
+
+cpp_ordinal_twoway_joint_loglik <- function(Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W, K, GRADFLAG = 0L) {
+    .Call(`_AgreementPhi_cpp_ordinal_twoway_joint_loglik`, Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W, K, GRADFLAG)
 }
 

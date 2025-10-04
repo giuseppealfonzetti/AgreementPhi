@@ -28,6 +28,21 @@ namespace AgreementPhi{
 
     namespace ordinal{
         namespace twoway{
+            double joint_loglik(
+                const std::vector<double>& Y, 
+                const std::vector<int>& ITEM_INDS,   // expected to be coded 1 to J
+                const std::vector<int>& WORKER_INDS, // expected to be coded 1 to W
+                const Eigen::Ref<const Eigen::VectorXd> LAMBDA, //expected length J+W-1
+                const double PHI,
+                const int J, 
+                const int W,
+                const int K,
+                Eigen::Ref<Eigen::VectorXd> DLAMBDA,
+                Eigen::Ref<Eigen::VectorXd> JALPHAALPHA,
+                Eigen::Ref<Eigen::VectorXd> JBETABETA,
+                Eigen::Ref<Eigen::MatrixXd> JALPHABETA,
+                const int GRADFLAG
+            );
 
         }
     }
