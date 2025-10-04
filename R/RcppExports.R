@@ -61,3 +61,11 @@ cpp_ordinal_twoway_joint_loglik <- function(Y, ITEM_INDS, WORKER_INDS, LAMBDA, P
     .Call(`_AgreementPhi_cpp_ordinal_twoway_joint_loglik`, Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W, K, GRADFLAG)
 }
 
+cpp_continuous_twoway_profiling <- function(Y, ITEM_INDS, WORKER_INDS, LAMBDA_START, PHI, J, W, MAX_ITER = 100L) {
+    .Call(`_AgreementPhi_cpp_continuous_twoway_profiling`, Y, ITEM_INDS, WORKER_INDS, LAMBDA_START, PHI, J, W, MAX_ITER)
+}
+
+cpp_ordinal_twoway_profiling <- function(Y, ITEM_INDS, WORKER_INDS, LAMBDA_START, PHI, K, J, W, MAX_ITER = 100L) {
+    .Call(`_AgreementPhi_cpp_ordinal_twoway_profiling`, Y, ITEM_INDS, WORKER_INDS, LAMBDA_START, PHI, K, J, W, MAX_ITER)
+}
+

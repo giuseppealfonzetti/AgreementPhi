@@ -3,7 +3,6 @@
 #include <boost/math/differentiation/finite_difference.hpp>
 #include <functional>
 #include <Eigen/Dense>
-#include "LBFGS.h"
 #define EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
 #define EIGEN_DONT_PARALLELIZE
 #include "rcpptests.h"
@@ -14,6 +13,7 @@
 #include "ratings/ordinal.h"
 #include "models/oneway.h"
 #include "models/twoway.h"
+#include "inference/profiling.h"
 #include "inference/profile.h"
 
 
