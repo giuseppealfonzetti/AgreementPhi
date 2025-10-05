@@ -45,7 +45,7 @@ budget_per_item <- 10
 n_obs <- items * budget_per_item
 
 # item-specific intercepts to generate the data
-alphas <- runif(items)
+alphas <- runif(items, -1, 1)
 
 # true agreement (between 0 and 1)
 agr <- .7
@@ -68,7 +68,8 @@ We fit the model on the continuous ratings data and compare the agreement estima
 fit_c_p <- agreement(
   RATINGS = dt$rating,
   ITEM_INDS = dt$id_item,
-  METHOD = "profile")
+  METHOD = "profile",
+  VERBOSE = TRUE)
 fit_c_p$pl_agreement
 
 # fit via modified profile likelihood
@@ -143,3 +144,116 @@ get_ci(fit_k3_mp)$agreement_ci
 get_ci(fit_k6_mp)$agreement_ci
 ```
 
+### TWO-WAY ####
+
+Consider data generated according to the two-way model. Fitting a one-way specification will likely result in underestimating the agreement
+
+```{r}
+set.seed(123)
+
+# setting dimension
+items <- 100 
+budget_per_item <- 10
+workers <- 20
+n_obs <- items * budget_per_item
+
+# item-specific intercepts to generate the data
+alphas <- runif(items, -1, 1)
+betas <- c(0, runif(workers-1, -1, 1))
+# true agreement (between 0 and 1)
+agr <- .9
+
+# generate continuous rating in (0,1)
+dt_twoway <- sim_data(
+  J = items,
+  B = budget_per_item,
+  W = workers,
+  AGREEMENT = agr,
+  ALPHA = alphas,
+  BETA = betas,
+  DATA_TYPE = "continuous",
+  SEED = 123
+)
+
+# estimation via oneway specification
+fit_c_oneway <- agreement(
+  RATINGS = dt_twoway$rating,
+  ITEM_INDS = dt_twoway$id_item,
+  METHOD = "modified",
+  MODEL = "oneway",
+  VERBOSE = TRUE)
+
+# estimation via twoway specification
+fit_c_twoway <- agreement(
+  RATINGS = dt_twoway$rating,
+  ITEM_INDS = dt_twoway$id_item,
+  WORKER_INDS = dt_twoway$id_worker,
+  METHOD = "modified",
+  MODEL = "twoway",
+  VERBOSE = TRUE)
+
+# estimation via twoway specification | ordinal data
+fit_k6_twoway <- agreement(
+  RATINGS = cont2ord(dt_twoway$rating, K=6),
+  ITEM_INDS = dt_twoway$id_item,
+  WORKER_INDS = dt_twoway$id_worker,
+  METHOD = "modified",
+  MODEL = "twoway",
+  VERBOSE = TRUE)
+
+```
+
+Consider now data generated according to the one-way model. Fitting one-way and two-way specifications will likely result in similar estimates of the agreement.
+
+```{r}
+set.seed(123)
+
+# setting dimension
+items <- 100 
+budget_per_item <- 10
+n_obs <- items * budget_per_item
+
+# item-specific intercepts to generate the data
+alphas <- runif(items, -1, 1)
+
+# true agreement (between 0 and 1)
+agr <- .9
+
+# generate continuous rating in (0,1)
+dt_oneway <- sim_data(
+  J = items,
+  B = budget_per_item,
+  AGREEMENT = agr,
+  ALPHA = alphas,
+  W=20,
+  DATA_TYPE = "continuous",
+  SEED = 123
+)
+
+# estimation via oneway specification
+fit_c_oneway <- agreement(
+  RATINGS = dt_oneway$rating,
+  ITEM_INDS = dt_oneway$id_item,
+  METHOD = "modified",
+  MODEL = "oneway",
+  VERBOSE = TRUE)
+
+# estimation via twoway specification
+fit_c_twoway <- agreement(
+  RATINGS = dt_oneway$rating,
+  ITEM_INDS = dt_oneway$id_item,
+  WORKER_INDS = dt_oneway$id_worker,
+  METHOD = "modified",
+  MODEL = "twoway",
+  VERBOSE = TRUE)
+
+# estimation via twoway specification | ordinal data
+fit_k6_twoway <- agreement(
+  RATINGS = cont2ord(dt_oneway$rating, K=6),
+  ITEM_INDS = dt_oneway$id_item,
+  WORKER_INDS = dt_oneway$id_worker,
+  METHOD = "modified",
+  MODEL = "twoway",
+  VERBOSE = TRUE)
+
+```
