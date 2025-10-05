@@ -7,8 +7,11 @@
 agreement(
   RATINGS,
   ITEM_INDS,
+  WORKER_INDS = NULL,
   METHOD = c("modified", "profile"),
+  MODEL = c("oneway", "twoway"),
   ALPHA_START = NULL,
+  BETA_START = NULL,
   PHI_START = NULL,
   CONTROL = list(),
   VERBOSE = FALSE
@@ -18,7 +21,9 @@ agreement(
 \item{RATINGS}{Ratings vector of dimension n. Ordinal data must be coded in \{1, 2, ..., K\}.
 Continuous data can take values in (0, 1).}
 
-\item{ITEM_INDS}{Index vector with items allocations. Same dimension as \code{RATINGS}.
+\item{ITEM_INDS}{Index vector with items allocations. Same dimension as \code{RATINGS}.}
+
+\item{WORKER_INDS}{Index vector with worker allocations. Same dimension as \code{RATINGS}. Ignored when MODEL == "oneway".
 Must be integers in \{1, 2, ..., J\}.}
 
 \item{METHOD}{Choose between \code{"modified"} or \code{"profile"}. Default is \code{"modified"}.
@@ -27,7 +32,15 @@ Must be integers in \{1, 2, ..., J\}.}
 \item \code{"profile"}: Uses standard profile likelihood
 }}
 
+\item{MODEL}{Choose between \code{"oneway"} or \code{"twoway"}. Default is \code{"oneway"}.
+\itemize{
+\item \code{"oneway"}: Item-specific intercepts. Indistiguishable workers.
+\item \code{"twoway"}: Item-specific and worker-specific intercepts.
+}}
+
 \item{ALPHA_START}{Starting values for item-specific intercepts. Vector of length J. Default is \code{rep(0, J)} where J is the number of items.}
+
+\item{BETA_START}{Starting values for worker-specific intercepts. Vector of length W-1. Default is \code{rep(0, W-1)} where W is the number of workers}
 
 \item{PHI_START}{Starting value for beta precision parameter. Must be positive. Default is \code{agr2prec(0.5)} (precision corresponding to 50\% agreement).}
 
