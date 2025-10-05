@@ -1,3 +1,4 @@
+#' @importFrom stats optimize
 get_phi_profile_twoway <- function(
   Y,
   ITEM_INDS,
@@ -59,6 +60,7 @@ get_phi_profile_twoway <- function(
   )
 }
 
+#' @importFrom stats optimize
 get_phi_modified_profile_twoway <- function(
   Y,
   ITEM_INDS,
