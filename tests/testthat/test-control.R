@@ -138,3 +138,12 @@ test_that("validate_data VERBOSE produces messages", {
     "non-degenerate items"
   )
 })
+
+
+test_that("validate_data requires numeric worker indices", {
+  ratings <- c(1, 2, 2)
+  item_inds <- c(1, 1, 2)
+  worker_inds <- c("1", "2", "3")
+
+  expect_error(validate_data(ratings, item_inds, worker_inds, VERBOSE = FALSE))
+})

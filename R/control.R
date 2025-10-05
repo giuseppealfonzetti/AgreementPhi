@@ -31,41 +31,85 @@ detect_data_type <- function(RATINGS) {
 }
 
 #' @importFrom stats setNames
-validate_data <- function(RATINGS, ITEM_INDS, VERBOSE = TRUE) {
+validate_data <- function(
+  RATINGS,
+  ITEM_INDS,
+  WORKER_INDS = NULL,
+  VERBOSE = TRUE
+) {
+  out <- list()
+
+  # Check args
   stopifnot(is.numeric(RATINGS))
   stopifnot(is.numeric(ITEM_INDS))
+  stopifnot(all(ITEM_INDS == as.integer(ITEM_INDS)))
   stopifnot(length(RATINGS) == length(ITEM_INDS))
 
-  degen_collect <- as.numeric(which(sapply(
-    split(RATINGS, ITEM_INDS),
-    function(x) {
-      all(x == x[1])
+  if (!is.null(WORKER_INDS)) {
+    stopifnot(is.numeric(WORKER_INDS))
+    stopifnot(all(WORKER_INDS == as.integer(WORKER_INDS)))
+    stopifnot(length(RATINGS) == length(WORKER_INDS))
+  }
+  stopifnot(is.logical(VERBOSE))
+
+  # Check for degenerate items in the one-way case
+  if (is.null(WORKER_INDS)) {
+    degen_collect <- as.numeric(which(sapply(
+      split(RATINGS, ITEM_INDS),
+      function(x) all(x == x[1])
+    )))
+
+    if (length(degen_collect) > 0) {
+      # Drop degenerate items
+      informative_ids <- ITEM_INDS[!(ITEM_INDS %in% degen_collect)]
+      informative_rts <- RATINGS[!(ITEM_INDS %in% degen_collect)]
+
+      # Recode item indexes
+      unique_ids <- sort(unique(informative_ids))
+      id_map <- setNames(seq_along(unique_ids), unique_ids)
+      informative_ids_recoded <- as.numeric(id_map[as.character(
+        informative_ids
+      )])
+
+      out$item_ids <- as.integer(informative_ids_recoded)
+      out$ratings <- informative_rts
+    } else {
+      out$item_ids <- ITEM_INDS
+      out$ratings <- RATINGS * 1.0
     }
-  )))
-
-  out <- list()
-  if (length(degen_collect > 0)) {
-    # drop degenerate items
-    informative_ids <- ITEM_INDS[!(ITEM_INDS %in% degen_collect)]
-    informative_rts <- RATINGS[!(ITEM_INDS %in% degen_collect)]
-
-    # recode item indexes
-    unique_ids <- sort(unique(informative_ids))
-    id_map <- setNames(seq_along(unique_ids), unique_ids)
-    informative_ids_recoded <- as.numeric(id_map[as.character(informative_ids)])
-
-    out$item_ids = informative_ids_recoded
-    out$ratings = informative_rts
   } else {
-    out$item_ids = ITEM_INDS
-    out$ratings = RATINGS
+    out$ratings <- RATINGS * 1.0
+
+    # Recode items in case of non consecutive indexes
+    unique_items <- sort(unique(ITEM_INDS))
+    item_map <- setNames(seq_along(unique_items), unique_items)
+    out$item_ids <- as.integer(item_map[as.character(ITEM_INDS)])
+
+    # Recode workers in case of non consecutive indexes
+    unique_workers <- sort(unique(WORKER_INDS))
+    worker_map <- setNames(seq_along(unique_workers), unique_workers)
+    out$worker_ids <- as.integer(worker_map[as.character(WORKER_INDS)])
   }
 
   out$n_items <- length(unique(out$item_ids))
 
-  if (VERBOSE) {
-    message(paste0("Detected ", out$n_items, " non-degenerate items."))
+  if (is.null(WORKER_INDS)) {
+    if (VERBOSE) {
+      message(paste0("Detected ", out$n_items, " non-degenerate items."))
+    }
+  } else {
+    out$n_workers <- length(unique(out$worker_ids))
+    if (VERBOSE) {
+      message(paste0(
+        "Detected ",
+        out$n_items,
+        " items and ",
+        out$n_workers,
+        " workers."
+      ))
+    }
   }
+
   out$data_type <- detect_data_type(RATINGS = out$ratings)
 
   if (out$data_type == "ordinal") {
@@ -80,15 +124,33 @@ validate_data <- function(RATINGS, ITEM_INDS, VERBOSE = TRUE) {
     }
   }
 
-  out$ave_ratings_per_item <- mean(table(out$item_ids))
+  if (is.null(WORKER_INDS)) {
+    out$ave_ratings_per_item <- mean(table(out$item_ids))
+    if (VERBOSE) {
+      message(paste0(
+        "Average number of observed ratings per item is ",
+        round(out$ave_ratings_per_item, 2),
+        "."
+      ))
+    }
+  } else {
+    out$ave_ratings_per_item <- mean(table(out$item_ids))
+    out$ave_ratings_per_worker <- mean(table(out$worker_ids))
 
-  if (VERBOSE) {
-    message(paste0(
-      "Average number of observed ratings per item is ",
-      out$ave_ratings_per_item,
-      "."
-    ))
+    if (VERBOSE) {
+      message(paste0(
+        "Average number of observed ratings per item is ",
+        round(out$ave_ratings_per_item, 2),
+        "."
+      ))
+      message(paste0(
+        "Average number of observed ratings per worker is ",
+        round(out$ave_ratings_per_worker, 2),
+        "."
+      ))
+    }
   }
+
   return(out)
 }
 
