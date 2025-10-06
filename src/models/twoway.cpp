@@ -103,8 +103,8 @@ double AgreementPhi::continuous::twoway::log_det_E0d0d1(
     Eigen::MatrixXd Ialphabeta = Eigen::MatrixXd::Zero(J, W - 1);
     
     for(int i = 0; i < n; ++i){
-        int j = ITEM_INDS[i] - 1;
-        int w = WORKER_INDS[i] - 1;
+        int j = ITEM_INDS.at(i) - 1;
+        int w = WORKER_INDS.at(i) - 1;
         
         double eta0 = LAMBDA0(j) + ((w == 0) ? 0.0 : LAMBDA0(J + w - 1));
         double eta1 = LAMBDA1(j) + ((w == 0) ? 0.0 : LAMBDA1(J + w - 1));
@@ -236,29 +236,23 @@ double AgreementPhi::ordinal::twoway::log_det_E0d0d1(
 ){
     const int n = ITEM_INDS.size();
     
-    std::vector<double> mu0(n), mu1(n);
-    for(int i = 0; i < n; ++i){
-        int j = ITEM_INDS[i] - 1;
-        int w = WORKER_INDS[i] - 1;
-        double eta0 = LAMBDA0(j) + ((w == 0) ? 0.0 : LAMBDA0(J + w - 1));
-        double eta1 = LAMBDA1(j) + ((w == 0) ? 0.0 : LAMBDA1(J + w - 1));
-        mu0[i] = link::mu(eta0);
-        mu1[i] = link::mu(eta1);
-    }
-    
     Eigen::VectorXd Ialphaalpha = Eigen::VectorXd::Zero(J);
     Eigen::VectorXd Ibetabeta = Eigen::VectorXd::Zero(W - 1);
     Eigen::MatrixXd Ialphabeta = Eigen::MatrixXd::Zero(J, W - 1);
-    
+
+    std::vector<double> mu0(n), mu1(n);
     for(int i = 0; i < n; ++i){
-        int j = ITEM_INDS[i] - 1;
-        int w = WORKER_INDS[i] - 1;
-        
-        double e = ordinal::E0_dmu0dmu1(mu0[i], PHI0, mu1[i], PHI1, K);
-        double dmu0_dalpha = link::dmu(mu0[i]);
-        double dmu1_dalpha = link::dmu(mu1[i]);
-        double dmu0_dbeta = (w > 0) ? link::dmu(mu0[i]) : 0.0;
-        double dmu1_dbeta = (w > 0) ? link::dmu(mu1[i]) : 0.0;
+        int j = ITEM_INDS.at(i) - 1;
+        int w = WORKER_INDS.at(i) - 1;
+        double eta0 = LAMBDA0(j) + ((w == 0) ? 0.0 : LAMBDA0(J + w - 1));
+        double eta1 = LAMBDA1(j) + ((w == 0) ? 0.0 : LAMBDA1(J + w - 1));
+        double mu0 = link::mu(eta0);
+        double mu1 = link::mu(eta1);
+        double e = ordinal::E0_dmu0dmu1(mu0, PHI0, mu1, PHI1, K);
+        double dmu0_dalpha = link::dmu(mu0);
+        double dmu1_dalpha = link::dmu(mu1);
+        double dmu0_dbeta = (w > 0) ? dmu0_dalpha : 0.0;
+        double dmu1_dbeta = (w > 0) ? dmu1_dalpha : 0.0;
         
         Ialphaalpha(j) += dmu0_dalpha * dmu1_dalpha * e;
         if(w > 0){
