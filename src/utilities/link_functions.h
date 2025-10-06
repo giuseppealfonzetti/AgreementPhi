@@ -19,7 +19,17 @@ namespace AgreementPhi{
                     expmeta = exp(-ETA);
                 }
 
-                return 1/(1+expmeta);
+                // return 1/(1+expmeta);
+
+                double mu_raw = 1/(1+expmeta);
+    
+                // Check if values are too close to 0 or 1
+                const double MU_MIN = 1e-5;
+                const double MU_MAX = 1.0 - 1e-5;
+                
+                if(mu_raw < MU_MIN) return MU_MIN;
+                if(mu_raw > MU_MAX) return MU_MAX;
+                return mu_raw;
         }
 
         // derivative of mu wrt linear predictor
