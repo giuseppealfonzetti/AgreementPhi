@@ -14,6 +14,7 @@
 #include "models/oneway.h"
 #include "models/twoway.h"
 #include "inference/profile.h"
+#include "inference/nuisance.h"
 
 
 

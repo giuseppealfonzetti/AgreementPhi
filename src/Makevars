@@ -2,6 +2,7 @@ SOURCES = \
   RcppExports.cpp \
   main.cpp \
   inference/profile.cpp \
+  inference/nuisance.cpp \
   models/oneway.cpp \
   models/twoway.cpp \
   ratings/continuous.cpp \
