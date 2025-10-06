@@ -99,7 +99,7 @@ agreement <- function(
     continuous <- FALSE
   }
 
-  CONTROL <- validate_cpp_control(CONTROL)
+  CONTROL <- validate_cpp_control(CONTROL, MODEL)
   args <- c(
     list(
       Y = val_data$ratings * 1.0,

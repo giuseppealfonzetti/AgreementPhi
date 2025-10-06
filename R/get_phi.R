@@ -118,9 +118,11 @@ get_phi_modified_profile_twoway <- function(
     )
   }
 
+  lb <- max(1e-8, phi_mle - SEARCH_RANGE / 3)
+  ub <- min(15, phi_mle + SEARCH_RANGE / 3)
   opt <- optimize(
     f = neg_modified_profile_ll,
-    interval = c(1e-8, phi_mle + SEARCH_RANGE),
+    interval = c(lb, ub),
     maximum = FALSE
   )
 
