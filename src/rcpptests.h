@@ -9,6 +9,7 @@
 #include "models/oneway.h"
 #include "models/twoway.h"
 #include "inference/profile.h"
+#include "inference/nuisance.h"
 
 // [[Rcpp::export]]
 Rcpp::List cpp_beta_funs(const double A, const double B){
@@ -366,5 +367,122 @@ double cpp_ordinal_twoway_log_det_E0d0d1(
     return AgreementPhi::ordinal::twoway::log_det_E0d0d1(
         ITEM_INDS, WORKER_INDS, LAMBDA0, LAMBDA1, PHI0, PHI1, J, W, K
     );
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> cpp_continuous_profiling(
+    const std::vector<double> Y,  
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const std::vector<double> ALPHA,
+    const std::vector<double> BETA,
+    const double PHI,
+    const int J,
+    const int W,
+    const int PROF_UNI_RANGE,
+    const int PROF_UNI_MAX_ITER,
+    const int PROF_MAX_ITER,
+    const double TOL
+){
+    // std::vector<std::vector<int>> dict_items = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+    // std::vector<std::vector<int>> dict_workers = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
+    
+    // std::vector<double> alphas = ALPHA;
+    // std::vector<double> betas = BETA;
+    // betas.at(0) = 0;
+    
+    // for(int iter = 0; iter < PROF_MAX_ITER; ++iter){
+    //     double max_change = 0;
+        
+    //     // Profile items
+    //     for(int j = 0; j < J; ++j){
+    //         double old_alpha = alphas.at(j);
+    //         alphas.at(j) = AgreementPhi::continuous::nuisance::brent_profiling(
+    //             Y, dict_items, j, WORKER_INDS, betas, 
+    //             old_alpha, PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
+    //         );
+    //         max_change = std::max(max_change, std::abs(alphas.at(j) - old_alpha)/old_alpha);
+    //     }
+        
+    //     // Profile workers
+    //     for(int w = 1; w < W; ++w){
+    //         double old_beta = betas.at(w);
+    //         betas.at(w) = AgreementPhi::continuous::nuisance::brent_profiling(
+    //             Y, dict_workers, w, ITEM_INDS, alphas, 
+    //             old_beta, PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
+    //         );
+    //         max_change = std::max(max_change, std::abs(betas.at(w) - old_beta)/old_beta);
+    //     }
+        
+    //     if(max_change < TOL) break;
+    // }
+    
+    // std::vector<std::vector<double>> out(2);
+    // out.at(0) = alphas;
+    // out.at(1) = betas;
+
+    std::vector<std::vector<double>> out = AgreementPhi::continuous::twoway::inference::get_lambda(
+        Y,  ITEM_INDS, WORKER_INDS, ALPHA,  BETA, PHI, J, W, PROF_UNI_RANGE,
+        PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL);
+    return out;
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> cpp_ordinal_profiling(
+    const std::vector<double> Y,  
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const std::vector<double> ALPHA,
+    const std::vector<double> BETA,
+    const double PHI,
+    const int J,
+    const int W,
+    const int K,
+    const int PROF_UNI_RANGE,
+    const int PROF_UNI_MAX_ITER,
+    const int PROF_MAX_ITER,
+    const double TOL
+){
+    // std::vector<std::vector<int>> dict_items = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+    // std::vector<std::vector<int>> dict_workers = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
+    
+    // std::vector<double> alphas = ALPHA;
+    // std::vector<double> betas = BETA;
+    // betas.at(0) = 0;
+    
+    // for(int iter = 0; iter < PROF_MAX_ITER; ++iter){
+    //     double max_change = 0;
+        
+    //     // Profile items
+    //     for(int j = 0; j < J; ++j){
+    //         double old_alpha = alphas.at(j);
+    //         alphas.at(j) = AgreementPhi::ordinal::nuisance::brent_profiling(
+    //             Y, dict_items, j, WORKER_INDS, betas, 
+    //             old_alpha, PHI, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
+    //         );
+    //         max_change = std::max(max_change, std::abs(alphas.at(j) - old_alpha)/old_alpha);
+    //     }
+        
+    //     // Profile workers
+    //     for(int w = 1; w < W; ++w){
+    //         double old_beta = betas.at(w);
+    //         betas.at(w) = AgreementPhi::ordinal::nuisance::brent_profiling(
+    //             Y, dict_workers, w, ITEM_INDS, alphas, 
+    //             old_beta, PHI, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
+    //         );
+    //         max_change = std::max(max_change, std::abs(betas.at(w) - old_beta)/old_beta);
+    //     }
+        
+    //     if(max_change < TOL) break;
+    // }
+    
+    // std::vector<std::vector<double>> out(2);
+    // out.at(0) = alphas;
+    // out.at(1) = betas;
+
+    std::vector<std::vector<double>> out = AgreementPhi::ordinal::twoway::inference::get_lambda(
+        Y,  ITEM_INDS, WORKER_INDS, ALPHA,  BETA, PHI, J, W, K, PROF_UNI_RANGE,
+        PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL);
+    return out;
 }
 #endif

@@ -348,6 +348,51 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cpp_continuous_profiling
+std::vector<std::vector<double>> cpp_continuous_profiling(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA, const std::vector<double> BETA, const double PHI, const int J, const int W, const int PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double TOL);
+RcppExport SEXP _AgreementPhi_cpp_continuous_profiling(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHASEXP, SEXP BETASEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP TOLSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA(ALPHASEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type BETA(BETASEXP);
+    Rcpp::traits::input_parameter< const double >::type PHI(PHISEXP);
+    Rcpp::traits::input_parameter< const int >::type J(JSEXP);
+    Rcpp::traits::input_parameter< const int >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_RANGE(PROF_UNI_RANGESEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_MAX_ITER(PROF_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const double >::type TOL(TOLSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_continuous_profiling(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI, J, W, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_ordinal_profiling
+std::vector<std::vector<double>> cpp_ordinal_profiling(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA, const std::vector<double> BETA, const double PHI, const int J, const int W, const int K, const int PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double TOL);
+RcppExport SEXP _AgreementPhi_cpp_ordinal_profiling(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHASEXP, SEXP BETASEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP TOLSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA(ALPHASEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type BETA(BETASEXP);
+    Rcpp::traits::input_parameter< const double >::type PHI(PHISEXP);
+    Rcpp::traits::input_parameter< const int >::type J(JSEXP);
+    Rcpp::traits::input_parameter< const int >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_RANGE(PROF_UNI_RANGESEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_MAX_ITER(PROF_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const double >::type TOL(TOLSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_ordinal_profiling(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI, J, W, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_AgreementPhi_cpp_get_phi_mle", (DL_FUNC) &_AgreementPhi_cpp_get_phi_mle, 13},
@@ -369,6 +414,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_AgreementPhi_cpp_continuous_twoway_log_det_E0d0d1", (DL_FUNC) &_AgreementPhi_cpp_continuous_twoway_log_det_E0d0d1, 8},
     {"_AgreementPhi_cpp_ordinal_twoway_log_det_obs_info", (DL_FUNC) &_AgreementPhi_cpp_ordinal_twoway_log_det_obs_info, 8},
     {"_AgreementPhi_cpp_ordinal_twoway_log_det_E0d0d1", (DL_FUNC) &_AgreementPhi_cpp_ordinal_twoway_log_det_E0d0d1, 9},
+    {"_AgreementPhi_cpp_continuous_profiling", (DL_FUNC) &_AgreementPhi_cpp_continuous_profiling, 12},
+    {"_AgreementPhi_cpp_ordinal_profiling", (DL_FUNC) &_AgreementPhi_cpp_ordinal_profiling, 13},
     {NULL, NULL, 0}
 };
 
