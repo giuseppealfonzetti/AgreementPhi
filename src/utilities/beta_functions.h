@@ -38,58 +38,86 @@ namespace AgreementPhi{
 
         // derivative incomplete beta function wrt first shape parameter
         inline double diBda(const double X, const double A, const double B){
+
+            double lb = 1e-12;
+            if(X < lb) return 0.0;
             auto f = [A, B](double t) {
                 return std::log(t) * std::pow(t, A - 1) * std::pow(1 - t, B - 1);
             };
 
             boost::math::quadrature::tanh_sinh<double> integrator(15);
-            double out = integrator.integrate(f, 0.0, X, 1e-15);
 
-            return out;
+            try {
+                double out = integrator.integrate(f, 0.0, X, 1e-15);
+                return out;
+            } catch(...) {
+                return 0.0;
+            }
+            // return out;
         }
 
         // derivative incomplete beta function wrt second shape parameter
         inline double diBdb(const double X, const double A, const double B){
+            double lb = 1e-12;
+            if(X < lb) return 0.0;
             auto f = [A, B](double t) {
                 return std::log(1-t) * std::pow(t, A - 1) * std::pow(1 - t, B - 1);
             };
             boost::math::quadrature::tanh_sinh<double> integrator(15);
-            double out = integrator.integrate(f, 0.0, X, 1e-15);
-
-            return out;
+            try {
+                double out = integrator.integrate(f, 0.0, X, 1e-15);
+                return out;
+            } catch(...) {
+                return 0.0;
+            }
         }
 
         // second derivative incomplete beta function wrt first shape parameter
         inline double d2iBda2(const double X, const double A, const double B){
+            double lb = 1e-12;
+            if(X < lb) return 0.0;
             auto f = [A, B](double t) {
                 return pow(std::log(t), 2) * std::pow(t, A - 1) * std::pow(1 - t, B - 1);
             };
             boost::math::quadrature::tanh_sinh<double> integrator(15);
-            double out = integrator.integrate(f, 0.0, X, 1e-15);
-
-            return out;
+            try {
+                double out = integrator.integrate(f, 0.0, X, 1e-15);
+                return out;
+            } catch(...) {
+                return 0.0;
+            }
         }
 
         // second derivative incomplete beta function wrt second shape parameter
         inline double d2iBdb2(const double X, const double A, const double B){
+            double lb = 1e-12;
+            if(X < lb) return 0.0;
             auto f = [A, B](double t) {
                 return pow(std::log(1-t), 2) * std::pow(t, A - 1) * std::pow(1 - t, B - 1);
             };
             boost::math::quadrature::tanh_sinh<double> integrator(15);
-            double out = integrator.integrate(f, 0.0, X, 1e-15);
-
-            return out;
+            try {
+                double out = integrator.integrate(f, 0.0, X, 1e-15);
+                return out;
+            } catch(...) {
+                return 0.0;
+            }
         }
 
         // crossed derivative incomplete beta function
         inline double d2iBdadb(const double X, const double A, const double B){
+            double lb = 1e-12;
+            if(X < lb) return 0.0;
             auto f = [A, B](double t) {
                 return std::log(1-t)*std::log(t) * std::pow(t, A - 1) * std::pow(1 - t, B - 1);
             };
             boost::math::quadrature::tanh_sinh<double> integrator(15);
-            double out = integrator.integrate(f, 0.0, X, 1e-15);
-
-            return out;
+            try {
+                double out = integrator.integrate(f, 0.0, X, 1e-15);
+                return out;
+            } catch(...) {
+                return 0.0;
+            }
         }
 
         // derivative of beta CDF wrt to shape parameter (first or second depends on DIB and DLOGB)
