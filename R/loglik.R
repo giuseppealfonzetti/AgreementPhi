@@ -74,7 +74,7 @@ modified_profile_loglik_twoway <- function(
     Y = Y,
     ITEM_INDS = ITEM_INDS,
     WORKER_INDS,
-    LAMBDA_START = LAMBDA_START,
+    LAMBDA_START = LAMBDA_MLE,
     PHI = PHI,
     K = K,
     J = J,
