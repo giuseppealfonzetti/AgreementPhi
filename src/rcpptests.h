@@ -9,6 +9,9 @@
 #include "models/oneway.h"
 #include "models/twoway.h"
 #include "inference/profile.h"
+#include "inference/nuisance.h"
+#include "inference/loglik.h"
+#include "inference/precision.h"
 
 // [[Rcpp::export]]
 Rcpp::List cpp_beta_funs(const double A, const double B){
@@ -239,7 +242,7 @@ Rcpp::List cpp_continuous_twoway_joint_loglik(
     const std::vector<double> Y,
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
-    const Eigen::VectorXd LAMBDA,
+    const std::vector<double> LAMBDA,
     const double PHI,
     const int J,
     const int W,
@@ -273,7 +276,7 @@ Rcpp::List cpp_ordinal_twoway_joint_loglik(
     const std::vector<double> Y,
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
-    const Eigen::VectorXd LAMBDA,
+    const std::vector<double> LAMBDA,
     const double PHI,
     const int J,
     const int W,
@@ -309,7 +312,7 @@ double cpp_continuous_twoway_log_det_obs_info(
     const std::vector<double> Y,
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
-    const Eigen::VectorXd LAMBDA,
+    const std::vector<double> LAMBDA,
     const double PHI,
     const int J,
     const int W
@@ -323,8 +326,8 @@ double cpp_continuous_twoway_log_det_obs_info(
 double cpp_continuous_twoway_log_det_E0d0d1(
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
-    const Eigen::VectorXd LAMBDA0,
-    const Eigen::VectorXd LAMBDA1,
+    const std::vector<double> LAMBDA0,
+    const std::vector<double> LAMBDA1,
     const double PHI0,
     const double PHI1,
     const int J,
@@ -340,7 +343,7 @@ double cpp_ordinal_twoway_log_det_obs_info(
     const std::vector<double> Y,
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
-    const Eigen::VectorXd LAMBDA,
+    const std::vector<double> LAMBDA,
     const double PHI,
     const int K,
     const int J,
@@ -355,8 +358,8 @@ double cpp_ordinal_twoway_log_det_obs_info(
 double cpp_ordinal_twoway_log_det_E0d0d1(
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
-    const Eigen::VectorXd LAMBDA0,
-    const Eigen::VectorXd LAMBDA1,
+    const std::vector<double> LAMBDA0,
+    const std::vector<double> LAMBDA1,
     const double PHI0,
     const double PHI1,
     const int J,
@@ -367,4 +370,212 @@ double cpp_ordinal_twoway_log_det_E0d0d1(
         ITEM_INDS, WORKER_INDS, LAMBDA0, LAMBDA1, PHI0, PHI1, J, W, K
     );
 }
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> cpp_continuous_profiling(
+    const std::vector<double> Y,  
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const std::vector<double> ALPHA,
+    const std::vector<double> BETA,
+    const double PHI,
+    const int J,
+    const int W,
+    const int PROF_UNI_RANGE,
+    const int PROF_UNI_MAX_ITER,
+    const int PROF_MAX_ITER,
+    const double TOL
+){
+    
+    std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+    std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
+
+
+    std::vector<std::vector<double>> out = AgreementPhi::continuous::twoway::inference::get_lambda(
+        Y,  ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA,  BETA, PHI, J, W, PROF_UNI_RANGE,
+        PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL);
+    return out;
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> cpp_ordinal_profiling(
+    const std::vector<double> Y,  
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const std::vector<double> ALPHA,
+    const std::vector<double> BETA,
+    const double PHI,
+    const int J,
+    const int W,
+    const int K,
+    const int PROF_UNI_RANGE,
+    const int PROF_UNI_MAX_ITER,
+    const int PROF_MAX_ITER,
+    const double TOL
+){
+    
+
+    std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+    std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
+
+
+    std::vector<std::vector<double>> out = AgreementPhi::ordinal::twoway::inference::get_lambda(
+        Y,  ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA,  BETA, PHI, J, W, K, PROF_UNI_RANGE,
+        PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL);
+    return out;
+}
+
+
+// [[Rcpp::export]]
+double cpp_twoway_profile_likelihood(
+    const std::vector<double> Y,  
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const std::vector<double> ALPHA,
+    const std::vector<double> BETA,
+    const double PHI,
+    const int J,
+    const int W,
+    const int K,
+    const int PROF_UNI_RANGE,
+    const int PROF_UNI_MAX_ITER,
+    const int PROF_MAX_ITER,
+    const double PROF_TOL,
+    const bool CONTINUOUS
+){
+
+    std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+    std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
+
+    double out;
+    if(CONTINUOUS){
+        out = AgreementPhi::continuous::twoway::loglik::profile(
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA, BETA, PHI, J, W, PROF_UNI_RANGE,
+                PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+    }else{
+        out = AgreementPhi::ordinal::twoway::loglik::profile(
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA, BETA, PHI, J, W, K, PROF_UNI_RANGE,
+                PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+    }
+
+    return out;
+
+}
+
+// [[Rcpp::export]]
+std::vector<double> cpp_twoway_get_phi_profile(
+    const std::vector<double> Y,  
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const std::vector<double> ALPHA,
+    const std::vector<double> BETA,
+    const double PHI_START,
+    const int J,
+    const int W,
+    const int K,
+    const double SEARCH_RANGE,
+    const int MAX_ITER,
+    const int PROF_UNI_RANGE,
+    const int PROF_UNI_MAX_ITER,
+    const int PROF_MAX_ITER,
+    const double PROF_TOL,
+    const bool CONTINUOUS
+){
+
+    std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+    std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
+
+    std::pair<double, double> res;
+    if(CONTINUOUS){
+        res = AgreementPhi::continuous::twoway::inference::get_phi_profile(
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA, BETA, PHI_START, J, W, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE,
+                PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+    }else{
+        res = AgreementPhi::ordinal::twoway::inference::get_phi_profile(
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA, BETA, PHI_START, J, W, K, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE,
+                PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+    }
+
+    std::vector<double> out(2);
+    out[0]=res.first;
+    out[1]=res.second;
+    return out;
+
+}
+
+// [[Rcpp::export]]
+double cpp_twoway_modified_profile_likelihood(
+    const std::vector<double> Y,  
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const std::vector<double> ALPHA_MLE,
+    const std::vector<double> BETA_MLE,
+    const double PHI,
+    const double PHI_MLE,
+    const int J,
+    const int W,
+    const int K,
+    const int PROF_UNI_RANGE,
+    const int PROF_UNI_MAX_ITER,
+    const int PROF_MAX_ITER,
+    const double PROF_TOL,
+    const bool CONTINUOUS
+){
+
+    std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+    std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
+
+    double out;
+    if(CONTINUOUS){
+        out = AgreementPhi::continuous::twoway::loglik::modified_profile(
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_MLE, BETA_MLE, PHI, PHI_MLE, J, W, PROF_UNI_RANGE,
+                PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+    }else{
+        out = AgreementPhi::ordinal::twoway::loglik::modified_profile(
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_MLE, BETA_MLE, PHI, PHI_MLE, J, W, K, PROF_UNI_RANGE,
+                PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+    }
+
+    return out;
+
+}
+
+// [[Rcpp::export]]
+std::vector<double> cpp_twoway_get_phi_modified_profile(
+    const std::vector<double> Y,  
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const std::vector<double> ALPHA,
+    const std::vector<double> BETA,
+    const double PHI_START,
+    const int J,
+    const int W,
+    const int K,
+    const double SEARCH_RANGE,
+    const int MAX_ITER,
+    const int PROF_UNI_RANGE,
+    const int PROF_UNI_MAX_ITER,
+    const int PROF_MAX_ITER,
+    const double PROF_TOL,
+    const bool CONTINUOUS,
+    const bool VERBOSE
+){
+
+    std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+    std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
+
+    std::vector<double> res;
+    if(CONTINUOUS){
+        res = AgreementPhi::continuous::twoway::inference::get_phi_modified_profile(
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA, BETA, PHI_START, J, W, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE,
+                PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, VERBOSE);
+    }else{
+        res = AgreementPhi::ordinal::twoway::inference::get_phi_modified_profile(
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA, BETA, PHI_START, J, W, K, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE,
+                PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, VERBOSE);
+    }
+
+    return res;
+}
+
 #endif

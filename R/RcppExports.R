@@ -77,3 +77,27 @@ cpp_ordinal_twoway_log_det_E0d0d1 <- function(ITEM_INDS, WORKER_INDS, LAMBDA0, L
     .Call(`_AgreementPhi_cpp_ordinal_twoway_log_det_E0d0d1`, ITEM_INDS, WORKER_INDS, LAMBDA0, LAMBDA1, PHI0, PHI1, J, W, K)
 }
 
+cpp_continuous_profiling <- function(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI, J, W, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL) {
+    .Call(`_AgreementPhi_cpp_continuous_profiling`, Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI, J, W, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL)
+}
+
+cpp_ordinal_profiling <- function(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI, J, W, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL) {
+    .Call(`_AgreementPhi_cpp_ordinal_profiling`, Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI, J, W, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL)
+}
+
+cpp_twoway_profile_likelihood <- function(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI, J, W, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, CONTINUOUS) {
+    .Call(`_AgreementPhi_cpp_twoway_profile_likelihood`, Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI, J, W, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, CONTINUOUS)
+}
+
+cpp_twoway_get_phi_profile <- function(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI_START, J, W, K, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, CONTINUOUS) {
+    .Call(`_AgreementPhi_cpp_twoway_get_phi_profile`, Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI_START, J, W, K, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, CONTINUOUS)
+}
+
+cpp_twoway_modified_profile_likelihood <- function(Y, ITEM_INDS, WORKER_INDS, ALPHA_MLE, BETA_MLE, PHI, PHI_MLE, J, W, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, CONTINUOUS) {
+    .Call(`_AgreementPhi_cpp_twoway_modified_profile_likelihood`, Y, ITEM_INDS, WORKER_INDS, ALPHA_MLE, BETA_MLE, PHI, PHI_MLE, J, W, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, CONTINUOUS)
+}
+
+cpp_twoway_get_phi_modified_profile <- function(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI_START, J, W, K, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, CONTINUOUS, VERBOSE) {
+    .Call(`_AgreementPhi_cpp_twoway_get_phi_modified_profile`, Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI_START, J, W, K, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, CONTINUOUS, VERBOSE)
+}
+

@@ -240,7 +240,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_continuous_twoway_joint_loglik
-Rcpp::List cpp_continuous_twoway_joint_loglik(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const Eigen::VectorXd LAMBDA, const double PHI, const int J, const int W, const int GRADFLAG);
+Rcpp::List cpp_continuous_twoway_joint_loglik(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> LAMBDA, const double PHI, const int J, const int W, const int GRADFLAG);
 RcppExport SEXP _AgreementPhi_cpp_continuous_twoway_joint_loglik(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP LAMBDASEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP GRADFLAGSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -248,7 +248,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type LAMBDA(LAMBDASEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type LAMBDA(LAMBDASEXP);
     Rcpp::traits::input_parameter< const double >::type PHI(PHISEXP);
     Rcpp::traits::input_parameter< const int >::type J(JSEXP);
     Rcpp::traits::input_parameter< const int >::type W(WSEXP);
@@ -258,7 +258,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_ordinal_twoway_joint_loglik
-Rcpp::List cpp_ordinal_twoway_joint_loglik(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const Eigen::VectorXd LAMBDA, const double PHI, const int J, const int W, const int K, const int GRADFLAG);
+Rcpp::List cpp_ordinal_twoway_joint_loglik(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> LAMBDA, const double PHI, const int J, const int W, const int K, const int GRADFLAG);
 RcppExport SEXP _AgreementPhi_cpp_ordinal_twoway_joint_loglik(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP LAMBDASEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP GRADFLAGSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -266,7 +266,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type LAMBDA(LAMBDASEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type LAMBDA(LAMBDASEXP);
     Rcpp::traits::input_parameter< const double >::type PHI(PHISEXP);
     Rcpp::traits::input_parameter< const int >::type J(JSEXP);
     Rcpp::traits::input_parameter< const int >::type W(WSEXP);
@@ -277,7 +277,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_continuous_twoway_log_det_obs_info
-double cpp_continuous_twoway_log_det_obs_info(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const Eigen::VectorXd LAMBDA, const double PHI, const int J, const int W);
+double cpp_continuous_twoway_log_det_obs_info(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> LAMBDA, const double PHI, const int J, const int W);
 RcppExport SEXP _AgreementPhi_cpp_continuous_twoway_log_det_obs_info(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP LAMBDASEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -285,7 +285,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type LAMBDA(LAMBDASEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type LAMBDA(LAMBDASEXP);
     Rcpp::traits::input_parameter< const double >::type PHI(PHISEXP);
     Rcpp::traits::input_parameter< const int >::type J(JSEXP);
     Rcpp::traits::input_parameter< const int >::type W(WSEXP);
@@ -294,15 +294,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_continuous_twoway_log_det_E0d0d1
-double cpp_continuous_twoway_log_det_E0d0d1(const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const Eigen::VectorXd LAMBDA0, const Eigen::VectorXd LAMBDA1, const double PHI0, const double PHI1, const int J, const int W);
+double cpp_continuous_twoway_log_det_E0d0d1(const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> LAMBDA0, const std::vector<double> LAMBDA1, const double PHI0, const double PHI1, const int J, const int W);
 RcppExport SEXP _AgreementPhi_cpp_continuous_twoway_log_det_E0d0d1(SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP LAMBDA0SEXP, SEXP LAMBDA1SEXP, SEXP PHI0SEXP, SEXP PHI1SEXP, SEXP JSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type LAMBDA0(LAMBDA0SEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type LAMBDA1(LAMBDA1SEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type LAMBDA0(LAMBDA0SEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type LAMBDA1(LAMBDA1SEXP);
     Rcpp::traits::input_parameter< const double >::type PHI0(PHI0SEXP);
     Rcpp::traits::input_parameter< const double >::type PHI1(PHI1SEXP);
     Rcpp::traits::input_parameter< const int >::type J(JSEXP);
@@ -312,7 +312,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_ordinal_twoway_log_det_obs_info
-double cpp_ordinal_twoway_log_det_obs_info(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const Eigen::VectorXd LAMBDA, const double PHI, const int K, const int J, const int W);
+double cpp_ordinal_twoway_log_det_obs_info(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> LAMBDA, const double PHI, const int K, const int J, const int W);
 RcppExport SEXP _AgreementPhi_cpp_ordinal_twoway_log_det_obs_info(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP LAMBDASEXP, SEXP PHISEXP, SEXP KSEXP, SEXP JSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -320,7 +320,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type LAMBDA(LAMBDASEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type LAMBDA(LAMBDASEXP);
     Rcpp::traits::input_parameter< const double >::type PHI(PHISEXP);
     Rcpp::traits::input_parameter< const int >::type K(KSEXP);
     Rcpp::traits::input_parameter< const int >::type J(JSEXP);
@@ -330,21 +330,168 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_ordinal_twoway_log_det_E0d0d1
-double cpp_ordinal_twoway_log_det_E0d0d1(const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const Eigen::VectorXd LAMBDA0, const Eigen::VectorXd LAMBDA1, const double PHI0, const double PHI1, const int J, const int W, const int K);
+double cpp_ordinal_twoway_log_det_E0d0d1(const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> LAMBDA0, const std::vector<double> LAMBDA1, const double PHI0, const double PHI1, const int J, const int W, const int K);
 RcppExport SEXP _AgreementPhi_cpp_ordinal_twoway_log_det_E0d0d1(SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP LAMBDA0SEXP, SEXP LAMBDA1SEXP, SEXP PHI0SEXP, SEXP PHI1SEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type LAMBDA0(LAMBDA0SEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type LAMBDA1(LAMBDA1SEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type LAMBDA0(LAMBDA0SEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type LAMBDA1(LAMBDA1SEXP);
     Rcpp::traits::input_parameter< const double >::type PHI0(PHI0SEXP);
     Rcpp::traits::input_parameter< const double >::type PHI1(PHI1SEXP);
     Rcpp::traits::input_parameter< const int >::type J(JSEXP);
     Rcpp::traits::input_parameter< const int >::type W(WSEXP);
     Rcpp::traits::input_parameter< const int >::type K(KSEXP);
     rcpp_result_gen = Rcpp::wrap(cpp_ordinal_twoway_log_det_E0d0d1(ITEM_INDS, WORKER_INDS, LAMBDA0, LAMBDA1, PHI0, PHI1, J, W, K));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_continuous_profiling
+std::vector<std::vector<double>> cpp_continuous_profiling(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA, const std::vector<double> BETA, const double PHI, const int J, const int W, const int PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double TOL);
+RcppExport SEXP _AgreementPhi_cpp_continuous_profiling(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHASEXP, SEXP BETASEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP TOLSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA(ALPHASEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type BETA(BETASEXP);
+    Rcpp::traits::input_parameter< const double >::type PHI(PHISEXP);
+    Rcpp::traits::input_parameter< const int >::type J(JSEXP);
+    Rcpp::traits::input_parameter< const int >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_RANGE(PROF_UNI_RANGESEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_MAX_ITER(PROF_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const double >::type TOL(TOLSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_continuous_profiling(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI, J, W, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_ordinal_profiling
+std::vector<std::vector<double>> cpp_ordinal_profiling(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA, const std::vector<double> BETA, const double PHI, const int J, const int W, const int K, const int PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double TOL);
+RcppExport SEXP _AgreementPhi_cpp_ordinal_profiling(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHASEXP, SEXP BETASEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP TOLSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA(ALPHASEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type BETA(BETASEXP);
+    Rcpp::traits::input_parameter< const double >::type PHI(PHISEXP);
+    Rcpp::traits::input_parameter< const int >::type J(JSEXP);
+    Rcpp::traits::input_parameter< const int >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_RANGE(PROF_UNI_RANGESEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_MAX_ITER(PROF_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const double >::type TOL(TOLSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_ordinal_profiling(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI, J, W, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_twoway_profile_likelihood
+double cpp_twoway_profile_likelihood(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA, const std::vector<double> BETA, const double PHI, const int J, const int W, const int K, const int PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double PROF_TOL, const bool CONTINUOUS);
+RcppExport SEXP _AgreementPhi_cpp_twoway_profile_likelihood(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHASEXP, SEXP BETASEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_TOLSEXP, SEXP CONTINUOUSSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA(ALPHASEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type BETA(BETASEXP);
+    Rcpp::traits::input_parameter< const double >::type PHI(PHISEXP);
+    Rcpp::traits::input_parameter< const int >::type J(JSEXP);
+    Rcpp::traits::input_parameter< const int >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_RANGE(PROF_UNI_RANGESEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_MAX_ITER(PROF_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const double >::type PROF_TOL(PROF_TOLSEXP);
+    Rcpp::traits::input_parameter< const bool >::type CONTINUOUS(CONTINUOUSSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_twoway_profile_likelihood(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI, J, W, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, CONTINUOUS));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_twoway_get_phi_profile
+std::vector<double> cpp_twoway_get_phi_profile(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA, const std::vector<double> BETA, const double PHI_START, const int J, const int W, const int K, const double SEARCH_RANGE, const int MAX_ITER, const int PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double PROF_TOL, const bool CONTINUOUS);
+RcppExport SEXP _AgreementPhi_cpp_twoway_get_phi_profile(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHASEXP, SEXP BETASEXP, SEXP PHI_STARTSEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP SEARCH_RANGESEXP, SEXP MAX_ITERSEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_TOLSEXP, SEXP CONTINUOUSSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA(ALPHASEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type BETA(BETASEXP);
+    Rcpp::traits::input_parameter< const double >::type PHI_START(PHI_STARTSEXP);
+    Rcpp::traits::input_parameter< const int >::type J(JSEXP);
+    Rcpp::traits::input_parameter< const int >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const double >::type SEARCH_RANGE(SEARCH_RANGESEXP);
+    Rcpp::traits::input_parameter< const int >::type MAX_ITER(MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_RANGE(PROF_UNI_RANGESEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_MAX_ITER(PROF_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const double >::type PROF_TOL(PROF_TOLSEXP);
+    Rcpp::traits::input_parameter< const bool >::type CONTINUOUS(CONTINUOUSSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_twoway_get_phi_profile(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI_START, J, W, K, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, CONTINUOUS));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_twoway_modified_profile_likelihood
+double cpp_twoway_modified_profile_likelihood(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA_MLE, const std::vector<double> BETA_MLE, const double PHI, const double PHI_MLE, const int J, const int W, const int K, const int PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double PROF_TOL, const bool CONTINUOUS);
+RcppExport SEXP _AgreementPhi_cpp_twoway_modified_profile_likelihood(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHA_MLESEXP, SEXP BETA_MLESEXP, SEXP PHISEXP, SEXP PHI_MLESEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_TOLSEXP, SEXP CONTINUOUSSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA_MLE(ALPHA_MLESEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type BETA_MLE(BETA_MLESEXP);
+    Rcpp::traits::input_parameter< const double >::type PHI(PHISEXP);
+    Rcpp::traits::input_parameter< const double >::type PHI_MLE(PHI_MLESEXP);
+    Rcpp::traits::input_parameter< const int >::type J(JSEXP);
+    Rcpp::traits::input_parameter< const int >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_RANGE(PROF_UNI_RANGESEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_MAX_ITER(PROF_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const double >::type PROF_TOL(PROF_TOLSEXP);
+    Rcpp::traits::input_parameter< const bool >::type CONTINUOUS(CONTINUOUSSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_twoway_modified_profile_likelihood(Y, ITEM_INDS, WORKER_INDS, ALPHA_MLE, BETA_MLE, PHI, PHI_MLE, J, W, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, CONTINUOUS));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_twoway_get_phi_modified_profile
+std::vector<double> cpp_twoway_get_phi_modified_profile(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA, const std::vector<double> BETA, const double PHI_START, const int J, const int W, const int K, const double SEARCH_RANGE, const int MAX_ITER, const int PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double PROF_TOL, const bool CONTINUOUS, const bool VERBOSE);
+RcppExport SEXP _AgreementPhi_cpp_twoway_get_phi_modified_profile(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHASEXP, SEXP BETASEXP, SEXP PHI_STARTSEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP SEARCH_RANGESEXP, SEXP MAX_ITERSEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_TOLSEXP, SEXP CONTINUOUSSEXP, SEXP VERBOSESEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA(ALPHASEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type BETA(BETASEXP);
+    Rcpp::traits::input_parameter< const double >::type PHI_START(PHI_STARTSEXP);
+    Rcpp::traits::input_parameter< const int >::type J(JSEXP);
+    Rcpp::traits::input_parameter< const int >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const double >::type SEARCH_RANGE(SEARCH_RANGESEXP);
+    Rcpp::traits::input_parameter< const int >::type MAX_ITER(MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_RANGE(PROF_UNI_RANGESEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const int >::type PROF_MAX_ITER(PROF_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const double >::type PROF_TOL(PROF_TOLSEXP);
+    Rcpp::traits::input_parameter< const bool >::type CONTINUOUS(CONTINUOUSSEXP);
+    Rcpp::traits::input_parameter< const bool >::type VERBOSE(VERBOSESEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_twoway_get_phi_modified_profile(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, PHI_START, J, W, K, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, CONTINUOUS, VERBOSE));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -369,6 +516,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_AgreementPhi_cpp_continuous_twoway_log_det_E0d0d1", (DL_FUNC) &_AgreementPhi_cpp_continuous_twoway_log_det_E0d0d1, 8},
     {"_AgreementPhi_cpp_ordinal_twoway_log_det_obs_info", (DL_FUNC) &_AgreementPhi_cpp_ordinal_twoway_log_det_obs_info, 8},
     {"_AgreementPhi_cpp_ordinal_twoway_log_det_E0d0d1", (DL_FUNC) &_AgreementPhi_cpp_ordinal_twoway_log_det_E0d0d1, 9},
+    {"_AgreementPhi_cpp_continuous_profiling", (DL_FUNC) &_AgreementPhi_cpp_continuous_profiling, 12},
+    {"_AgreementPhi_cpp_ordinal_profiling", (DL_FUNC) &_AgreementPhi_cpp_ordinal_profiling, 13},
+    {"_AgreementPhi_cpp_twoway_profile_likelihood", (DL_FUNC) &_AgreementPhi_cpp_twoway_profile_likelihood, 14},
+    {"_AgreementPhi_cpp_twoway_get_phi_profile", (DL_FUNC) &_AgreementPhi_cpp_twoway_get_phi_profile, 16},
+    {"_AgreementPhi_cpp_twoway_modified_profile_likelihood", (DL_FUNC) &_AgreementPhi_cpp_twoway_modified_profile_likelihood, 15},
+    {"_AgreementPhi_cpp_twoway_get_phi_modified_profile", (DL_FUNC) &_AgreementPhi_cpp_twoway_get_phi_modified_profile, 17},
     {NULL, NULL, 0}
 };
 
