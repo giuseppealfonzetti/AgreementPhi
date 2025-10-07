@@ -155,7 +155,7 @@ validate_data <- function(
 }
 
 
-validate_cpp_control <- function(LIST) {
+validate_cpp_control <- function(LIST, MODEL) {
   out <- list()
 
   # search range for precision
@@ -184,7 +184,11 @@ validate_cpp_control <- function(LIST) {
 
   # max iter for profiling
   if (is.null(LIST$PROF_MAX_ITER)) {
-    LIST$PROF_MAX_ITER <- 100
+    if (MODEL == "oneway") {
+      LIST$PROF_MAX_ITER <- 100
+    } else {
+      LIST$PROF_MAX_ITER <- 10
+    }
   }
   stopifnot(is.numeric(LIST$PROF_MAX_ITER))
   stopifnot(LIST$PROF_MAX_ITER > 0)

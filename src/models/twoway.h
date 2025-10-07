@@ -13,7 +13,7 @@ namespace AgreementPhi{
                 const std::vector<double>& Y, 
                 const std::vector<int>& ITEM_INDS,   // expected to be coded 1 to J
                 const std::vector<int>& WORKER_INDS, // expected to be coded 1 to W
-                const Eigen::Ref<const Eigen::VectorXd> LAMBDA, //expected length J+W-1
+                const std::vector<double>&  LAMBDA, //expected length J+W-1
                 const double PHI,
                 const int J, 
                 const int W,
@@ -28,7 +28,7 @@ namespace AgreementPhi{
                 const std::vector<double>& Y,
                 const std::vector<int>& ITEM_INDS,
                 const std::vector<int>& WORKER_INDS,
-                const Eigen::Ref<const Eigen::VectorXd> LAMBDA,
+                const std::vector<double>&  LAMBDA,
                 const double PHI,
                 const int J,
                 const int W
@@ -37,8 +37,8 @@ namespace AgreementPhi{
             double log_det_E0d0d1(
                 const std::vector<int>& ITEM_INDS,
                 const std::vector<int>& WORKER_INDS,
-                const Eigen::Ref<const Eigen::VectorXd> LAMBDA0,
-                const Eigen::Ref<const Eigen::VectorXd> LAMBDA1,
+                const std::vector<double>&  LAMBDA0,
+                const std::vector<double>&  LAMBDA1,
                 const double PHI0,
                 const double PHI1,
                 const int J,
@@ -53,7 +53,7 @@ namespace AgreementPhi{
                 const std::vector<double>& Y, 
                 const std::vector<int>& ITEM_INDS,   // expected to be coded 1 to J
                 const std::vector<int>& WORKER_INDS, // expected to be coded 1 to W
-                const Eigen::Ref<const Eigen::VectorXd> LAMBDA, //expected length J+W-1
+                const std::vector<double>&  LAMBDA,
                 const double PHI,
                 const int J, 
                 const int W,
@@ -69,7 +69,7 @@ namespace AgreementPhi{
                 const std::vector<double>& Y,
                 const std::vector<int>& ITEM_INDS,
                 const std::vector<int>& WORKER_INDS,
-                const Eigen::Ref<const Eigen::VectorXd> LAMBDA,
+                const std::vector<double>&  LAMBDA,
                 const double PHI,
                 const int J,
                 const int W,
@@ -79,8 +79,8 @@ namespace AgreementPhi{
             double log_det_E0d0d1(
                 const std::vector<int>& ITEM_INDS,
                 const std::vector<int>& WORKER_INDS,
-                const Eigen::Ref<const Eigen::VectorXd> LAMBDA0,
-                const Eigen::Ref<const Eigen::VectorXd> LAMBDA1,
+                const std::vector<double>&  LAMBDA0,
+                const std::vector<double>&  LAMBDA1,
                 const double PHI0,
                 const double PHI1,
                 const int J,
