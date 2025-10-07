@@ -8,7 +8,7 @@ double AgreementPhi::continuous::twoway::joint_loglik(
     const std::vector<double>& Y, 
     const std::vector<int>& ITEM_INDS,   // expected to be coded 1 to J
     const std::vector<int>& WORKER_INDS, // expected to be coded 1 to W
-    const Eigen::Ref<const Eigen::VectorXd> LAMBDA, //expected length J+W-1
+    const std::vector<double>& LAMBDA, //expected length J+W-1
     const double PHI,
     const int J, 
     const int W,
@@ -26,8 +26,8 @@ double AgreementPhi::continuous::twoway::joint_loglik(
         int j = ITEM_INDS.at(i) - 1;   // pass to 0 to J-1 indexing
         int w = WORKER_INDS.at(i) - 1; // pass to 0 to W-1 indexing
         
-        double item_intercept = LAMBDA(j);
-        double worker_intercept = (w == 0) ? 0.0 : LAMBDA(J + w - 1);
+        double item_intercept = LAMBDA.at(j);
+        double worker_intercept = (w == 0) ? 0.0 : LAMBDA.at(J + w - 1);
         double eta = item_intercept + worker_intercept;
         double mu = link::mu(eta);
         double dmu_deta = link::dmu(mu);
@@ -59,7 +59,7 @@ double AgreementPhi::continuous::twoway::log_det_obs_info(
     const std::vector<double>& Y,
     const std::vector<int>& ITEM_INDS,
     const std::vector<int>& WORKER_INDS,
-    const Eigen::Ref<const Eigen::VectorXd> LAMBDA,
+    const std::vector<double>& LAMBDA,
     const double PHI,
     const int J,
     const int W
@@ -89,8 +89,8 @@ double AgreementPhi::continuous::twoway::log_det_obs_info(
 double AgreementPhi::continuous::twoway::log_det_E0d0d1(
     const std::vector<int>& ITEM_INDS,
     const std::vector<int>& WORKER_INDS,
-    const Eigen::Ref<const Eigen::VectorXd> LAMBDA0,
-    const Eigen::Ref<const Eigen::VectorXd> LAMBDA1,
+    const std::vector<double>& LAMBDA0,
+    const std::vector<double>& LAMBDA1,
     const double PHI0,
     const double PHI1,
     const int J,
@@ -106,8 +106,8 @@ double AgreementPhi::continuous::twoway::log_det_E0d0d1(
         int j = ITEM_INDS.at(i) - 1;
         int w = WORKER_INDS.at(i) - 1;
         
-        double eta0 = LAMBDA0(j) + ((w == 0) ? 0.0 : LAMBDA0(J + w - 1));
-        double eta1 = LAMBDA1(j) + ((w == 0) ? 0.0 : LAMBDA1(J + w - 1));
+        double eta0 = LAMBDA0.at(j) + ((w == 0) ? 0.0 : LAMBDA0.at(J + w - 1));
+        double eta1 = LAMBDA1.at(j) + ((w == 0) ? 0.0 : LAMBDA1.at(J + w - 1));
         double mu0 = link::mu(eta0);
         double mu1 = link::mu(eta1);
         
@@ -144,7 +144,7 @@ double AgreementPhi::ordinal::twoway::joint_loglik(
     const std::vector<double>& Y, 
     const std::vector<int>& ITEM_INDS,   // expected to be coded 1 to J
     const std::vector<int>& WORKER_INDS, // expected to be coded 1 to W
-    const Eigen::Ref<const Eigen::VectorXd> LAMBDA, //expected length J+W-1
+    const std::vector<double>& LAMBDA, //expected length J+W-1
     const double PHI,
     const int J, 
     const int W,
@@ -163,8 +163,8 @@ double AgreementPhi::ordinal::twoway::joint_loglik(
         int j = ITEM_INDS.at(i) - 1;   // pass to 0 to J-1 indexing
         int w = WORKER_INDS.at(i) - 1; // pass to 0 to W-1 indexing
         
-        double item_intercept = LAMBDA(j);
-        double worker_intercept = (w == 0) ? 0.0 : LAMBDA(J + w - 1);
+        double item_intercept = LAMBDA.at(j);
+        double worker_intercept = (w == 0) ? 0.0 : LAMBDA.at(J + w - 1);
         double eta = item_intercept + worker_intercept;
         double mu = link::mu(eta);
         double dmu_deta = link::dmu(mu);
@@ -195,7 +195,7 @@ double AgreementPhi::ordinal::twoway::log_det_obs_info(
     const std::vector<double>& Y,
     const std::vector<int>& ITEM_INDS,
     const std::vector<int>& WORKER_INDS,
-    const Eigen::Ref<const Eigen::VectorXd> LAMBDA,
+    const std::vector<double>& LAMBDA,
     const double PHI,
     const int J,
     const int W,
@@ -226,8 +226,8 @@ double AgreementPhi::ordinal::twoway::log_det_obs_info(
 double AgreementPhi::ordinal::twoway::log_det_E0d0d1(
     const std::vector<int>& ITEM_INDS,
     const std::vector<int>& WORKER_INDS,
-    const Eigen::Ref<const Eigen::VectorXd> LAMBDA0,
-    const Eigen::Ref<const Eigen::VectorXd> LAMBDA1,
+    const std::vector<double>& LAMBDA0,
+    const std::vector<double>& LAMBDA1,
     const double PHI0,
     const double PHI1,
     const int J,
@@ -244,8 +244,8 @@ double AgreementPhi::ordinal::twoway::log_det_E0d0d1(
     for(int i = 0; i < n; ++i){
         int j = ITEM_INDS.at(i) - 1;
         int w = WORKER_INDS.at(i) - 1;
-        double eta0 = LAMBDA0(j) + ((w == 0) ? 0.0 : LAMBDA0(J + w - 1));
-        double eta1 = LAMBDA1(j) + ((w == 0) ? 0.0 : LAMBDA1(J + w - 1));
+        double eta0 = LAMBDA0.at(j) + ((w == 0) ? 0.0 : LAMBDA0.at(J + w - 1));
+        double eta1 = LAMBDA1.at(j) + ((w == 0) ? 0.0 : LAMBDA1.at(J + w - 1));
         double mu0 = link::mu(eta0);
         double mu1 = link::mu(eta1);
         double e = ordinal::E0_dmu0dmu1(mu0, PHI0, mu1, PHI1, K);

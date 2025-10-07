@@ -23,7 +23,7 @@ namespace AgreementPhi{
 
         //' Create dictionary for one-way estimation
         //' @param UNIQUE_IDS Number of unique ids.
-        //' @param IDS Vector of ids. Length n. Expected to start from 0.
+        //' @param IDS Vector of ids. Length n. Expected to start from 1.
         //' @returns A list collecting indexes of observations id by id.
         inline std::vector<std::vector<int>> oneway_dict(
             const int UNIQUE_IDS,
@@ -34,7 +34,7 @@ namespace AgreementPhi{
             std::vector<std::vector<int>> dict(UNIQUE_IDS);
 
             for(int i = 0; i < n; ++i){
-                int item_id = static_cast<int>(IDS.at(i));
+                int item_id = static_cast<int>(IDS.at(i)-1);
                 dict.at(item_id).push_back(i);
             }
 

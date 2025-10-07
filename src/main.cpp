@@ -15,6 +15,7 @@
 #include "models/twoway.h"
 #include "inference/profile.h"
 #include "inference/nuisance.h"
+#include "inference/precision.h"
 
 
 

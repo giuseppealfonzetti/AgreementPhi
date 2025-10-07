@@ -244,8 +244,8 @@ test_that("Alteranting Maximization matches bfgs | continuous", {
   tictoc::tic()
   lambda_alt <- cpp_continuous_profiling(
     Y = dt$rating,
-    ITEM_INDS = as.integer(dt$id_item) - 1,
-    WORKER_INDS = as.integer(dt$id_worker) - 1,
+    ITEM_INDS = as.integer(dt$id_item),
+    WORKER_INDS = as.integer(dt$id_worker),
     ALPHA = rep(0, items),
     BETA = rep(0, workers),
     PHI = phi,
@@ -326,8 +326,8 @@ test_that("Alteranting Maximization matches bfgs | ordinal", {
   tictoc::tic()
   lambda_alt <- cpp_ordinal_profiling(
     Y = dt$rating,
-    ITEM_INDS = as.integer(dt$id_item) - 1,
-    WORKER_INDS = as.integer(dt$id_worker) - 1,
+    ITEM_INDS = as.integer(dt$id_item),
+    WORKER_INDS = as.integer(dt$id_worker),
     ALPHA = rep(0, items),
     BETA = rep(0, workers),
     PHI = phi,
