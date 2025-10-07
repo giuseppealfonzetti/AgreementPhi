@@ -80,30 +80,35 @@ std::vector<std::vector<double>> AgreementPhi::continuous::twoway::inference::ge
     std::vector<double> betas = BETA;
     betas.at(0) = 0;
     
+    std::vector<double> alphas_old = alphas;
+    std::vector<double> betas_old = betas;
+
     for(int iter = 0; iter < PROF_MAX_ITER; ++iter){
         double max_change = 0;
-        
+        alphas_old = alphas;
+        betas_old = betas;
+
         // Profile items
         for(int j = 0; j < J; ++j){
-            double old_alpha = alphas.at(j);
+            // double old_alpha = alphas.at(j);
             alphas.at(j) = AgreementPhi::continuous::nuisance::brent_profiling(
-                Y, ITEM_DICT, j+1, WORKER_INDS, betas, 
-                old_alpha, PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
+                Y, ITEM_DICT, j+1, WORKER_INDS, betas_old, 
+                alphas_old.at(j), PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
             );
-            max_change = std::max(max_change, std::abs(alphas.at(j) - old_alpha));
+            // max_change = std::max(max_change, std::abs(alphas.at(j) - old_alpha));
         }
         
         // Profile workers
         for(int w = 1; w < W; ++w){
-            double old_beta = betas.at(w);
+            // double old_beta = betas.at(w);
             betas.at(w) = AgreementPhi::continuous::nuisance::brent_profiling(
-                Y, WORKER_DICT, w+1, ITEM_INDS, alphas, 
-                old_beta, PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
+                Y, WORKER_DICT, w+1, ITEM_INDS, alphas_old, 
+                betas_old.at(w), PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
             );
-            max_change = std::max(max_change, std::abs(betas.at(w) - old_beta));
+            // max_change = std::max(max_change, std::abs(betas.at(w) - old_beta));
         }
         
-        if(max_change < TOL) break;
+        // if(max_change < TOL) break;
     }
     
     std::vector<std::vector<double>> out(2);
