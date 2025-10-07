@@ -155,7 +155,7 @@ validate_data <- function(
 }
 
 
-validate_cpp_control <- function(LIST, MODEL) {
+validate_cpp_control <- function(LIST = NULL, MODEL, DATA_TYPE) {
   out <- list()
 
   # search range for precision
@@ -183,27 +183,65 @@ validate_cpp_control <- function(LIST, MODEL) {
   out$PROF_SEARCH_RANGE <- LIST$PROF_SEARCH_RANGE
 
   # max iter for profiling
-  if (is.null(LIST$PROF_MAX_ITER)) {
-    if (MODEL == "oneway") {
-      LIST$PROF_MAX_ITER <- 100
-    } else {
-      LIST$PROF_MAX_ITER <- 10
+  if (MODEL == "oneway") {
+    # profiling method
+    if (is.null(LIST$PROF_METHOD)) {
+      LIST$PROF_METHOD <- "brent"
     }
+    stopifnot(LIST$PROF_METHOD %in% c("brent", "newton_raphson"))
+    if (LIST$PROF_METHOD == "newton_raphson") {
+      out$PROF_METHOD <- 1
+    } else {
+      out$PROF_METHOD <- 0
+    }
+
+    # max iter for profiling
+    if (is.null(LIST$PROF_MAX_ITER)) {
+      LIST$PROF_MAX_ITER <- 100
+    }
+  } else {
+    if (DATA_TYPE == "continuous") {
+      if (is.null(LIST$PROF_METHOD)) {
+        LIST$PROF_METHOD <- "bfgs"
+      }
+      # max iter for profiling
+      if (is.null(LIST$PROF_MAX_ITER)) {
+        LIST$PROF_MAX_ITER <- 10
+      }
+      out$PROF_METHOD <- LIST$PROF_METHOD
+      out$PROF_MAX_ITER <- LIST$PROF_MAX_ITER
+    } else {
+      if (is.null(LIST$PROF_METHOD)) {
+        LIST$PROF_METHOD <- "alt_brent"
+      }
+      # max iter for univariate profiling
+      if (is.null(LIST$PROF_MAX_ITER)) {
+        LIST$PROF_MAX_ITER <- 100
+      }
+      out$PROF_METHOD <- LIST$PROF_METHOD
+      out$PROF_MAX_ITER <- LIST$PROF_MAX_ITER
+
+      if (out$PROF_METHOD == "alt_brent") {
+        # max iter alterning algorithm
+        if (is.null(LIST$ALT_MAX_ITER)) {
+          LIST$ALT_MAX_ITER <- 10
+        }
+        stopifnot(is.numeric(LIST$ALT_MAX_ITER))
+        stopifnot(LIST$ALT_MAX_ITER > 0)
+        out$ALT_MAX_ITER <- LIST$ALT_MAX_ITER
+        if (is.null(LIST$ALT_TOL)) {
+          LIST$ALT_TOL <- 1e-2
+        }
+        stopifnot(is.numeric(LIST$ALT_TOL))
+        stopifnot(LIST$ALT_TOL > 0)
+        out$ALT_TOL <- LIST$ALT_TOL
+      }
+    }
+    stopifnot(LIST$PROF_METHOD %in% c("alt_brent", "bfgs"))
   }
   stopifnot(is.numeric(LIST$PROF_MAX_ITER))
   stopifnot(LIST$PROF_MAX_ITER > 0)
   out$PROF_MAX_ITER <- LIST$PROF_MAX_ITER
-
-  # profiling method
-  if (is.null(LIST$PROF_METHOD)) {
-    LIST$PROF_METHOD <- "brent"
-  }
-  stopifnot(LIST$PROF_METHOD %in% c("brent", "newton_raphson"))
-  if (LIST$PROF_METHOD == "newton_raphson") {
-    out$PROF_METHOD <- 1
-  } else {
-    out$PROF_METHOD <- 0
-  }
 
   return(out)
 }

@@ -162,8 +162,8 @@ test_that("get_phi matches cpp profile via alterating maximization | continuous"
     Y = dt$rating,
     ITEM_INDS = as.integer(dt$id_item),
     WORKER_INDS = as.integer(dt$id_worker),
-    ALPHA = rep(0, items),
-    BETA = rep(0, workers),
+    ALPHA_START = rep(0, items),
+    BETA_START = rep(0, workers),
     PHI_START = agr2prec(0.5),
     K = 1,
     J = items,
@@ -171,10 +171,10 @@ test_that("get_phi matches cpp profile via alterating maximization | continuous"
     CONTINUOUS = TRUE,
     SEARCH_RANGE = 10,
     MAX_ITER = 100,
-    PROF_UNI_RANGE = 10,
-    PROF_UNI_MAX_ITER = 100,
-    PROF_MAX_ITER = 10,
-    PROF_TOL = 1e-5
+    PROF_SEARCH_RANGE = 10,
+    PROF_MAX_ITER = 100,
+    ALT_MAX_ITER = 10,
+    ALT_TOL = 1e-5
   )
   # tictoc::toc()
 
@@ -213,8 +213,8 @@ test_that("get_phi matches cpp profile via alterating maximization | continuous"
     Y = dt$rating,
     ITEM_INDS = as.integer(dt$id_item),
     WORKER_INDS = as.integer(dt$id_worker),
-    ALPHA = rep(0, items),
-    BETA = rep(0, workers),
+    ALPHA_START = rep(0, items),
+    BETA_START = rep(0, workers),
     PHI_START = agr2prec(0.5),
     K = 1,
     J = items,
@@ -222,10 +222,10 @@ test_that("get_phi matches cpp profile via alterating maximization | continuous"
     CONTINUOUS = TRUE,
     SEARCH_RANGE = 10,
     MAX_ITER = 100,
-    PROF_UNI_RANGE = 10,
-    PROF_UNI_MAX_ITER = 100,
-    PROF_MAX_ITER = 10,
-    PROF_TOL = 1e-5,
+    PROF_SEARCH_RANGE = 10,
+    PROF_MAX_ITER = 100,
+    ALT_MAX_ITER = 10,
+    ALT_TOL = 1e-5,
     VERBOSE = TRUE
   )
   # tictoc::toc()
@@ -286,8 +286,8 @@ test_that("get_phi matches cpp profile via alterating maximization | ordinal", {
     Y = dt$rating,
     ITEM_INDS = as.integer(dt$id_item),
     WORKER_INDS = as.integer(dt$id_worker),
-    ALPHA = rep(0, items),
-    BETA = rep(0, workers),
+    ALPHA_START = rep(0, items),
+    BETA_START = rep(0, workers),
     PHI_START = agr2prec(0.5),
     K = K,
     J = items,
@@ -295,10 +295,10 @@ test_that("get_phi matches cpp profile via alterating maximization | ordinal", {
     CONTINUOUS = FALSE,
     SEARCH_RANGE = 10,
     MAX_ITER = 100,
-    PROF_UNI_RANGE = 10,
-    PROF_UNI_MAX_ITER = 10,
+    PROF_SEARCH_RANGE = 10,
     PROF_MAX_ITER = 10,
-    PROF_TOL = 1e-5
+    ALT_MAX_ITER = 10,
+    ALT_TOL = 1e-5
   )
   # tictoc::toc()
 
@@ -337,8 +337,8 @@ test_that("get_phi matches cpp profile via alterating maximization | ordinal", {
     Y = dt$rating,
     ITEM_INDS = as.integer(dt$id_item),
     WORKER_INDS = as.integer(dt$id_worker),
-    ALPHA = rep(0, items),
-    BETA = rep(0, workers),
+    ALPHA_START = rep(0, items),
+    BETA_START = rep(0, workers),
     PHI_START = agr2prec(0.5),
     K = K,
     J = items,
@@ -346,10 +346,10 @@ test_that("get_phi matches cpp profile via alterating maximization | ordinal", {
     CONTINUOUS = FALSE,
     SEARCH_RANGE = 10,
     MAX_ITER = 100,
-    PROF_UNI_RANGE = 10,
-    PROF_UNI_MAX_ITER = 10,
+    PROF_SEARCH_RANGE = 10,
     PROF_MAX_ITER = 10,
-    PROF_TOL = 1e-5,
+    ALT_MAX_ITER = 10,
+    ALT_TOL = 1e-5,
     VERBOSE = FALSE
   )
   # tictoc::toc()
