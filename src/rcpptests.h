@@ -467,18 +467,18 @@ std::vector<double> cpp_twoway_get_phi_profile(
     const std::vector<double> Y,  
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
-    const std::vector<double> ALPHA,
-    const std::vector<double> BETA,
+    const std::vector<double> ALPHA_START,
+    const std::vector<double> BETA_START,
     const double PHI_START,
     const int J,
     const int W,
     const int K,
     const double SEARCH_RANGE,
     const int MAX_ITER,
-    const int PROF_UNI_RANGE,
-    const int PROF_UNI_MAX_ITER,
+    const int PROF_SEARCH_RANGE,
     const int PROF_MAX_ITER,
-    const double PROF_TOL,
+    const int ALT_MAX_ITER,
+    const double ALT_TOL,
     const bool CONTINUOUS
 ){
 
@@ -488,12 +488,12 @@ std::vector<double> cpp_twoway_get_phi_profile(
     std::pair<double, double> res;
     if(CONTINUOUS){
         res = AgreementPhi::continuous::twoway::inference::get_phi_profile(
-                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA, BETA, PHI_START, J, W, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE,
-                PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START, BETA_START, PHI_START, J, W, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE,
+                PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL);
     }else{
         res = AgreementPhi::ordinal::twoway::inference::get_phi_profile(
-                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA, BETA, PHI_START, J, W, K, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE,
-                PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START, BETA_START, PHI_START, J, W, K, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE,
+                PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL);
     }
 
     std::vector<double> out(2);
@@ -545,18 +545,18 @@ std::vector<double> cpp_twoway_get_phi_modified_profile(
     const std::vector<double> Y,  
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
-    const std::vector<double> ALPHA,
-    const std::vector<double> BETA,
+    const std::vector<double> ALPHA_START,
+    const std::vector<double> BETA_START,
     const double PHI_START,
     const int J,
     const int W,
     const int K,
     const double SEARCH_RANGE,
     const int MAX_ITER,
-    const int PROF_UNI_RANGE,
-    const int PROF_UNI_MAX_ITER,
+    const int PROF_SEARCH_RANGE,
     const int PROF_MAX_ITER,
-    const double PROF_TOL,
+    const int ALT_MAX_ITER,
+    const double ALT_TOL,
     const bool CONTINUOUS,
     const bool VERBOSE
 ){
@@ -567,12 +567,12 @@ std::vector<double> cpp_twoway_get_phi_modified_profile(
     std::vector<double> res;
     if(CONTINUOUS){
         res = AgreementPhi::continuous::twoway::inference::get_phi_modified_profile(
-                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA, BETA, PHI_START, J, W, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE,
-                PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, VERBOSE);
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START, BETA_START, PHI_START, J, W, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE,
+                PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
     }else{
         res = AgreementPhi::ordinal::twoway::inference::get_phi_modified_profile(
-                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA, BETA, PHI_START, J, W, K, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE,
-                PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, VERBOSE);
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START, BETA_START, PHI_START, J, W, K, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE,
+                PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
     }
 
     return res;

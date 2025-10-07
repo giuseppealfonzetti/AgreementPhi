@@ -32,12 +32,16 @@
 #'       Must be a positive integer. Default: `100`.}
 #'     \item{`PROF_METHOD`}{Method for profiling optimization. A character string among:
 #'       \itemize{
-#'         \item `"brent"`: Brent's method. Default.
-#'         \item `"newton_raphson"`: Newton-Raphson method.
-#'       }
-#'       Note: Newton-Raphson is automatically selected when the average number of ratings
-#'       per item cubed is less than the number of items (i.e., when `mean(table(ITEM_INDS))^3 < max(ITEM_INDS)`).}
-#'   }
+#'         \item `"brent"`: Brent's method (one-way only). Default for one-way.
+#'         \item `"newton_raphson"`: Newton-Raphson method (one-way only).
+#'         \item `"bfgs"`: L-BFGS method (two-way only). Default for two-way continuous data.
+#'         \item `"alt_brent"`: Alternated profiling via univariate Brent's method (two-way only). Default for two-way ordinal data
+#'       }}
+#'     \item{`ALT_MAX_ITER`}{Maximum iterations for `alt_brent`.
+#'       Must be a positive integer. Default: `10`.}
+#'     \item{`ALT_TOL`}{Relative convergence tolerance for `alt_brent`.
+#'       Must be positive. Default: `1e-2`}
+#'  }
 #' @param VERBOSE Verbose output.
 #'
 #' @return Returns a list with maximum likelihood estimates and corresponding negative log-likelihood.
@@ -99,7 +103,7 @@ agreement <- function(
     continuous <- FALSE
   }
 
-  CONTROL <- validate_cpp_control(CONTROL, MODEL)
+  CONTROL <- validate_cpp_control(CONTROL, MODEL, val_data$data_type)
   args <- c(
     list(
       Y = val_data$ratings * 1.0,
@@ -136,48 +140,68 @@ agreement <- function(
       out[["loglik"]] <- opt[2]
     }
   } else {
-    if (METHOD == "modified") {
-      opt <- get_phi_modified_profile_twoway(
-        Y = val_data$ratings,
-        ITEM_INDS = val_data$item_ids,
-        WORKER_INDS = val_data$worker_ids,
-        LAMBDA_START = c(ALPHA_START, BETA_START),
-        PHI_START = PHI_START,
-        K = val_data$K,
-        J = val_data$n_items,
-        W = val_data$n_workers,
-        DATA_TYPE = val_data$data_type,
-        SEARCH_RANGE = args$SEARCH_RANGE,
-        MAX_ITER = args$MAX_ITER,
-        PROF_MAX_ITER = args$PROF_MAX_ITER,
-        VERBOSE = args$VERBOSE
-      )
-      out[["pl_precision"]] <- opt$pl_precision
-      out[["pl_agreement"]] <- prec2agr(opt$pl_precision)
-      out[["mpl_precision"]] <- opt$mpl_precision
-      out[["mpl_agreement"]] <- prec2agr(opt$mpl_precision)
-      out[["loglik"]] <- opt$loglik
-      out[["lambda_mle"]] <- opt$lambda_mle
+    if (CONTROL$PROF_METHOD == "bfgs") {
+      if (METHOD == "modified") {
+        opt <- get_phi_modified_profile_twoway(
+          Y = val_data$ratings,
+          ITEM_INDS = val_data$item_ids,
+          WORKER_INDS = val_data$worker_ids,
+          LAMBDA_START = c(ALPHA_START, BETA_START),
+          PHI_START = PHI_START,
+          K = val_data$K,
+          J = val_data$n_items,
+          W = val_data$n_workers,
+          DATA_TYPE = val_data$data_type,
+          SEARCH_RANGE = args$SEARCH_RANGE,
+          MAX_ITER = args$MAX_ITER,
+          PROF_MAX_ITER = args$PROF_MAX_ITER,
+          VERBOSE = args$VERBOSE
+        )
+        out[["pl_precision"]] <- opt$pl_precision
+        out[["pl_agreement"]] <- prec2agr(opt$pl_precision)
+        out[["mpl_precision"]] <- opt$mpl_precision
+        out[["mpl_agreement"]] <- prec2agr(opt$mpl_precision)
+        out[["loglik"]] <- opt$loglik
+        out[["lambda_mle"]] <- opt$lambda_mle
+      } else {
+        opt <- get_phi_profile_twoway(
+          Y = val_data$ratings,
+          ITEM_INDS = val_data$item_ids,
+          WORKER_INDS = val_data$worker_ids,
+          LAMBDA_START = c(ALPHA_START, BETA_START),
+          PHI_START = PHI_START,
+          K = val_data$K,
+          J = val_data$n_items,
+          W = val_data$n_workers,
+          DATA_TYPE = val_data$data_type,
+          SEARCH_RANGE = args$SEARCH_RANGE,
+          MAX_ITER = args$MAX_ITER,
+          PROF_MAX_ITER = args$PROF_MAX_ITER,
+          VERBOSE = args$VERBOSE
+        )
+        out[["pl_precision"]] <- opt$precision
+        out[["pl_agreement"]] <- prec2agr(opt$precision)
+        out[["loglik"]] <- opt$loglik
+        out[["lambda_mle"]] <- opt$lambda_mle
+      }
     } else {
-      opt <- get_phi_profile_twoway(
-        Y = val_data$ratings,
-        ITEM_INDS = val_data$item_ids,
-        WORKER_INDS = val_data$worker_ids,
-        LAMBDA_START = c(ALPHA_START, BETA_START),
-        PHI_START = PHI_START,
-        K = val_data$K,
-        J = val_data$n_items,
-        W = val_data$n_workers,
-        DATA_TYPE = val_data$data_type,
-        SEARCH_RANGE = args$SEARCH_RANGE,
-        MAX_ITER = args$MAX_ITER,
-        PROF_MAX_ITER = args$PROF_MAX_ITER,
-        VERBOSE = args$VERBOSE
-      )
-      out[["pl_precision"]] <- opt$precision
-      out[["pl_agreement"]] <- prec2agr(opt$precision)
-      out[["loglik"]] <- opt$loglik
-      out[["lambda_mle"]] <- opt$lambda_mle
+      if (METHOD == "modified") {
+        args$BETA_START <- c(0, BETA_START)
+        args$PROF_METHOD <- NULL
+        args$WORKER_INDS = val_data$worker_ids
+        args$W <- val_data$n_workers
+        opt <- do.call(cpp_twoway_get_phi_modified_profile, args)
+        out[["pl_precision"]] <- opt[3]
+        out[["pl_agreement"]] <- prec2agr(opt[3])
+        out[["mpl_precision"]] <- opt[1]
+        out[["mpl_agreement"]] <- prec2agr(opt[1])
+        out[["loglik"]] <- opt[2]
+      } else {
+        opt <- do.call(cpp_twoway_get_phi_profile, args)
+        out[["pl_precision"]] <- opt[1]
+        out[["pl_agreement"]] <- prec2agr(opt[1])
+        out[["loglik"]] <- opt[2]
+      }
     }
   }
 
