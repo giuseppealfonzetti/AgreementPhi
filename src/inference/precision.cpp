@@ -80,8 +80,8 @@ std::vector<double> AgreementPhi::continuous::twoway::inference::get_phi_modifie
     };
 
     double eps = 1e-8; 
-    double lower = std::max(phi_mle.first - SEARCH_RANGE/2, eps);
-    double upper = std::min(phi_mle.first + SEARCH_RANGE/2, 15.0);
+    double lower = std::max(phi_mle.first - SEARCH_RANGE, eps);
+    double upper = std::min(phi_mle.first + SEARCH_RANGE, 15.0);
 
     const int digits = std::numeric_limits<double>::digits;
     boost::uintmax_t max_iter = MAX_ITER;
@@ -175,14 +175,14 @@ std::vector<double> AgreementPhi::ordinal::twoway::inference::get_phi_modified_p
     // negative modified profile log-likelihood to minimize
     auto neg_modified_profile_likelihood = [&](double phi){
         double ll = AgreementPhi::ordinal::twoway::loglik::modified_profile(
-                Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, lambda_mle.at(0), lambda_mle.at(1), phi, phi_mle.first, J, W, K, PROF_UNI_RANGE/2,
-                PROF_UNI_MAX_ITER/2, PROF_MAX_ITER/2, PROF_TOL);
+                Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, lambda_mle.at(0), lambda_mle.at(1), phi, phi_mle.first, J, W, K, PROF_UNI_RANGE,
+                PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
         return -ll; 
     };
 
     double eps = 1e-8; 
-    double lower = std::max(phi_mle.first - SEARCH_RANGE/2, eps);
-    double upper = std::min(phi_mle.first + SEARCH_RANGE/2, 15.0);
+    double lower = std::max(phi_mle.first - SEARCH_RANGE, eps);
+    double upper = std::min(phi_mle.first + SEARCH_RANGE, 15.0);
 
     const int digits = std::numeric_limits<double>::digits;
     boost::uintmax_t max_iter = MAX_ITER;
