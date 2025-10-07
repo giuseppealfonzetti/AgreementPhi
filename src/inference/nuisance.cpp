@@ -23,10 +23,10 @@ double AgreementPhi::continuous::nuisance::brent_profiling(
     const std::vector<double>& CONST_DIM_PARS,
     const double START,
     const double PHI,
-    const int RANGE,
+    const double RANGE,
     const int MAX_ITER
 ){
-    const std::vector<int>& obs_vec = DICT.at(IDX);
+    const std::vector<int>& obs_vec = DICT.at(IDX-1);
     int n_j = obs_vec.size();
     double grad, grad2;
     auto neg_ll = [&](double nuisance){
@@ -34,7 +34,7 @@ double AgreementPhi::continuous::nuisance::brent_profiling(
         double nll=0;
         for(int i=0; i<n_j; i++){
             const int obs_id = obs_vec.at(i);
-            const int const_dim_idx = CONST_DIM_IDXS.at(obs_id);
+            const int const_dim_idx = CONST_DIM_IDXS.at(obs_id)-1;
             const double const_dim_par = CONST_DIM_PARS.at(const_dim_idx);
             double dmu, dmu2;
             double mu = link::mu(nuisance+const_dim_par);
@@ -61,18 +61,20 @@ std::vector<std::vector<double>> AgreementPhi::continuous::twoway::inference::ge
     const std::vector<double> Y,  
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
+    const std::vector<std::vector<int>> ITEM_DICT,
+    const std::vector<std::vector<int>> WORKER_DICT,
     const std::vector<double> ALPHA,
     const std::vector<double> BETA,
     const double PHI,
     const int J,
     const int W,
-    const int PROF_UNI_RANGE,
+    const double PROF_UNI_RANGE,
     const int PROF_UNI_MAX_ITER,
     const int PROF_MAX_ITER,
     const double TOL
 ){
-    std::vector<std::vector<int>> dict_items = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
-    std::vector<std::vector<int>> dict_workers = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
+    // std::vector<std::vector<int>> dict_items = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+    // std::vector<std::vector<int>> dict_workers = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
     
     std::vector<double> alphas = ALPHA;
     std::vector<double> betas = BETA;
@@ -85,7 +87,7 @@ std::vector<std::vector<double>> AgreementPhi::continuous::twoway::inference::ge
         for(int j = 0; j < J; ++j){
             double old_alpha = alphas.at(j);
             alphas.at(j) = AgreementPhi::continuous::nuisance::brent_profiling(
-                Y, dict_items, j, WORKER_INDS, betas, 
+                Y, ITEM_DICT, j+1, WORKER_INDS, betas, 
                 old_alpha, PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
             );
             max_change = std::max(max_change, std::abs(alphas.at(j) - old_alpha)/old_alpha);
@@ -95,7 +97,7 @@ std::vector<std::vector<double>> AgreementPhi::continuous::twoway::inference::ge
         for(int w = 1; w < W; ++w){
             double old_beta = betas.at(w);
             betas.at(w) = AgreementPhi::continuous::nuisance::brent_profiling(
-                Y, dict_workers, w, ITEM_INDS, alphas, 
+                Y, WORKER_DICT, w+1, ITEM_INDS, alphas, 
                 old_beta, PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
             );
             max_change = std::max(max_change, std::abs(betas.at(w) - old_beta)/old_beta);
@@ -140,10 +142,10 @@ double AgreementPhi::ordinal::nuisance::brent_profiling(
     const double START,
     const double PHI,
     const int K,
-    const int RANGE,
+    const double RANGE,
     const int MAX_ITER
 ){
-    const std::vector<int>& obs_vec = DICT.at(IDX);
+    const std::vector<int>& obs_vec = DICT.at(IDX-1);
     int n_j = obs_vec.size();
     double grad, grad2;
     auto neg_ll = [&](double nuisance){
@@ -151,7 +153,7 @@ double AgreementPhi::ordinal::nuisance::brent_profiling(
         double nll=0;
         for(int i=0; i<n_j; i++){
             const int obs_id = obs_vec.at(i);
-            const int const_dim_idx = CONST_DIM_IDXS.at(obs_id);
+            const int const_dim_idx = CONST_DIM_IDXS.at(obs_id)-1;
             const double const_dim_par = CONST_DIM_PARS.at(const_dim_idx);
             double dmu, dmu2;
             double mu = link::mu(nuisance+const_dim_par);
@@ -180,19 +182,21 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::twoway::inference::get_l
     const std::vector<double> Y,  
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
+    const std::vector<std::vector<int>> ITEM_DICT,
+    const std::vector<std::vector<int>> WORKER_DICT,
     const std::vector<double> ALPHA,
     const std::vector<double> BETA,
     const double PHI,
     const int J,
     const int W,
     const int K,
-    const int PROF_UNI_RANGE,
+    const double PROF_UNI_RANGE,
     const int PROF_UNI_MAX_ITER,
     const int PROF_MAX_ITER,
     const double TOL
 ){
-    std::vector<std::vector<int>> dict_items = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
-    std::vector<std::vector<int>> dict_workers = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
+    // std::vector<std::vector<int>> dict_items = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+    // std::vector<std::vector<int>> dict_workers = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
     
     std::vector<double> alphas = ALPHA;
     std::vector<double> betas = BETA;
@@ -205,7 +209,7 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::twoway::inference::get_l
         for(int j = 0; j < J; ++j){
             double old_alpha = alphas.at(j);
             alphas.at(j) = AgreementPhi::ordinal::nuisance::brent_profiling(
-                Y, dict_items, j, WORKER_INDS, betas, 
+                Y, ITEM_DICT, j+1, WORKER_INDS, betas, 
                 old_alpha, PHI, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
             );
             max_change = std::max(max_change, std::abs(alphas.at(j) - old_alpha)/old_alpha);
@@ -215,7 +219,7 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::twoway::inference::get_l
         for(int w = 1; w < W; ++w){
             double old_beta = betas.at(w);
             betas.at(w) = AgreementPhi::ordinal::nuisance::brent_profiling(
-                Y, dict_workers, w, ITEM_INDS, alphas, 
+                Y, WORKER_DICT, w+1, ITEM_INDS, alphas, 
                 old_beta, PHI, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
             );
             max_change = std::max(max_change, std::abs(betas.at(w) - old_beta)/old_beta);

@@ -15,7 +15,7 @@ namespace AgreementPhi{
                 const std::vector<double>& CONST_DIM_PARS,
                 const double START,
                 const double PHI,
-                const int RANGE,
+                const double RANGE,
                 const int MAX_ITER
             );
 
@@ -27,12 +27,14 @@ namespace AgreementPhi{
                     const std::vector<double> Y,  
                     const std::vector<int> ITEM_INDS,
                     const std::vector<int> WORKER_INDS,
+                    const std::vector<std::vector<int>> ITEM_DICT,
+                    const std::vector<std::vector<int>> WORKER_DICT,
                     const std::vector<double> ALPHA,
                     const std::vector<double> BETA,
                     const double PHI,
                     const int J,
                     const int W,
-                    const int PROF_UNI_RANGE,
+                    const double PROF_UNI_RANGE,
                     const int PROF_UNI_MAX_ITER,
                     const int PROF_MAX_ITER,
                     const double TOL
@@ -53,7 +55,7 @@ namespace AgreementPhi{
                 const double START,
                 const double PHI,
                 const int K,
-                const int RANGE,
+                const double RANGE,
                 const int MAX_ITER
             );
         }
@@ -64,13 +66,15 @@ namespace AgreementPhi{
                 const std::vector<double> Y,  
                 const std::vector<int> ITEM_INDS,
                 const std::vector<int> WORKER_INDS,
+                const std::vector<std::vector<int>> ITEM_DICT,
+                const std::vector<std::vector<int>> WORKER_DICT,
                 const std::vector<double> ALPHA,
                 const std::vector<double> BETA,
                 const double PHI,
                 const int J,
                 const int W,
                 const int K,
-                const int PROF_UNI_RANGE,
+                const double PROF_UNI_RANGE,
                 const int PROF_UNI_MAX_ITER,
                 const int PROF_MAX_ITER,
                 const double TOL);
