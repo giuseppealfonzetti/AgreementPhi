@@ -220,22 +220,21 @@ validate_cpp_control <- function(LIST = NULL, MODEL, DATA_TYPE) {
       }
       out$PROF_METHOD <- LIST$PROF_METHOD
       out$PROF_MAX_ITER <- LIST$PROF_MAX_ITER
-
-      if (out$PROF_METHOD == "alt_brent") {
-        # max iter alterning algorithm
-        if (is.null(LIST$ALT_MAX_ITER)) {
-          LIST$ALT_MAX_ITER <- 10
-        }
-        stopifnot(is.numeric(LIST$ALT_MAX_ITER))
-        stopifnot(LIST$ALT_MAX_ITER > 0)
-        out$ALT_MAX_ITER <- LIST$ALT_MAX_ITER
-        if (is.null(LIST$ALT_TOL)) {
-          LIST$ALT_TOL <- 1e-2
-        }
-        stopifnot(is.numeric(LIST$ALT_TOL))
-        stopifnot(LIST$ALT_TOL > 0)
-        out$ALT_TOL <- LIST$ALT_TOL
+    }
+    if (out$PROF_METHOD == "alt_brent") {
+      # max iter alterning algorithm
+      if (is.null(LIST$ALT_MAX_ITER)) {
+        LIST$ALT_MAX_ITER <- 10
       }
+      stopifnot(is.numeric(LIST$ALT_MAX_ITER))
+      stopifnot(LIST$ALT_MAX_ITER > 0)
+      out$ALT_MAX_ITER <- LIST$ALT_MAX_ITER
+      if (is.null(LIST$ALT_TOL)) {
+        LIST$ALT_TOL <- 1e-2
+      }
+      stopifnot(is.numeric(LIST$ALT_TOL))
+      stopifnot(LIST$ALT_TOL > 0)
+      out$ALT_TOL <- LIST$ALT_TOL
     }
     stopifnot(LIST$PROF_METHOD %in% c("alt_brent", "bfgs"))
   }
