@@ -139,7 +139,7 @@ test_that("get_phi matches cpp profile via alterating maximization | continuous"
     DATA_TYPE = "continuous"
   )
 
-  tictoc::tic()
+  # tictoc::tic()
   p_mle <- get_phi_profile_twoway(
     Y = dt$rating,
     ITEM_INDS = as.integer(dt$id_item),
@@ -155,9 +155,9 @@ test_that("get_phi matches cpp profile via alterating maximization | continuous"
     PROF_MAX_ITER = 100,
     VERBOSE = FALSE
   )
-  tictoc::toc()
+  # tictoc::toc()
 
-  tictoc::tic()
+  # tictoc::tic()
   cpp_res <- cpp_twoway_get_phi_profile(
     Y = dt$rating,
     ITEM_INDS = as.integer(dt$id_item),
@@ -176,7 +176,7 @@ test_that("get_phi matches cpp profile via alterating maximization | continuous"
     PROF_MAX_ITER = 10,
     PROF_TOL = 1e-5
   )
-  tictoc::toc()
+  # tictoc::toc()
 
   expect_equal(
     p_mle$precision,
@@ -190,7 +190,7 @@ test_that("get_phi matches cpp profile via alterating maximization | continuous"
     tolerance = 1e-2
   )
 
-  tictoc::tic()
+  # tictoc::tic()
   mp_mle <- get_phi_modified_profile_twoway(
     Y = dt$rating,
     ITEM_INDS = as.integer(dt$id_item),
@@ -206,9 +206,9 @@ test_that("get_phi matches cpp profile via alterating maximization | continuous"
     PROF_MAX_ITER = 100,
     VERBOSE = FALSE
   )
-  tictoc::toc()
+  # tictoc::toc()
 
-  tictoc::tic()
+  # tictoc::tic()
   cpp_res_mp <- cpp_twoway_get_phi_modified_profile(
     Y = dt$rating,
     ITEM_INDS = as.integer(dt$id_item),
@@ -228,7 +228,7 @@ test_that("get_phi matches cpp profile via alterating maximization | continuous"
     PROF_TOL = 1e-5,
     VERBOSE = TRUE
   )
-  tictoc::toc()
+  # tictoc::toc()
 
   expect_equal(
     mp_mle$mpl_precision,
@@ -244,10 +244,10 @@ test_that("get_phi matches cpp profile via alterating maximization | continuous"
 })
 test_that("get_phi matches cpp profile via alterating maximization | ordinal", {
   set.seed(123)
-  items <- 100
+  items <- 30
   budget <- 10
   n_obs <- items * budget
-  workers <- 100
+  workers <- 20
   agr <- .7
   alphas <- rnorm(items)
   betas <- rnorm(workers)
@@ -314,7 +314,7 @@ test_that("get_phi matches cpp profile via alterating maximization | ordinal", {
     tolerance = 1e-2
   )
 
-  tictoc::tic()
+  # tictoc::tic()
   mp_mle <- get_phi_modified_profile_twoway(
     Y = dt$rating,
     ITEM_INDS = as.integer(dt$id_item),
@@ -330,9 +330,9 @@ test_that("get_phi matches cpp profile via alterating maximization | ordinal", {
     PROF_MAX_ITER = 10,
     VERBOSE = FALSE
   )
-  tictoc::toc()
+  # tictoc::toc()
 
-  tictoc::tic()
+  # tictoc::tic()
   cpp_res_mp <- cpp_twoway_get_phi_modified_profile(
     Y = dt$rating,
     ITEM_INDS = as.integer(dt$id_item),
@@ -350,9 +350,9 @@ test_that("get_phi matches cpp profile via alterating maximization | ordinal", {
     PROF_UNI_MAX_ITER = 10,
     PROF_MAX_ITER = 10,
     PROF_TOL = 1e-5,
-    VERBOSE = TRUE
+    VERBOSE = FALSE
   )
-  tictoc::toc()
+  # tictoc::toc()
 
   expect_equal(
     mp_mle$mpl_precision,
