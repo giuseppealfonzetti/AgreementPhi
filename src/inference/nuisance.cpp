@@ -44,8 +44,8 @@ double AgreementPhi::continuous::nuisance::brent_profiling(
         return nll;
     };
 
-    double lower = START - RANGE/2; 
-    double upper = START + RANGE/2;
+    double lower = START - RANGE; 
+    double upper = START + RANGE;
     const int digits = std::numeric_limits<double>::digits;
     boost::uintmax_t max_iter = MAX_ITER;
 
@@ -90,7 +90,7 @@ std::vector<std::vector<double>> AgreementPhi::continuous::twoway::inference::ge
                 Y, ITEM_DICT, j+1, WORKER_INDS, betas, 
                 old_alpha, PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
             );
-            max_change = std::max(max_change, std::abs(alphas.at(j) - old_alpha)/old_alpha);
+            max_change = std::max(max_change, std::abs(alphas.at(j) - old_alpha));
         }
         
         // Profile workers
@@ -100,7 +100,7 @@ std::vector<std::vector<double>> AgreementPhi::continuous::twoway::inference::ge
                 Y, WORKER_DICT, w+1, ITEM_INDS, alphas, 
                 old_beta, PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
             );
-            max_change = std::max(max_change, std::abs(betas.at(w) - old_beta)/old_beta);
+            max_change = std::max(max_change, std::abs(betas.at(w) - old_beta));
         }
         
         if(max_change < TOL) break;
