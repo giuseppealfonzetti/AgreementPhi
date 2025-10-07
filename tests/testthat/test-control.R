@@ -147,3 +147,6 @@ test_that("validate_data requires numeric worker indices", {
 
   expect_error(validate_data(ratings, item_inds, worker_inds, VERBOSE = FALSE))
 })
+
+
+validate_cpp_control(list(), MODEL = "twoway", DATA_TYPE = "ordinal")

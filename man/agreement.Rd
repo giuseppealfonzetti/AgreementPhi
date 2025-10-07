@@ -58,11 +58,15 @@ for each item j. Must be positive. Default: \code{10}.}
 Must be a positive integer. Default: \code{100}.}
 \item{\code{PROF_METHOD}}{Method for profiling optimization. A character string among:
 \itemize{
-\item \code{"brent"}: Brent's method. Default.
-\item \code{"newton_raphson"}: Newton-Raphson method.
-}
-Note: Newton-Raphson is automatically selected when the average number of ratings
-per item cubed is less than the number of items (i.e., when \code{mean(table(ITEM_INDS))^3 < max(ITEM_INDS)}).}
+\item \code{"brent"}: Brent's method (one-way only). Default for one-way.
+\item \code{"newton_raphson"}: Newton-Raphson method (one-way only).
+\item \code{"bfgs"}: L-BFGS method (two-way only). Default for two-way continuous data.
+\item \code{"alt_brent"}: Alternated profiling via univariate Brent's method (two-way only). Default for two-way ordinal data
+}}
+\item{\code{ALT_MAX_ITER}}{Maximum iterations for \code{alt_brent}.
+Must be a positive integer. Default: \code{10}.}
+\item{\code{ALT_TOL}}{Relative convergence tolerance for \code{alt_brent}.
+Must be positive. Default: \code{1e-2}}
 }}
 
 \item{VERBOSE}{Verbose output.}
