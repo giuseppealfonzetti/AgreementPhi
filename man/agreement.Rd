@@ -62,12 +62,12 @@ Must be a positive integer. Default: \code{100}.}
 \item \code{"newton_raphson"}: Newton-Raphson method (one-way only).
 \item \code{"bfgs"}: L-BFGS method (two-way only). Default for two-way continuous data.
 \item \code{"alt_brent"}: Alternated profiling via univariate Brent's method (two-way only). Default for two-way ordinal data
-}
+}}
 \item{\code{ALT_MAX_ITER}}{Maximum iterations for \code{alt_brent}.
 Must be a positive integer. Default: \code{10}.}
 \item{\code{ALT_TOL}}{Relative convergence tolerance for \code{alt_brent}.
 Must be positive. Default: \code{1e-2}}
-}}}
+}}
 
 \item{VERBOSE}{Verbose output.}
 }

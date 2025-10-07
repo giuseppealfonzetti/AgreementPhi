@@ -36,12 +36,12 @@
 #'         \item `"newton_raphson"`: Newton-Raphson method (one-way only).
 #'         \item `"bfgs"`: L-BFGS method (two-way only). Default for two-way continuous data.
 #'         \item `"alt_brent"`: Alternated profiling via univariate Brent's method (two-way only). Default for two-way ordinal data
-#'       }
+#'       }}
 #'     \item{`ALT_MAX_ITER`}{Maximum iterations for `alt_brent`.
 #'       Must be a positive integer. Default: `10`.}
 #'     \item{`ALT_TOL`}{Relative convergence tolerance for `alt_brent`.
 #'       Must be positive. Default: `1e-2`}
-#'  }}
+#'  }
 #' @param VERBOSE Verbose output.
 #'
 #' @return Returns a list with maximum likelihood estimates and corresponding negative log-likelihood.
