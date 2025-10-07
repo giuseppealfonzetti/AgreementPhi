@@ -228,7 +228,7 @@ test_that("Alteranting Maximization matches bfgs | continuous", {
   phi <- agr2prec(agr)
   lambda_start <- rep(0, items + workers - 1)
 
-  tictoc::tic()
+  # tictoc::tic()
   lambda_hat <- twoway_profiling_bfgs(
     dt$rating,
     as.integer(dt$id_item),
@@ -239,9 +239,9 @@ test_that("Alteranting Maximization matches bfgs | continuous", {
     W = workers,
     DATA_TYPE = "continuous"
   )
-  tictoc::toc()
+  # tictoc::toc()
 
-  tictoc::tic()
+  # tictoc::tic()
   lambda_alt <- cpp_continuous_profiling(
     Y = dt$rating,
     ITEM_INDS = as.integer(dt$id_item),
@@ -256,7 +256,7 @@ test_that("Alteranting Maximization matches bfgs | continuous", {
     PROF_MAX_ITER = 10L,
     TOL = 1e-5
   )
-  tictoc::toc()
+  # tictoc::toc()
 
   bfgs_ll <- cpp_continuous_twoway_joint_loglik(
     dt$rating,
@@ -309,7 +309,7 @@ test_that("Alteranting Maximization matches bfgs | ordinal", {
   phi <- agr2prec(agr)
   lambda_start <- rep(0, items + workers - 1)
 
-  tictoc::tic()
+  # tictoc::tic()
   lambda_hat <- twoway_profiling_bfgs(
     dt$rating,
     as.integer(dt$id_item),
@@ -321,9 +321,9 @@ test_that("Alteranting Maximization matches bfgs | ordinal", {
     K = k,
     DATA_TYPE = "ordinal"
   )
-  tictoc::toc()
+  # tictoc::toc()
 
-  tictoc::tic()
+  # tictoc::tic()
   lambda_alt <- cpp_ordinal_profiling(
     Y = dt$rating,
     ITEM_INDS = as.integer(dt$id_item),
@@ -339,7 +339,7 @@ test_that("Alteranting Maximization matches bfgs | ordinal", {
     PROF_MAX_ITER = 10L,
     TOL = 1e-5
   )
-  tictoc::toc()
+  # tictoc::toc()
 
   bfgs_ll <- cpp_ordinal_twoway_joint_loglik(
     dt$rating,
