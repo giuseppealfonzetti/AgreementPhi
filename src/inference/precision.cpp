@@ -182,7 +182,7 @@ std::vector<double> AgreementPhi::ordinal::twoway::inference::get_phi_modified_p
 
     double eps = 1e-5; 
     double lower, upper;
-    if(phi_mle.first<0.5){
+    if(phi_mle.first<2.8){
         lower = eps;
         upper = phi_mle.first + 1.0;
     }else{
