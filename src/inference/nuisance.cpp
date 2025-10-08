@@ -143,37 +143,87 @@ double AgreementPhi::ordinal::nuisance::brent_profiling(
     const double PHI,
     const int K,
     const double RANGE,
-    const int MAX_ITER
+    const int MAX_ITER,
+    const double MEAN = 0
 ){
     const std::vector<int>& obs_vec = DICT.at(IDX-1);
     int n_j = obs_vec.size();
-    double grad, grad2;
-    auto neg_ll = [&](double nuisance){
 
-        double nll=0;
-        for(int i=0; i<n_j; i++){
-            const int obs_id = obs_vec.at(i);
-            const int const_dim_idx = CONST_DIM_IDXS.at(obs_id)-1;
-            const double const_dim_par = CONST_DIM_PARS.at(const_dim_idx);
-            double dmu, dmu2;
-            double mu = link::mu(nuisance+const_dim_par);
-            nll -= AgreementPhi::ordinal::loglik(Y.at(obs_id), mu, PHI, K, dmu, dmu2, 0); 
+
+    // Check for degeneracy
+    bool all_equal = true;
+    if(n_j >= 2) {
+        double first_val = Y.at(obs_vec.at(0));
+        for(int i = 1; i < n_j; i++){
+            if(Y.at(obs_vec.at(i))!=first_val) {
+                all_equal = false;
+                break;
+            }
         }
+    }
 
-        return nll;
-    };
+    if(all_equal || n_j < 2) {
+        // double lambda_reg = (all_equal) ? 1.0 : 0.5;
+        
+        auto neg_ll_regularized = [&](double nuisance){
+            double nll = 0;
+            
+            for(int i=0; i<n_j; i++){
+                const int obs_id = obs_vec.at(i);
+                const int const_dim_idx = CONST_DIM_IDXS.at(obs_id)-1;
+                const double const_dim_par = CONST_DIM_PARS.at(const_dim_idx);
+                double dmu, dmu2;
+                double mu = link::mu(nuisance + const_dim_par);
+                nll -= AgreementPhi::ordinal::loglik(Y.at(obs_id), mu, PHI, K, dmu, dmu2, 0);
+            }
+            
+            nll += 0.5 * pow(nuisance - MEAN, 2);
+            
+            return nll;
+        };
+        
+        double lower = std::max(START - RANGE/2, -10.0);
+        double upper = std::min(START + RANGE/2,  10.0);
+        
+        const int digits = std::numeric_limits<double>::digits;
+        boost::uintmax_t max_iter = MAX_ITER;
+        
+        auto result = boost::math::tools::brent_find_minima(
+            neg_ll_regularized, lower, upper, digits, max_iter
+        );
+        
+        return result.first;
+    }else{
+        double grad, grad2;
+        auto neg_ll = [&](double nuisance){
 
-    double lower = START - RANGE/2; 
-    double upper = START + RANGE/2;
-    const int digits = std::numeric_limits<double>::digits;
-    boost::uintmax_t max_iter = MAX_ITER;
+            double nll=0;
+            for(int i=0; i<n_j; i++){
+                const int obs_id = obs_vec.at(i);
+                const int const_dim_idx = CONST_DIM_IDXS.at(obs_id)-1;
+                const double const_dim_par = CONST_DIM_PARS.at(const_dim_idx);
+                double dmu, dmu2;
+                double mu = link::mu(nuisance+const_dim_par);
+                nll -= AgreementPhi::ordinal::loglik(Y.at(obs_id), mu, PHI, K, dmu, dmu2, 0); 
+            }
 
-    auto result = boost::math::tools::brent_find_minima(
-        neg_ll, lower, upper, digits, max_iter
-    );
+            return nll;
+        };
 
-    double opt = result.first; 
-    return opt;
+        double lower = std::max(START - RANGE/2, -10.0);
+        double upper = std::min(START + RANGE/2,  10.0);
+        const int digits = std::numeric_limits<double>::digits;
+        boost::uintmax_t max_iter = MAX_ITER;
+
+        auto result = boost::math::tools::brent_find_minima(
+            neg_ll, lower, upper, digits, max_iter
+        );
+
+        double opt = result.first; 
+        return opt;
+    }
+
+    
 }
 
 
@@ -205,14 +255,21 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::twoway::inference::get_l
     for(int iter = 0; iter < PROF_MAX_ITER; ++iter){
         double max_change = 0;
         
+
+        double mean_alpha = std::accumulate(std::begin(alphas), std::end(alphas), 0.0);
+        mean_alpha /= J;
+
+        double mean_beta = std::accumulate(std::begin(betas), std::end(betas), 0.0);
+        mean_beta /= W;
+
         // Profile items
         for(int j = 0; j < J; ++j){
             double old_alpha = alphas.at(j);
             alphas.at(j) = AgreementPhi::ordinal::nuisance::brent_profiling(
                 Y, ITEM_DICT, j+1, WORKER_INDS, betas, 
-                old_alpha, PHI, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
+                old_alpha, PHI, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, mean_alpha
             );
-            max_change = std::max(max_change, std::abs(alphas.at(j) - old_alpha)/old_alpha);
+            max_change = std::max(max_change, std::abs(alphas.at(j) - old_alpha));
         }
         
         // Profile workers
@@ -220,9 +277,9 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::twoway::inference::get_l
             double old_beta = betas.at(w);
             betas.at(w) = AgreementPhi::ordinal::nuisance::brent_profiling(
                 Y, WORKER_DICT, w+1, ITEM_INDS, alphas, 
-                old_beta, PHI, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
+                old_beta, PHI, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, mean_beta
             );
-            max_change = std::max(max_change, std::abs(betas.at(w) - old_beta)/old_beta);
+            max_change = std::max(max_change, std::abs(betas.at(w) - old_beta));
         }
         
         if(max_change < TOL) break;
