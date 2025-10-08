@@ -163,7 +163,7 @@ double AgreementPhi::ordinal::nuisance::brent_profiling(
     }
 
     if(all_equal || n_j < 2) {
-        double lambda_reg = (all_equal) ? 1.0 : 0.5;
+        // double lambda_reg = (all_equal) ? 1.0 : 0.5;
         
         auto neg_ll_regularized = [&](double nuisance){
             double nll = 0;
@@ -177,7 +177,7 @@ double AgreementPhi::ordinal::nuisance::brent_profiling(
                 nll -= AgreementPhi::ordinal::loglik(Y.at(obs_id), mu, PHI, K, dmu, dmu2, 0);
             }
             
-            nll += lambda_reg * 0.5 * pow(nuisance - MEAN, 2);
+            nll += 0.5 * pow(nuisance - MEAN, 2);
             
             return nll;
         };
@@ -193,7 +193,6 @@ double AgreementPhi::ordinal::nuisance::brent_profiling(
         );
         
         return result.first;
-        // return START;
     }else{
         double grad, grad2;
         auto neg_ll = [&](double nuisance){

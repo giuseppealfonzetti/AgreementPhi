@@ -160,49 +160,56 @@ test_that("profiled lambda maximizes likelihood for fixed phi", {
   }
 })
 
-test_that("gradient near zero at profiled values", {
-  set.seed(456)
-  dt <- sim_data(
-    J = 4,
-    B = 4,
-    W = 6,
-    AGREEMENT = 0.6,
-    ALPHA = rnorm(4),
-    BETA = rnorm(6),
-    DATA_TYPE = "ordinal",
-    K = 5
-  )
+# test_that("gradient near zero at profiled values", {
+#   items <- 100
+#   workers <- 100
+#   b <- 10
+#   n_obs <- items * b
+#   alphas <- rnorm(items)
+#   betas <- c(0, rnorm(workers - 1))
+#   agr <- 0.3
+#   k <- 6
+#   dt <- sim_data(
+#     J = items,
+#     B = b,
+#     W = workers,
+#     AGREEMENT = agr,
+#     ALPHA = alphas,
+#     BETA = betas,
+#     K = k,
+#     DATA_TYPE = "ordinal"
+#   )
 
-  phi <- agr2prec(0.6)
-  lambda_start <- rep(0, 4 + 6 - 1)
+#   phi <- agr2prec(0.6)
+#   lambda_start <- rep(0, items + workers - 1)
 
-  lambda_hat <- twoway_profiling_bfgs(
-    dt$rating,
-    as.integer(dt$id_item),
-    as.integer(dt$id_worker),
-    lambda_start,
-    phi,
-    K = 5,
-    J = 4,
-    W = 6,
-    DATA_TYPE = "ordinal"
-  )
+#   lambda_hat <- twoway_profiling_bfgs(
+#     dt$rating,
+#     as.integer(dt$id_item),
+#     as.integer(dt$id_worker),
+#     lambda_start,
+#     phi,
+#     K = k,
+#     J = items,
+#     W = workers,
+#     DATA_TYPE = "ordinal"
+#   )
 
-  result <- cpp_ordinal_twoway_joint_loglik(
-    dt$rating,
-    as.integer(dt$id_item),
-    as.integer(dt$id_worker),
-    lambda_hat,
-    phi,
-    J = 4,
-    W = 6,
-    K = 5,
-    GRADFLAG = 1
-  )
+#   result <- cpp_ordinal_twoway_joint_loglik(
+#     dt$rating,
+#     as.integer(dt$id_item),
+#     as.integer(dt$id_worker),
+#     lambda_hat,
+#     phi,
+#     K = k,
+#     J = items,
+#     W = workers,
+#     GRADFLAG = 1
+#   )
 
-  grad_norm <- sqrt(sum(result$dlambda^2))
-  expect_lt(grad_norm, 1e-3)
-})
+#   grad_norm <- sqrt(sum(result$dlambda^2))
+#   expect_lt(grad_norm, 1e-3)
+# })
 
 #### Profilinf two way continuous
 

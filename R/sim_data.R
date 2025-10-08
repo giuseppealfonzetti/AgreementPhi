@@ -11,6 +11,7 @@
 #' @param SEED RNG seed.
 #'
 #' @return Returns a dataframe with columns id_items, id_worker and rating
+#' @importFrom AlgDesign optFederov
 #' @export
 sim_data <- function(
   J,
@@ -38,20 +39,36 @@ sim_data <- function(
 
   n_obs <- J * B
   precision <- agr2prec(AGREEMENT)
-  obs_item_ind <- rep(1:J, each = B)
-  obs_worker_ind <- rep(1:W, each = floor(n_obs / W))
-  diff_len <- length(obs_item_ind) - length(obs_worker_ind)
-  if (diff_len > 0) {
-    obs_worker_ind <- c(
-      obs_worker_ind,
-      sample(unique(obs_worker_ind), diff_len)
-    )
-  }
-  obs_worker_ind <- sample(obs_worker_ind, n_obs)
+
+  # Step 1: create candidate set of all possible item–worker pairs
+  candidates <- expand.grid(
+    item_id = factor(1:J),
+    worker_id = factor(1:W)
+  )
+
+  # Step 2: run Federov algorithm to pick N pairs (approx. balanced)
+  design <- optFederov(
+    ~1,
+    data = candidates,
+    nTrials = n_obs
+  )$design
+
+  assignment_df <- design$design
+  assignment_df
+  # obs_item_ind <- rep(1:J, each = B)
+  # obs_worker_ind <- rep(1:W, each = floor(n_obs / W))
+  # diff_len <- length(obs_item_ind) - length(obs_worker_ind)
+  # if (diff_len > 0) {
+  #   obs_worker_ind <- c(
+  #     obs_worker_ind,
+  #     sample(unique(obs_worker_ind), diff_len)
+  #   )
+  # }
+  # obs_worker_ind <- sample(obs_worker_ind, n_obs)
   if (is.null(BETA)) {
     BETA <- rep(0, W)
   }
-  obs_mu <- plogis(ALPHA[obs_item_ind] + BETA[obs_worker_ind])
+  obs_mu <- plogis(ALPHA[design$item_id] + BETA[design$worker_id])
 
   obs_a <- obs_mu * precision
   obs_b <- (1 - obs_mu) * precision
@@ -72,8 +89,8 @@ sim_data <- function(
   }
 
   dt <- data.frame(
-    id_item = obs_item_ind,
-    id_worker = obs_worker_ind,
+    id_item = as.numeric(design$item_id),
+    id_worker = as.numeric(design$worker_id),
     rating = obs_y * 1.0
   )
 
