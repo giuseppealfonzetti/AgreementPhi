@@ -15,7 +15,7 @@
 sim_data <- function(
   J,
   B,
-  W = J * 2,
+  W = J,
   AGREEMENT,
   ALPHA,
   BETA = NULL,
@@ -39,7 +39,15 @@ sim_data <- function(
   n_obs <- J * B
   precision <- agr2prec(AGREEMENT)
   obs_item_ind <- rep(1:J, each = B)
-  obs_worker_ind <- as.vector(replicate(J, sample(1:W, B, replace = FALSE)))
+  obs_worker_ind <- rep(1:W, each = floor(n_obs / W))
+  diff_len <- length(obs_item_ind) - length(obs_worker_ind)
+  if (diff_len > 0) {
+    obs_worker_ind <- c(
+      obs_worker_ind,
+      sample(unique(obs_worker_ind), diff_len)
+    )
+  }
+  obs_worker_ind <- sample(obs_worker_ind, n_obs)
   if (is.null(BETA)) {
     BETA <- rep(0, W)
   }
