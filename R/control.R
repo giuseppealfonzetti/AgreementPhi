@@ -74,8 +74,12 @@ validate_data <- function(
       out$item_ids <- as.integer(informative_ids_recoded)
       out$ratings <- informative_rts
     } else {
-      out$item_ids <- ITEM_INDS
       out$ratings <- RATINGS * 1.0
+
+      # Recode items in case of non consecutive indexes
+      unique_items <- sort(unique(ITEM_INDS))
+      item_map <- setNames(seq_along(unique_items), unique_items)
+      out$item_ids <- as.integer(item_map[as.character(ITEM_INDS)])
     }
   } else {
     out$ratings <- RATINGS * 1.0
