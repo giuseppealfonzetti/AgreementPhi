@@ -7,7 +7,7 @@
 sim_data(
   J,
   B,
-  W = J * 2,
+  W = J,
   AGREEMENT,
   ALPHA,
   BETA = NULL,

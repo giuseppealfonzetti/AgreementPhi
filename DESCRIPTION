@@ -19,7 +19,8 @@ LinkingTo:
     RcppEigen
 Imports: 
     Rcpp (>= 1.1.0),
-    lbfgs
+    lbfgs,
+    AlgDesign
 URL: https://github.com/giuseppealfonzetti/AgreementPhi
 BugReports: https://github.com/giuseppealfonzetti/AgreementPhi/issues
 VignetteBuilder: knitr

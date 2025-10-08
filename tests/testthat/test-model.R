@@ -84,7 +84,7 @@ test_that("probabilities are normalized", {
 
 #### Ordinal model | sample single item ####
 set.seed(1)
-items <- 5
+items <- 10
 budget_per_item <- 10
 n_obs <- items * budget_per_item
 k <- 5

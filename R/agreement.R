@@ -196,6 +196,11 @@ agreement <- function(
         out[["mpl_precision"]] <- opt[1]
         out[["mpl_agreement"]] <- prec2agr(opt[1])
         out[["loglik"]] <- opt[2]
+        if (out[["pl_precision"]] < out[["mpl_precision"]]) {
+          warning(
+            "Possible divergence detected. Modified estimate might be unreliable. Try profiling via bfgs."
+          )
+        }
       } else {
         opt <- do.call(cpp_twoway_get_phi_profile, args)
         out[["pl_precision"]] <- opt[1]

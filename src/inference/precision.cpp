@@ -180,9 +180,16 @@ std::vector<double> AgreementPhi::ordinal::twoway::inference::get_phi_modified_p
         return -ll; 
     };
 
-    double eps = 1e-8; 
-    double lower = std::max(phi_mle.first - SEARCH_RANGE, eps);
-    double upper = std::min(phi_mle.first + SEARCH_RANGE, 15.0);
+    double eps = 1e-5; 
+    double lower, upper;
+    if(phi_mle.first<2.8){
+        lower = eps;
+        upper = phi_mle.first + 1.0;
+    }else{
+        lower = std::max(phi_mle.first - SEARCH_RANGE, eps);
+        upper = std::min(phi_mle.first + SEARCH_RANGE, 15.0);
+    }
+    
 
     const int digits = std::numeric_limits<double>::digits;
     boost::uintmax_t max_iter = MAX_ITER;
