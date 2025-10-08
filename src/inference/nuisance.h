@@ -3,6 +3,7 @@
 #include <boost/math/tools/minima.hpp>
 #include "../models/oneway.h"
 #include "../models/twoway.h"
+#include <numeric>
 
 namespace AgreementPhi{
     namespace continuous{
@@ -56,7 +57,8 @@ namespace AgreementPhi{
                 const double PHI,
                 const int K,
                 const double RANGE,
-                const int MAX_ITER
+                const int MAX_ITER,
+                const double MEAN
             );
         }
 
