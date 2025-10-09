@@ -28,18 +28,23 @@ agr2prec <- function(X) {
 #'
 #' @param X Vector of continuous data in (0,1).
 #' @param K Number of ordinal categories.
+#' @param TRESHOLDS Threshold vector of length K-1. If null, thresholds are assumed to be equispaced.
 #'
 #' @return Discretised vector
 #'
 #' @export
-cont2ord <- function(X, K) {
+cont2ord <- function(X, K, TRESHOLDS = NULL) {
   stopifnot(is.numeric(X))
   stopifnot(all(X <= 1))
   stopifnot(all(X >= 0))
   stopifnot(K %% 1 == 0)
   stopifnot(K > 1)
-
   breaks <- (0:K) / K
+  if (!is.null(TRESHOLDS)) {
+    stopifnot(is.numeric(TRESHOLDS))
+    stopifnot(length(TRESHOLDS) == K - 1)
+    breaks <- c(0, TRESHOLDS, 1)
+  }
   out <- findInterval(X, breaks, left.open = TRUE)
   out[X == 0] <- 1
   return(out)
