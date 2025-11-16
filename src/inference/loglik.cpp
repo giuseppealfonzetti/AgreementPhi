@@ -1,5 +1,184 @@
 #include "loglik.h"
 
+///////////////////////////////////////
+// CONTINUOUS RATINGS | ONEWAY MODEL //
+///////////////////////////////////////
+
+
+double AgreementPhi::continuous::oneway::loglik::profile(
+    double PHI,
+    const std::vector<double> Y, 
+    const std::vector<std::vector<int>> DICT,
+    const std::vector<double> ALPHA_START,
+    const int J,
+    const int RANGE,
+    const int MAX_ITER,
+    const int METHOD
+){
+    double grad, grad2;
+    double ll = 0;
+    std::vector<double> alpha(J);
+    for(int j=0; j<J; j++){
+
+        // profiling
+        if(METHOD==0){
+            double hatalpha = AgreementPhi::continuous::oneway::inference::profiling_brent(
+                Y, DICT, j, ALPHA_START.at(j), PHI, RANGE, MAX_ITER
+            );
+            alpha.at(j) = hatalpha;
+        }else{
+            double hatalpha = AgreementPhi::continuous::oneway::inference::profiling_newtonraphson(
+                Y, DICT, j, ALPHA_START.at(j), PHI, RANGE, MAX_ITER
+            );
+            alpha.at(j) = hatalpha;
+        }
+
+        // Evaluate ll contribution
+        double llj = AgreementPhi::continuous::oneway::item_loglik(Y, DICT, j, alpha.at(j), PHI, grad, grad2, 0);
+
+        ll += llj;
+    }
+
+    return ll;
+}
+
+double AgreementPhi::continuous::oneway::loglik::modified_profile(
+    double PHI,
+    const std::vector<double> Y, 
+    const std::vector<std::vector<int>> DICT,
+    const std::vector<double> ALPHA_START,
+    const std::vector<double> ALPHA_MLE,
+    const double PHI_MLE,
+    const int J,
+    const int PROF_SEARCH_RANGE,
+    const int PROF_MAX_ITER,
+    const int PROF_METHOD
+){
+    double grad, grad2;
+    double ll = 0;
+    std::vector<double> prof_alpha(J);
+    for(int j=0; j<J; j++){
+
+        // profiling
+        if(PROF_METHOD==0){
+            double hatalpha = AgreementPhi::continuous::oneway::inference::profiling_brent(
+                Y, DICT, j, ALPHA_START.at(j), PHI, PROF_SEARCH_RANGE, PROF_MAX_ITER
+            );
+            prof_alpha.at(j) = hatalpha;
+        }else{
+            double hatalpha = AgreementPhi::continuous::oneway::inference::profiling_newtonraphson(
+                Y, DICT, j, ALPHA_START.at(j), PHI, PROF_SEARCH_RANGE, PROF_MAX_ITER
+            );
+            prof_alpha.at(j) = hatalpha;
+        }
+
+        // Evaluate ll contribution
+        double llj = AgreementPhi::continuous::oneway::item_loglik(Y, DICT, j, prof_alpha.at(j), PHI, grad, grad2, 0);
+
+        ll += llj;
+    }
+
+    // add modifier
+    ll += .5 * AgreementPhi::continuous::oneway::log_det_obs_info(Y, DICT, prof_alpha, PHI);
+
+    ll -= AgreementPhi::continuous::oneway::log_det_E0d0d1(DICT, ALPHA_MLE, prof_alpha, PHI_MLE, PHI);
+
+    return ll;
+}
+
+///////////////////////////////////////
+// ORDINAL RATINGS | ONEWAY MODEL //
+///////////////////////////////////////
+
+double AgreementPhi::ordinal::oneway::loglik::profile(
+    double PHI,
+    const std::vector<double>& Y, 
+    const std::vector<std::vector<int>> DICT,
+    const std::vector<double>& ALPHA_START,
+    const int K,
+    const int J,
+    const int RANGE,
+    const int MAX_ITER,
+    const int METHOD
+){
+
+    double grad, grad2;
+    double ll = 0;
+    std::vector<double> alpha(J);
+    for(int j=0; j<J; j++){
+
+        // profiling
+        if(METHOD==0){
+            double hatalpha = AgreementPhi::ordinal::oneway::inference::profiling_brent(
+                Y, DICT, j, ALPHA_START.at(j), PHI, K, RANGE, MAX_ITER
+            );
+            alpha.at(j)=hatalpha;
+        }else{
+            double hatalpha = AgreementPhi::ordinal::oneway::inference::profiling_newtonraphson(
+                Y, DICT, j, ALPHA_START.at(j), PHI, K, RANGE, MAX_ITER
+            );
+            alpha.at(j)=hatalpha;
+        }
+
+        // Evaluate ll contribution
+        double llj = AgreementPhi::ordinal::oneway::item_loglik(Y, DICT, j, alpha.at(j), PHI, K, grad, grad2, 0);
+
+        ll+=llj;
+    }
+
+
+    return ll;
+}
+
+double AgreementPhi::ordinal::oneway::loglik::modified_profile(
+    double PHI,
+    const std::vector<double>& Y, 
+    const std::vector<std::vector<int>> DICT,
+    const std::vector<double>& ALPHA_START,
+    const std::vector<double>& ALPHA_MLE,
+    const double PHI_MLE,
+    const int K,
+    const int J,
+    const int PROF_SEARCH_RANGE,
+    const int PROF_MAX_ITER,
+    const int PROF_METHOD
+){
+
+    double grad, grad2;
+    double ll = 0;
+    std::vector<double> prof_alpha(J);
+    for(int j=0; j<J; j++){
+
+        // profiling
+        if(PROF_METHOD==0){
+            double hatalpha = AgreementPhi::ordinal::oneway::inference::profiling_brent(
+                Y, DICT, j, ALPHA_START.at(j), PHI, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
+            );
+            prof_alpha.at(j)=hatalpha;
+        }else{
+            double hatalpha = AgreementPhi::ordinal::oneway::inference::profiling_newtonraphson(
+                Y, DICT, j, ALPHA_START.at(j), PHI, K, PROF_SEARCH_RANGE, PROF_MAX_ITER
+            );
+            prof_alpha.at(j)=hatalpha;
+        }
+
+        // Evaluate ll contribution
+        double llj = AgreementPhi::ordinal::oneway::item_loglik(Y, DICT, j, prof_alpha.at(j), PHI, K, grad, grad2, 0);
+
+        ll+=llj;
+    }
+
+    // add modifier
+    ll += .5 * ordinal::oneway::log_det_obs_info(Y, DICT, prof_alpha, PHI, K);
+
+    ll -= ordinal::oneway::log_det_E0d0d1(DICT, ALPHA_MLE, prof_alpha, PHI_MLE, PHI, K);
+
+    return ll;
+}
+
+///////////////////////////////////////
+// CONTINUOUS RATINGS | TWOWAY MODEL //
+///////////////////////////////////////
 double AgreementPhi::continuous::twoway::loglik::profile(
                     const std::vector<double> Y,  
                     const std::vector<int> ITEM_INDS,
@@ -100,6 +279,9 @@ double AgreementPhi::continuous::twoway::loglik::modified_profile(
 
 }
 
+///////////////////////////////////////
+// ORDINAL RATINGS | TWOWAY MODEL //
+///////////////////////////////////////
 double AgreementPhi::ordinal::twoway::loglik::profile(
                     const std::vector<double> Y,  
                     const std::vector<int> ITEM_INDS,

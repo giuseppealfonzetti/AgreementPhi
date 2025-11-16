@@ -20,9 +20,11 @@
 
 
 
-
+///////////////////////////////
+// ONE-WAY MODELS  INTERFACE //
+//////////////////////////////
 // [[Rcpp::export]]
-std::vector<double> cpp_get_phi_mle(
+std::vector<double> cpp_get_phi_oneway_profile(
     const std::vector<double> Y,
     const std::vector<double> ITEM_INDS,
     const std::vector<double> ALPHA_START,
@@ -62,7 +64,7 @@ std::vector<double> cpp_get_phi_mle(
 }
 
 // [[Rcpp::export]]
-std::vector<double> cpp_get_phi_mp(
+std::vector<double> cpp_get_phi_oneway_modified_profile(
     const std::vector<double> Y,
     const std::vector<double> ITEM_INDS,
     const std::vector<double> ALPHA_START,
@@ -100,6 +102,98 @@ std::vector<double> cpp_get_phi_mp(
 }
 
 
+
+
+
+
+///////////////////////////////
+// TWO-WAY MODELS  INTERFACE //
+//////////////////////////////
+
+// [[Rcpp::export]]
+std::vector<double> cpp_get_phi_twoway_profile(
+    const std::vector<double> Y,  
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const std::vector<double> ALPHA_START,
+    const std::vector<double> BETA_START,
+    const double PHI_START,
+    const int J,
+    const int W,
+    const int K,
+    const double SEARCH_RANGE,
+    const int MAX_ITER,
+    const int PROF_SEARCH_RANGE,
+    const int PROF_MAX_ITER,
+    const int ALT_MAX_ITER,
+    const double ALT_TOL,
+    const bool CONTINUOUS
+){
+
+    std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+    std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
+
+    std::pair<double, double> res;
+    if(CONTINUOUS){
+        res = AgreementPhi::continuous::twoway::inference::get_phi_profile(
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START, BETA_START, PHI_START, J, W, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE,
+                PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL);
+    }else{
+        res = AgreementPhi::ordinal::twoway::inference::get_phi_profile(
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START, BETA_START, PHI_START, J, W, K, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE,
+                PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL);
+    }
+
+    std::vector<double> out(2);
+    out[0]=res.first;
+    out[1]=res.second;
+    return out;
+
+}
+
+// [[Rcpp::export]]
+std::vector<double> cpp_get_phi_twoway_modified_profile(
+    const std::vector<double> Y,  
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const std::vector<double> ALPHA_START,
+    const std::vector<double> BETA_START,
+    const double PHI_START,
+    const int J,
+    const int W,
+    const int K,
+    const double SEARCH_RANGE,
+    const int MAX_ITER,
+    const int PROF_SEARCH_RANGE,
+    const int PROF_MAX_ITER,
+    const int ALT_MAX_ITER,
+    const double ALT_TOL,
+    const bool CONTINUOUS,
+    const bool VERBOSE
+){
+
+    std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+    std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
+
+    std::vector<double> res;
+    if(CONTINUOUS){
+        res = AgreementPhi::continuous::twoway::inference::get_phi_modified_profile(
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START, BETA_START, PHI_START, J, W, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE,
+                PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
+    }else{
+        res = AgreementPhi::ordinal::twoway::inference::get_phi_modified_profile(
+                Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START, BETA_START, PHI_START, J, W, K, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE,
+                PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
+    }
+
+    return res;
+}
+
+
+
+///////////////////////////////
+// TO BE SORTED //
+//////////////////////////////
 // [[Rcpp::export]]
 double cpp_profile_likelihood(
     const std::vector<double> Y,
@@ -117,11 +211,11 @@ double cpp_profile_likelihood(
 
     double out;
     if(CONTINUOUS){
-        out = AgreementPhi::continuous::oneway::inference::profile_loglik(
+        out = AgreementPhi::continuous::oneway::loglik::profile(
                 PHI, Y, dict, ALPHA_START, J,
                 PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD);
     }else{
-        out = AgreementPhi::ordinal::oneway::inference::profile_loglik(
+        out = AgreementPhi::ordinal::oneway::loglik::profile(
                 PHI, Y, dict, ALPHA_START, K, J,
                 PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD);
     }
@@ -170,7 +264,7 @@ double cpp_modified_profile_likelihood(
                 alpha_mle.at(j) = hatalpha;
             }
         }
-        out = AgreementPhi::continuous::oneway::inference::modified_profile_loglik(
+        out = AgreementPhi::continuous::oneway::loglik::modified_profile(
                 PHI, Y, dict, alpha_mle, alpha_mle, PHI_MLE, J, 
                 PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD);
     }else{
@@ -190,7 +284,7 @@ double cpp_modified_profile_likelihood(
             }
         }
         
-        out = AgreementPhi::ordinal::oneway::inference::modified_profile_loglik(
+        out = AgreementPhi::ordinal::oneway::loglik::modified_profile(
                 PHI, Y, dict, alpha_mle, alpha_mle, PHI_MLE, K, J, 
                 PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD);
     }

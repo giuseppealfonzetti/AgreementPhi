@@ -154,14 +154,14 @@ set.seed(123)
 # setting dimension
 items <- 100 
 budget_per_item <- 10
-workers <- 20
+workers <- 100
 n_obs <- items * budget_per_item
 
 # item-specific intercepts to generate the data
 alphas <- runif(items, -1, 1)
 betas <- c(0, runif(workers-1, -1, 1))
 # true agreement (between 0 and 1)
-agr <- .9
+agr <- .3
 
 # generate continuous rating in (0,1)
 dt_twoway <- sim_data(
@@ -193,6 +193,7 @@ fit_c_twoway <- agreement(
   VERBOSE = TRUE)
 
 # estimation via twoway specification | ordinal data
+tictoc::tic()
 fit_k6_twoway <- agreement(
   RATINGS = cont2ord(dt_twoway$rating, K=6),
   ITEM_INDS = dt_twoway$id_item,
@@ -200,7 +201,17 @@ fit_k6_twoway <- agreement(
   METHOD = "modified",
   MODEL = "twoway",
   VERBOSE = TRUE)
+tictoc::toc()
 
+tictoc::tic()
+fit_k6_oneway <- agreement(
+  RATINGS = cont2ord(dt_twoway$rating, K=6),
+  ITEM_INDS = dt_twoway$id_item,
+  WORKER_INDS = dt_twoway$id_worker,
+  METHOD = "modified",
+  MODEL = "oneway",
+  VERBOSE = TRUE)
+tictoc::toc()
 ```
 
 Consider now data generated according to the one-way model. Fitting one-way and two-way specifications will likely result in similar estimates of the agreement.
@@ -209,7 +220,7 @@ Consider now data generated according to the one-way model. Fitting one-way and 
 set.seed(123)
 
 # setting dimension
-items <- 100 
+items <- 100
 budget_per_item <- 10
 n_obs <- items * budget_per_item
 
@@ -217,7 +228,7 @@ n_obs <- items * budget_per_item
 alphas <- runif(items, -1, 1)
 
 # true agreement (between 0 and 1)
-agr <- .9
+agr <- .7
 
 # generate continuous rating in (0,1)
 dt_oneway <- sim_data(
@@ -225,7 +236,7 @@ dt_oneway <- sim_data(
   B = budget_per_item,
   AGREEMENT = agr,
   ALPHA = alphas,
-  W=20,
+  W=50,
   DATA_TYPE = "continuous",
   SEED = 123
 )
@@ -245,9 +256,11 @@ fit_c_twoway <- agreement(
   WORKER_INDS = dt_oneway$id_worker,
   METHOD = "modified",
   MODEL = "twoway",
+    # CONTROL = list(PROF_MAX_ITER=10),
   VERBOSE = TRUE)
 
 # estimation via twoway specification | ordinal data
+tictoc::tic()
 fit_k6_twoway <- agreement(
   RATINGS = cont2ord(dt_oneway$rating, K=6),
   ITEM_INDS = dt_oneway$id_item,
@@ -255,5 +268,37 @@ fit_k6_twoway <- agreement(
   METHOD = "modified",
   MODEL = "twoway",
   VERBOSE = TRUE)
+tictoc::tic()
 
+set.seed(1)
+thr <- sort(runif(5))
+ratingk <- cont2ord(dt_oneway$rating, K=6, TRESHOLDS=thr)
+unique_rates <- sort(unique(ratingk))
+rates_map <- setNames(seq_along(unique_rates), unique_rates)
+ratingk <- as.numeric(rates_map[as.character(ratingk)])
+
+tictoc::tic()
+fit_k6_oneway_net <- agreement(
+  RATINGS = ratingk,
+  ITEM_INDS = dt_oneway$id_item,
+  WORKER_INDS = dt_oneway$id_worker,
+  METHOD = "modified",
+  MODEL = "oneway",
+  VERBOSE = TRUE)
+tictoc::tic()
+
+tictoc::tic()
+fit_k6_oneway_net <- agreement(
+  RATINGS = ratingk,
+  ITEM_INDS = dt_oneway$id_item,
+  WORKER_INDS = dt_oneway$id_worker,
+  METHOD = "modified",
+  MODEL = "twoway",
+  VERBOSE = TRUE)
+tictoc::tic()
 ```
+
+
+
+
+
