@@ -9,6 +9,34 @@
 
 namespace AgreementPhi{
     namespace continuous{
+        namespace oneway {
+            namespace inference {
+                std::pair<double, double> get_phi_profile(
+                    const std::vector<double> Y, 
+                    const std::vector<std::vector<int>> DICT,
+                    const std::vector<double> ALPHA_START,
+                    const double PHI_START,
+                    const int J,
+                    const int SEARCH_RANGE,
+                    const int MAX_ITER,
+                    const int PROF_SEARCH_RANGE,
+                    const int PROF_MAX_ITER,
+                    const int PROF_METHOD);
+
+                std::vector<double> get_phi_modified_profile(
+                    const std::vector<double> Y, 
+                    const std::vector<std::vector<int>> DICT,
+                    const std::vector<double> ALPHA_START,
+                    const double PHI_START,
+                    const int J,
+                    const int SEARCH_RANGE,
+                    const int MAX_ITER,
+                    const int PROF_SEARCH_RANGE,
+                    const int PROF_MAX_ITER,
+                    const int PROF_METHOD,
+                    const bool VERBOSE = false);
+            }
+        }
         namespace twoway{
             namespace inference{
                 std::pair<double, double> get_phi_profile(
@@ -51,9 +79,44 @@ namespace AgreementPhi{
                 );
             }
         }
+
+
+        
     }
 
     namespace ordinal{
+        namespace oneway{
+            namespace inference{
+                std::pair<double, double> get_phi_profile(
+                    const std::vector<double>& Y, 
+                    const std::vector<std::vector<int>> DICT,
+                    const std::vector<double>& ALPHA_START,
+                    const double PHI_START,
+                    const int K,
+                    const int J,
+                    const int SEARCH_RANGE,
+                    const int MAX_ITER,
+                    const int PROF_SEARCH_RANGE,
+                    const int PROF_MAX_ITER,
+                    const int PROF_METHOD
+                );
+
+                std::vector<double> get_phi_modified_profile(
+                    const std::vector<double>& Y, 
+                    const std::vector<std::vector<int>> DICT,
+                    const std::vector<double>& ALPHA_START,
+                    const double PHI_START,
+                    const int K,
+                    const int J,
+                    const int SEARCH_RANGE,
+                    const int MAX_ITER,
+                    const int PROF_SEARCH_RANGE,
+                    const int PROF_MAX_ITER,
+                    const int PROF_METHOD,
+                    const bool VERBOSE = false
+                );
+            }
+        }
         namespace twoway{
             namespace inference{
                 std::pair<double, double> get_phi_profile(
@@ -98,6 +161,8 @@ namespace AgreementPhi{
                 );
             }
         }
+
+
     }
 }
 

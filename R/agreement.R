@@ -127,14 +127,14 @@ agreement <- function(
 
   if (MODEL == "oneway") {
     if (METHOD == "modified") {
-      opt <- do.call(cpp_get_phi_mp, args)
+      opt <- do.call(cpp_get_phi_oneway_modified_profile, args)
       out[["pl_precision"]] <- opt[3]
       out[["pl_agreement"]] <- prec2agr(opt[3])
       out[["mpl_precision"]] <- opt[1]
       out[["mpl_agreement"]] <- prec2agr(opt[1])
       out[["loglik"]] <- opt[2]
     } else {
-      opt <- do.call(cpp_get_phi_mle, args)
+      opt <- do.call(cpp_get_phi_oneway_profile, args)
       out[["pl_precision"]] <- opt[1]
       out[["pl_agreement"]] <- prec2agr(opt[1])
       out[["loglik"]] <- opt[2]
@@ -190,7 +190,7 @@ agreement <- function(
         args$PROF_METHOD <- NULL
         args$WORKER_INDS = val_data$worker_ids
         args$W <- val_data$n_workers
-        opt <- do.call(cpp_twoway_get_phi_modified_profile, args)
+        opt <- do.call(cpp_get_phi_twoway_modified_profile, args)
         out[["pl_precision"]] <- opt[3]
         out[["pl_agreement"]] <- prec2agr(opt[3])
         out[["mpl_precision"]] <- opt[1]
@@ -202,7 +202,7 @@ agreement <- function(
           )
         }
       } else {
-        opt <- do.call(cpp_twoway_get_phi_profile, args)
+        opt <- do.call(cpp_get_phi_twoway_profile, args)
         out[["pl_precision"]] <- opt[1]
         out[["pl_agreement"]] <- prec2agr(opt[1])
         out[["loglik"]] <- opt[2]

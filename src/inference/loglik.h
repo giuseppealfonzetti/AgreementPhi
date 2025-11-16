@@ -4,9 +4,37 @@
 #include "../models/oneway.h"
 #include "../models/twoway.h"
 #include "../inference/nuisance.h"
+#include "../inference/profile.h" // temporary, to be moved in nuisance
 
 namespace AgreementPhi{
     namespace continuous{
+        namespace oneway{
+            namespace loglik{
+                double profile(
+                    double PHI,
+                    const std::vector<double> Y, 
+                    const std::vector<std::vector<int>> DICT,
+                    const std::vector<double> ALPHA_START,
+                    const int J,
+                    const int RANGE,
+                    const int MAX_ITER,
+                    const int METHOD
+                );
+
+                double modified_profile(
+                    double PHI,
+                    const std::vector<double> Y, 
+                    const std::vector<std::vector<int>> DICT,
+                    const std::vector<double> ALPHA_START,
+                    const std::vector<double> ALPHA_MLE,
+                    const double PHI_MLE,
+                    const int J,
+                    const int PROF_SEARCH_RANGE,
+                    const int PROF_MAX_ITER,
+                    const int PROF_METHOD
+                );
+            }
+        }
         namespace twoway{
             namespace loglik{
                 double profile(
@@ -48,6 +76,35 @@ namespace AgreementPhi{
     }
 
     namespace ordinal{
+        namespace oneway{
+            namespace loglik{
+                double profile(
+                    double PHI,
+                    const std::vector<double>& Y, 
+                    const std::vector<std::vector<int>> DICT,
+                    const std::vector<double>& ALPHA_START,
+                    const int K,
+                    const int J,
+                    const int RANGE,
+                    const int MAX_ITER,
+                    const int METHOD
+                );
+
+                double modified_profile(
+                    double PHI,
+                    const std::vector<double>& Y, 
+                    const std::vector<std::vector<int>> DICT,
+                    const std::vector<double>& ALPHA_START,
+                    const std::vector<double>& ALPHA_MLE,
+                    const double PHI_MLE,
+                    const int K,
+                    const int J,
+                    const int PROF_SEARCH_RANGE,
+                    const int PROF_MAX_ITER,
+                    const int PROF_METHOD
+                );
+            }
+        }
         namespace twoway{
             namespace loglik{
                 double profile(
