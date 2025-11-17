@@ -57,6 +57,12 @@ double AgreementPhi::continuous::nuisance::brent_profiling(
     return opt;
 }
 
+
+
+
+///////////////////////////////////////
+// CONTINUOUS RATINGS | TWOWAY MODEL //
+///////////////////////////////////////
 std::vector<std::vector<double>> AgreementPhi::continuous::twoway::inference::get_lambda(
     const std::vector<double> Y,  
     const std::vector<int> ITEM_INDS,
@@ -227,7 +233,9 @@ double AgreementPhi::ordinal::nuisance::brent_profiling(
 }
 
 
-
+////////////////////////////////////
+// ORDINAL RATINGS | TWOWAY MODEL //
+////////////////////////////////////
 std::vector<std::vector<double>> AgreementPhi::ordinal::twoway::inference::get_lambda(
     const std::vector<double> Y,  
     const std::vector<int> ITEM_INDS,
