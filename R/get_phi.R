@@ -36,6 +36,7 @@ get_phi_profile_twoway <- function(
   )
 
   phi_mle <- opt$minimum
+  tau_vec <- if (DATA_TYPE == "ordinal") seq(0, 1, length.out = K + 1) else NULL
   lambda_mle <- twoway_profiling_bfgs(
     Y = Y,
     ITEM_INDS = ITEM_INDS,
@@ -46,7 +47,9 @@ get_phi_profile_twoway <- function(
     W = W,
     K = K,
     DATA_TYPE = DATA_TYPE,
-    MAX_ITER = PROF_MAX_ITER
+    MAX_ITER = PROF_MAX_ITER,
+    WORKER_NUISANCE = TRUE,
+    TAU = tau_vec
   )
 
   if (VERBOSE) {

@@ -41,6 +41,20 @@ namespace AgreementPhi{
             return dict;
         }
 
+        inline std::vector<std::vector<int>> categories_dict(
+            const std::vector<double> Y,
+            const int K
+        ){
+            const int n = Y.size();
+            std::vector<std::vector<int>> dict(K);
+            for(int i = 0; i < n; ++i){
+                int cat = static_cast<int>(Y.at(i));
+                dict.at(cat-1).push_back(i);
+            }
+
+            return dict;
+        }
+
         // Transform agreement into precision
         inline double agr2prec(double AGREEMENT){
             const double log2_sq = pow(log(2.0), 2);
