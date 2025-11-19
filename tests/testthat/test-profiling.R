@@ -22,7 +22,8 @@ test_that("profiled lambda maximizes likelihood for fixed phi", {
     phi,
     J = 5,
     W = 8,
-    DATA_TYPE = "continuous"
+    DATA_TYPE = "continuous",
+    WORKER_NUISANCE = TRUE
   )
 
   ll_profiled <- cpp_continuous_twoway_joint_loglik(
@@ -33,7 +34,8 @@ test_that("profiled lambda maximizes likelihood for fixed phi", {
     phi,
     J = 5,
     W = 8,
-    GRADFLAG = 0
+    GRADFLAG = 0,
+    WORKER_NUISANCE = TRUE
   )$ll
 
   for (i in 1:10) {
@@ -47,7 +49,8 @@ test_that("profiled lambda maximizes likelihood for fixed phi", {
       phi,
       J = 5,
       W = 8,
-      GRADFLAG = 0
+      GRADFLAG = 0,
+      WORKER_NUISANCE = TRUE
     )$ll
 
     expect_gte(ll_profiled, ll_perturb)
@@ -89,7 +92,8 @@ test_that("gradient near zero at profiled values", {
     phi,
     J = 4,
     W = 6,
-    GRADFLAG = 1
+    GRADFLAG = 1,
+    WORKER_NUISANCE = TRUE
   )
 
   grad_norm <- sqrt(sum(result$dlambda^2))
@@ -97,7 +101,7 @@ test_that("gradient near zero at profiled values", {
 })
 
 #### Profiling two way ordinal ####
-test_that("profiled lambda maximizes likelihood for fixed phi", {
+test_that("profiled lambda maximizes likelihood for fixed phi | ordinal", {
   set.seed(123)
   items <- 50
   budget <- 10
@@ -114,6 +118,7 @@ test_that("profiled lambda maximizes likelihood for fixed phi", {
     DATA_TYPE = "ordinal"
   )
 
+  tau <- seq(0, 1, length.out = k + 1)
   phi <- agr2prec(0.7)
   lambda_start <- rep(0, items + workers - 1)
 
@@ -134,10 +139,12 @@ test_that("profiled lambda maximizes likelihood for fixed phi", {
     as.integer(dt$id_item),
     as.integer(dt$id_worker),
     lambda_hat,
+    TAU = tau,
     phi,
     J = items,
     W = workers,
     K = k,
+    WORKER_NUISANCE = TRUE,
     GRADFLAG = 0
   )$ll
 
@@ -149,10 +156,12 @@ test_that("profiled lambda maximizes likelihood for fixed phi", {
       as.integer(dt$id_item),
       as.integer(dt$id_worker),
       lambda_perturb,
+      TAU = tau,
       phi,
       J = items,
       W = workers,
       K = k,
+      WORKER_NUISANCE = TRUE,
       GRADFLAG = 0
     )$ll
 
@@ -273,6 +282,7 @@ test_that("Alteranting Maximization matches bfgs | continuous", {
     phi,
     J = items,
     W = workers,
+    WORKER_NUISANCE = TRUE,
     GRADFLAG = 0
   )$ll /
     n_obs
@@ -284,6 +294,7 @@ test_that("Alteranting Maximization matches bfgs | continuous", {
     phi,
     J = items,
     W = workers,
+    WORKER_NUISANCE = TRUE,
     GRADFLAG = 0
   )$ll /
     n_obs
@@ -313,6 +324,7 @@ test_that("Alteranting Maximization matches bfgs | ordinal", {
     DATA_TYPE = "ordinal"
   )
 
+  tau <- seq(0, 1, length.out = k + 1)
   phi <- agr2prec(agr)
   lambda_start <- rep(0, items + workers - 1)
 
@@ -344,7 +356,8 @@ test_that("Alteranting Maximization matches bfgs | ordinal", {
     PROF_UNI_RANGE = 5L,
     PROF_UNI_MAX_ITER = 100L,
     PROF_MAX_ITER = 10L,
-    TOL = 1e-5
+    TOL = 1e-5,
+    WORKER_NUISANCE = TRUE
   )
   # tictoc::toc()
 
@@ -353,10 +366,12 @@ test_that("Alteranting Maximization matches bfgs | ordinal", {
     as.integer(dt$id_item),
     as.integer(dt$id_worker),
     lambda_hat,
+    TAU = tau,
     phi,
     J = items,
     W = workers,
     K = k,
+    WORKER_NUISANCE = TRUE,
     GRADFLAG = 0
   )$ll /
     n_obs
@@ -365,10 +380,12 @@ test_that("Alteranting Maximization matches bfgs | ordinal", {
     as.integer(dt$id_item),
     as.integer(dt$id_worker),
     c(lambda_alt[[1]], lambda_alt[[2]][-1]),
+    TAU = tau,
     phi,
     J = items,
     W = workers,
     K = k,
+    WORKER_NUISANCE = TRUE,
     GRADFLAG = 0
   )$ll /
     n_obs

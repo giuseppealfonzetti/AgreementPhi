@@ -57,13 +57,7 @@ double AgreementPhi::continuous::nuisance::brent_profiling(
     return opt;
 }
 
-
-
-
-///////////////////////////////////////
-// CONTINUOUS RATINGS | TWOWAY MODEL //
-///////////////////////////////////////
-std::vector<std::vector<double>> AgreementPhi::continuous::twoway::inference::get_lambda(
+std::vector<std::vector<double>> AgreementPhi::continuous::nuisance::get_lambda(
     const std::vector<double> Y,  
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
@@ -74,49 +68,61 @@ std::vector<std::vector<double>> AgreementPhi::continuous::twoway::inference::ge
     const double PHI,
     const int J,
     const int W,
+    const bool WORKER_NUISANCE,
     const double PROF_UNI_RANGE,
     const int PROF_UNI_MAX_ITER,
     const int PROF_MAX_ITER,
     const double TOL
 ){
-    // std::vector<std::vector<int>> dict_items = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
-    // std::vector<std::vector<int>> dict_workers = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
-    
+        
     std::vector<double> alphas = ALPHA;
     std::vector<double> betas = BETA;
     betas.at(0) = 0;
     
-    for(int iter = 0; iter < PROF_MAX_ITER; ++iter){
-        double max_change = 0;
-        
-        // Profile items
+    if(WORKER_NUISANCE){
+        for(int iter = 0; iter < PROF_MAX_ITER; ++iter){
+            double max_change = 0;
+            
+            // Profile items
+            for(int j = 0; j < J; ++j){
+                double old_alpha = alphas.at(j);
+                alphas.at(j) = AgreementPhi::continuous::nuisance::brent_profiling(
+                    Y, ITEM_DICT, j+1, WORKER_INDS, betas, 
+                    old_alpha, PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
+                );
+                max_change = std::max(max_change, std::abs(alphas.at(j) - old_alpha));
+            }
+            
+            // Profile workers
+            for(int w = 1; w < W; ++w){
+                double old_beta = betas.at(w);
+                betas.at(w) = AgreementPhi::continuous::nuisance::brent_profiling(
+                    Y, WORKER_DICT, w+1, ITEM_INDS, alphas, 
+                    old_beta, PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
+                );
+                max_change = std::max(max_change, std::abs(betas.at(w) - old_beta));
+            }
+            
+            if(max_change < TOL) break;
+        }
+    }else{
         for(int j = 0; j < J; ++j){
             double old_alpha = alphas.at(j);
             alphas.at(j) = AgreementPhi::continuous::nuisance::brent_profiling(
                 Y, ITEM_DICT, j+1, WORKER_INDS, betas, 
                 old_alpha, PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
             );
-            max_change = std::max(max_change, std::abs(alphas.at(j) - old_alpha));
         }
-        
-        // Profile workers
-        for(int w = 1; w < W; ++w){
-            double old_beta = betas.at(w);
-            betas.at(w) = AgreementPhi::continuous::nuisance::brent_profiling(
-                Y, WORKER_DICT, w+1, ITEM_INDS, alphas, 
-                old_beta, PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
-            );
-            max_change = std::max(max_change, std::abs(betas.at(w) - old_beta));
-        }
-        
-        if(max_change < TOL) break;
     }
+    
     
     std::vector<std::vector<double>> out(2);
     out.at(0) = alphas;
     out.at(1) = betas;
     return out;
 }
+
+
 
 
 
@@ -147,7 +153,7 @@ double AgreementPhi::ordinal::nuisance::brent_profiling(
     const std::vector<double>& CONST_DIM_PARS,
     const double START,
     const double PHI,
-    const int K,
+    const std::vector<double>& TAU,
     const double RANGE,
     const int MAX_ITER,
     const double MEAN = 0
@@ -180,7 +186,7 @@ double AgreementPhi::ordinal::nuisance::brent_profiling(
                 const double const_dim_par = CONST_DIM_PARS.at(const_dim_idx);
                 double dmu, dmu2;
                 double mu = link::mu(nuisance + const_dim_par);
-                nll -= AgreementPhi::ordinal::loglik(Y.at(obs_id), mu, PHI, K, dmu, dmu2, 0);
+                nll -= AgreementPhi::ordinal::loglik(Y.at(obs_id), mu, PHI, TAU, dmu, dmu2, 0);
             }
             
             nll += 0.5 * pow(nuisance - MEAN, 2);
@@ -210,7 +216,7 @@ double AgreementPhi::ordinal::nuisance::brent_profiling(
                 const double const_dim_par = CONST_DIM_PARS.at(const_dim_idx);
                 double dmu, dmu2;
                 double mu = link::mu(nuisance+const_dim_par);
-                nll -= AgreementPhi::ordinal::loglik(Y.at(obs_id), mu, PHI, K, dmu, dmu2, 0); 
+                nll -= AgreementPhi::ordinal::loglik(Y.at(obs_id), mu, PHI, TAU, dmu, dmu2, 0); 
             }
 
             return nll;
@@ -233,34 +239,167 @@ double AgreementPhi::ordinal::nuisance::brent_profiling(
 }
 
 
-////////////////////////////////////
-// ORDINAL RATINGS | TWOWAY MODEL //
-////////////////////////////////////
-std::vector<std::vector<double>> AgreementPhi::ordinal::twoway::inference::get_lambda(
+double AgreementPhi::ordinal::nuisance::brent_profiling_thresholds(
+                const std::vector<double>& Y, 
+                const std::vector<double>& MU, 
+                const std::vector<std::vector<int>> CAT_DICT,
+                const int IDX,
+                const std::vector<double>& TAU,
+                const double PHI,
+                const int MAX_ITER)
+{
+    
+    const std::vector<int>& cat_t = CAT_DICT.at(IDX - 1);
+    const std::vector<int>& cat_tp1 = CAT_DICT.at(IDX);
+
+    auto neg_ll = [&](double thr){
+        std::vector<double> tau_candidate = TAU;
+        tau_candidate.at(IDX) = thr;
+        double ll = 0;
+
+        for(const int idx : cat_t){
+            double d1 = 0.0, d2 = 0.0;
+            ll += AgreementPhi::ordinal::loglik(
+                Y.at(idx), MU.at(idx), PHI, tau_candidate, d1, d2, 0
+            );
+        }
+
+        for(const int idx : cat_tp1){
+            double d1 = 0.0, d2 = 0.0;
+            ll += AgreementPhi::ordinal::loglik(
+                Y.at(idx), MU.at(idx), PHI, tau_candidate, d1, d2, 0
+            );
+        }
+
+        return -ll;
+    };
+
+    double lower = TAU.at(IDX - 1) + 1e-8;
+    double upper = TAU.at(IDX + 1) - 1e-8;
+    const int digits = std::numeric_limits<double>::digits;
+    boost::uintmax_t max_iter = MAX_ITER;
+    auto result = boost::math::tools::brent_find_minima(
+        neg_ll, lower, upper, digits, max_iter
+    );
+
+    double opt = result.first; 
+    return opt;
+}
+
+// std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda(
+//     const std::vector<double> Y,  
+//     const std::vector<int> ITEM_INDS,
+//     const std::vector<int> WORKER_INDS,
+//     const std::vector<std::vector<int>> ITEM_DICT,
+//     const std::vector<std::vector<int>> WORKER_DICT,
+//     const std::vector<double> ALPHA,
+//     const std::vector<double> BETA,
+//     const std::vector<double> TAU,
+//     const double PHI,
+//     const int J,
+//     const int W,
+//     const int K,
+//     const bool WORKER_NUISANCE,
+//     const double PROF_UNI_RANGE,
+//     const int PROF_UNI_MAX_ITER,
+//     const int PROF_MAX_ITER,
+//     const double TOL
+// ){
+    
+    
+//     std::vector<double> alphas = ALPHA;
+//     std::vector<double> betas = BETA;
+//     betas.at(0) = 0;
+    
+//     if(WORKER_NUISANCE){
+//         for(int iter = 0; iter < PROF_MAX_ITER; ++iter){
+//             double max_change = 0;
+            
+
+//             double mean_alpha = std::accumulate(std::begin(alphas), std::end(alphas), 0.0);
+//             mean_alpha /= J;
+
+//             double mean_beta = std::accumulate(std::begin(betas), std::end(betas), 0.0);
+//             mean_beta /= W;
+
+//             // Profile items
+//             for(int j = 0; j < J; ++j){
+//                 double old_alpha = alphas.at(j);
+//                 alphas.at(j) = AgreementPhi::ordinal::nuisance::brent_profiling(
+//                     Y, ITEM_DICT, j+1, WORKER_INDS, betas, 
+//                     old_alpha, PHI, TAU, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, mean_alpha
+//                 );
+//                 max_change = std::max(max_change, std::abs(alphas.at(j) - old_alpha));
+//             }
+            
+            
+//             // Profile workers
+//             for(int w = 1; w < W; ++w){
+//                 double old_beta = betas.at(w);
+//                 betas.at(w) = AgreementPhi::ordinal::nuisance::brent_profiling(
+//                     Y, WORKER_DICT, w+1, ITEM_INDS, alphas, 
+//                     old_beta, PHI, TAU, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, mean_beta
+//                 );
+//                 max_change = std::max(max_change, std::abs(betas.at(w) - old_beta));
+//             }
+            
+//             if(max_change < TOL) break;
+//         }
+//     }else{
+//         // Profile items
+//         double mean_alpha = std::accumulate(std::begin(alphas), std::end(alphas), 0.0);
+//         mean_alpha /= J;
+
+//         for(int j = 0; j < J; ++j){
+//             double old_alpha = alphas.at(j);
+//             alphas.at(j) = AgreementPhi::ordinal::nuisance::brent_profiling(
+//                 Y, ITEM_DICT, j+1, WORKER_INDS, betas, 
+//                 old_alpha, PHI, TAU, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, mean_alpha
+//             );
+//         }
+//     }
+
+    
+//     std::vector<std::vector<double>> out(2);
+//     out.at(0) = alphas;
+//     out.at(1) = betas;
+//     return out;
+// }
+
+std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda2(
     const std::vector<double> Y,  
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
     const std::vector<std::vector<int>> ITEM_DICT,
     const std::vector<std::vector<int>> WORKER_DICT,
+    const std::vector<std::vector<int>> CAT_DICT,
     const std::vector<double> ALPHA,
     const std::vector<double> BETA,
+    const std::vector<double> TAU,
     const double PHI,
     const int J,
     const int W,
     const int K,
+    const bool WORKER_NUISANCE,
+    const bool THRESHOLDS_NUISANCE,
     const double PROF_UNI_RANGE,
     const int PROF_UNI_MAX_ITER,
     const int PROF_MAX_ITER,
     const double TOL
 ){
-    // std::vector<std::vector<int>> dict_items = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
-    // std::vector<std::vector<int>> dict_workers = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
     
+    const int n = Y.size();
     std::vector<double> alphas = ALPHA;
     std::vector<double> betas = BETA;
+    std::vector<double> taus = TAU;
     betas.at(0) = 0;
+
+    int prof_max_iter = 1;
+    if(WORKER_NUISANCE | THRESHOLDS_NUISANCE){
+        prof_max_iter = PROF_MAX_ITER;
+    }
     
-    for(int iter = 0; iter < PROF_MAX_ITER; ++iter){
+    for(int iter = 0; iter < prof_max_iter; ++iter){
         double max_change = 0;
         
 
@@ -275,26 +414,62 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::twoway::inference::get_l
             double old_alpha = alphas.at(j);
             alphas.at(j) = AgreementPhi::ordinal::nuisance::brent_profiling(
                 Y, ITEM_DICT, j+1, WORKER_INDS, betas, 
-                old_alpha, PHI, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, mean_alpha
+                old_alpha, PHI, taus, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, mean_alpha
             );
             max_change = std::max(max_change, std::abs(alphas.at(j) - old_alpha));
         }
         
+        
+
         // Profile workers
-        for(int w = 1; w < W; ++w){
-            double old_beta = betas.at(w);
-            betas.at(w) = AgreementPhi::ordinal::nuisance::brent_profiling(
-                Y, WORKER_DICT, w+1, ITEM_INDS, alphas, 
-                old_beta, PHI, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, mean_beta
-            );
-            max_change = std::max(max_change, std::abs(betas.at(w) - old_beta));
+        if(WORKER_NUISANCE){
+            for(int w = 1; w < W; ++w){
+                double old_beta = betas.at(w);
+                betas.at(w) = AgreementPhi::ordinal::nuisance::brent_profiling(
+                    Y, WORKER_DICT, w+1, ITEM_INDS, alphas, 
+                    old_beta, PHI, taus, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, mean_beta
+                );
+                max_change = std::max(max_change, std::abs(betas.at(w) - old_beta));
+            }
         }
+        
+
+        // Profile thresholds
+        if(THRESHOLDS_NUISANCE){
+
+            std::vector<double> mu_vec(n);
+            for(int i = 0; i < n; ++i){
+                int item_idx = ITEM_INDS.at(i) - 1;
+                int worker_idx = WORKER_INDS.at(i) - 1;
+                double eta = alphas.at(item_idx);
+                if(worker_idx > 0){
+                    eta += betas.at(worker_idx);
+                }
+                mu_vec.at(i) = link::mu(eta);
+            }
+
+            for(int t = 1; t < K; t++){
+                // Rcpp::Rcout << "Iter: "<< iter << ", cat="<<t<<", lb ="<<taus.at(t-1)<<" old="<<taus.at(t)<< ", ub="<<taus.at(t+1)<<" ";
+                double old_tau = taus.at(t);
+                taus.at(t) = AgreementPhi::ordinal::nuisance::brent_profiling_thresholds(
+                    Y, mu_vec,  CAT_DICT, t, taus, PHI, PROF_UNI_MAX_ITER);
+                max_change = std::max(max_change, std::abs(taus.at(t) - old_tau));
+                // Rcpp::Rcout << "-> est: "<< taus.at(t) << "\n";
+            }
+
+        }
+        
         
         if(max_change < TOL) break;
     }
-    
-    std::vector<std::vector<double>> out(2);
+ 
+    std::vector<std::vector<double>> out(3);
     out.at(0) = alphas;
     out.at(1) = betas;
+    out.at(2) = taus;
     return out;
 }
+
+
+
+
