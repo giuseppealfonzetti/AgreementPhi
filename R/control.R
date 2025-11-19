@@ -99,13 +99,13 @@ validate_data <- function(
 
   if (is.null(WORKER_INDS)) {
     if (VERBOSE) {
-      message(paste0("Detected ", out$n_items, " non-degenerate items."))
+      message(paste0(" - Detected ", out$n_items, " non-degenerate items."))
     }
   } else {
     out$n_workers <- length(unique(out$worker_ids))
     if (VERBOSE) {
       message(paste0(
-        "Detected ",
+        " - Detected ",
         out$n_items,
         " items and ",
         out$n_workers,
@@ -119,12 +119,12 @@ validate_data <- function(
   if (out$data_type == "ordinal") {
     out$K <- max(out$ratings)
     if (VERBOSE) {
-      message(paste0("Detected ordinal data on a ", out$K, "-points scale."))
+      message(paste0(" - Detected ordinal data on a ", out$K, "-points scale."))
     }
   } else {
     out$K <- 1
     if (VERBOSE) {
-      message(paste0("Detected continuous data on the (0,1) range."))
+      message(paste0(" - Detected continuous data on the (0,1) range."))
     }
   }
 
@@ -132,7 +132,7 @@ validate_data <- function(
     out$ave_ratings_per_item <- mean(table(out$item_ids))
     if (VERBOSE) {
       message(paste0(
-        "Average number of observed ratings per item is ",
+        " - Average number of observed ratings per item is ",
         round(out$ave_ratings_per_item, 2),
         "."
       ))
@@ -143,12 +143,12 @@ validate_data <- function(
 
     if (VERBOSE) {
       message(paste0(
-        "Average number of observed ratings per item is ",
+        " - Average number of observed ratings per item is ",
         round(out$ave_ratings_per_item, 2),
         "."
       ))
       message(paste0(
-        "Average number of observed ratings per worker is ",
+        " - Average number of observed ratings per worker is ",
         round(out$ave_ratings_per_worker, 2),
         "."
       ))
@@ -159,7 +159,97 @@ validate_data <- function(
 }
 
 
-validate_cpp_control <- function(LIST = NULL, MODEL, DATA_TYPE) {
+# validate_cpp_control <- function(LIST = NULL, MODEL, DATA_TYPE) {
+#   out <- list()
+
+#   # search range for precision
+#   if (is.null(LIST$SEARCH_RANGE)) {
+#     LIST$SEARCH_RANGE <- 10
+#   }
+#   stopifnot(is.numeric(LIST$SEARCH_RANGE))
+#   stopifnot(LIST$SEARCH_RANGE > 0)
+#   out$SEARCH_RANGE <- LIST$SEARCH_RANGE
+
+#   # max iter for precision
+#   if (is.null(LIST$MAX_ITER)) {
+#     LIST$MAX_ITER <- 100
+#   }
+#   stopifnot(is.numeric(LIST$MAX_ITER))
+#   stopifnot(LIST$MAX_ITER > 0)
+#   out$MAX_ITER <- LIST$MAX_ITER
+
+#   # search range for profiling
+#   if (is.null(LIST$PROF_SEARCH_RANGE)) {
+#     LIST$PROF_SEARCH_RANGE <- 5
+#   }
+#   stopifnot(is.numeric(LIST$PROF_SEARCH_RANGE))
+#   stopifnot(LIST$PROF_SEARCH_RANGE > 0)
+#   out$PROF_SEARCH_RANGE <- LIST$PROF_SEARCH_RANGE
+
+#   # max iter for profiling
+#   if (MODEL == "oneway") {
+#     # profiling method
+#     if (is.null(LIST$PROF_METHOD)) {
+#       LIST$PROF_METHOD <- "brent"
+#     }
+#     stopifnot(LIST$PROF_METHOD %in% c("brent", "newton_raphson"))
+#     if (LIST$PROF_METHOD == "newton_raphson") {
+#       out$PROF_METHOD <- 1
+#     } else {
+#       out$PROF_METHOD <- 0
+#     }
+
+#     # max iter for profiling
+#     if (is.null(LIST$PROF_MAX_ITER)) {
+#       LIST$PROF_MAX_ITER <- 100
+#     }
+#   } else {
+#     if (DATA_TYPE == "continuous") {
+#       if (is.null(LIST$PROF_METHOD)) {
+#         LIST$PROF_METHOD <- "bfgs"
+#       }
+#       # max iter for profiling
+#       if (is.null(LIST$PROF_MAX_ITER)) {
+#         LIST$PROF_MAX_ITER <- 10
+#       }
+#       out$PROF_METHOD <- LIST$PROF_METHOD
+#       out$PROF_MAX_ITER <- LIST$PROF_MAX_ITER
+#     } else {
+#       if (is.null(LIST$PROF_METHOD)) {
+#         LIST$PROF_METHOD <- "alt_brent"
+#       }
+#       # max iter for univariate profiling
+#       if (is.null(LIST$PROF_MAX_ITER)) {
+#         LIST$PROF_MAX_ITER <- 100
+#       }
+#       out$PROF_METHOD <- LIST$PROF_METHOD
+#       out$PROF_MAX_ITER <- LIST$PROF_MAX_ITER
+#     }
+#     if (out$PROF_METHOD == "alt_brent") {
+#       # max iter alterning algorithm
+#       if (is.null(LIST$ALT_MAX_ITER)) {
+#         LIST$ALT_MAX_ITER <- 10
+#       }
+#       stopifnot(is.numeric(LIST$ALT_MAX_ITER))
+#       stopifnot(LIST$ALT_MAX_ITER > 0)
+#       out$ALT_MAX_ITER <- LIST$ALT_MAX_ITER
+#       if (is.null(LIST$ALT_TOL)) {
+#         LIST$ALT_TOL <- 1e-2
+#       }
+#       stopifnot(is.numeric(LIST$ALT_TOL))
+#       stopifnot(LIST$ALT_TOL > 0)
+#       out$ALT_TOL <- LIST$ALT_TOL
+#     }
+#     stopifnot(LIST$PROF_METHOD %in% c("alt_brent", "bfgs"))
+#   }
+#   stopifnot(is.numeric(LIST$PROF_MAX_ITER))
+#   stopifnot(LIST$PROF_MAX_ITER > 0)
+#   out$PROF_MAX_ITER <- LIST$PROF_MAX_ITER
+
+#   return(out)
+# }
+
+validate_cpp_control2 <- function(LIST = NULL) {
   out <- list()
 
   # search range for precision
@@ -187,64 +277,25 @@ validate_cpp_control <- function(LIST = NULL, MODEL, DATA_TYPE) {
   out$PROF_SEARCH_RANGE <- LIST$PROF_SEARCH_RANGE
 
   # max iter for profiling
-  if (MODEL == "oneway") {
-    # profiling method
-    if (is.null(LIST$PROF_METHOD)) {
-      LIST$PROF_METHOD <- "brent"
-    }
-    stopifnot(LIST$PROF_METHOD %in% c("brent", "newton_raphson"))
-    if (LIST$PROF_METHOD == "newton_raphson") {
-      out$PROF_METHOD <- 1
-    } else {
-      out$PROF_METHOD <- 0
-    }
-
-    # max iter for profiling
-    if (is.null(LIST$PROF_MAX_ITER)) {
-      LIST$PROF_MAX_ITER <- 100
-    }
-  } else {
-    if (DATA_TYPE == "continuous") {
-      if (is.null(LIST$PROF_METHOD)) {
-        LIST$PROF_METHOD <- "bfgs"
-      }
-      # max iter for profiling
-      if (is.null(LIST$PROF_MAX_ITER)) {
-        LIST$PROF_MAX_ITER <- 10
-      }
-      out$PROF_METHOD <- LIST$PROF_METHOD
-      out$PROF_MAX_ITER <- LIST$PROF_MAX_ITER
-    } else {
-      if (is.null(LIST$PROF_METHOD)) {
-        LIST$PROF_METHOD <- "alt_brent"
-      }
-      # max iter for univariate profiling
-      if (is.null(LIST$PROF_MAX_ITER)) {
-        LIST$PROF_MAX_ITER <- 100
-      }
-      out$PROF_METHOD <- LIST$PROF_METHOD
-      out$PROF_MAX_ITER <- LIST$PROF_MAX_ITER
-    }
-    if (out$PROF_METHOD == "alt_brent") {
-      # max iter alterning algorithm
-      if (is.null(LIST$ALT_MAX_ITER)) {
-        LIST$ALT_MAX_ITER <- 10
-      }
-      stopifnot(is.numeric(LIST$ALT_MAX_ITER))
-      stopifnot(LIST$ALT_MAX_ITER > 0)
-      out$ALT_MAX_ITER <- LIST$ALT_MAX_ITER
-      if (is.null(LIST$ALT_TOL)) {
-        LIST$ALT_TOL <- 1e-2
-      }
-      stopifnot(is.numeric(LIST$ALT_TOL))
-      stopifnot(LIST$ALT_TOL > 0)
-      out$ALT_TOL <- LIST$ALT_TOL
-    }
-    stopifnot(LIST$PROF_METHOD %in% c("alt_brent", "bfgs"))
+  if (is.null(LIST$PROF_MAX_ITER)) {
+    LIST$PROF_MAX_ITER <- 20
   }
   stopifnot(is.numeric(LIST$PROF_MAX_ITER))
   stopifnot(LIST$PROF_MAX_ITER > 0)
   out$PROF_MAX_ITER <- LIST$PROF_MAX_ITER
+
+  if (is.null(LIST$ALT_MAX_ITER)) {
+    LIST$ALT_MAX_ITER <- 10
+  }
+  stopifnot(is.numeric(LIST$ALT_MAX_ITER))
+  stopifnot(LIST$ALT_MAX_ITER > 0)
+  out$ALT_MAX_ITER <- LIST$ALT_MAX_ITER
+  if (is.null(LIST$ALT_TOL)) {
+    LIST$ALT_TOL <- 1e-2
+  }
+  stopifnot(is.numeric(LIST$ALT_TOL))
+  stopifnot(LIST$ALT_TOL > 0)
+  out$ALT_TOL <- LIST$ALT_TOL
 
   return(out)
 }

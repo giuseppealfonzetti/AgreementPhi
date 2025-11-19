@@ -154,14 +154,14 @@ set.seed(123)
 # setting dimension
 items <- 100 
 budget_per_item <- 10
-workers <- 20
+workers <- 100
 n_obs <- items * budget_per_item
 
 # item-specific intercepts to generate the data
 alphas <- runif(items, -1, 1)
 betas <- c(0, runif(workers-1, -1, 1))
 # true agreement (between 0 and 1)
-agr <- .9
+agr <- .7
 
 # generate continuous rating in (0,1)
 dt_twoway <- sim_data(
@@ -193,6 +193,7 @@ fit_c_twoway <- agreement(
   VERBOSE = TRUE)
 
 # estimation via twoway specification | ordinal data
+tictoc::tic()
 fit_k6_twoway <- agreement(
   RATINGS = cont2ord(dt_twoway$rating, K=6),
   ITEM_INDS = dt_twoway$id_item,
@@ -200,7 +201,17 @@ fit_k6_twoway <- agreement(
   METHOD = "modified",
   MODEL = "twoway",
   VERBOSE = TRUE)
+tictoc::toc()
 
+tictoc::tic()
+fit_k6_oneway <- agreement(
+  RATINGS = cont2ord(dt_twoway$rating, K=6),
+  ITEM_INDS = dt_twoway$id_item,
+  WORKER_INDS = dt_twoway$id_worker,
+  METHOD = "modified",
+  MODEL = "oneway",
+  VERBOSE = TRUE)
+tictoc::toc()
 ```
 
 Consider now data generated according to the one-way model. Fitting one-way and two-way specifications will likely result in similar estimates of the agreement.
@@ -209,7 +220,7 @@ Consider now data generated according to the one-way model. Fitting one-way and 
 set.seed(123)
 
 # setting dimension
-items <- 100 
+items <- 100
 budget_per_item <- 10
 n_obs <- items * budget_per_item
 
@@ -217,7 +228,7 @@ n_obs <- items * budget_per_item
 alphas <- runif(items, -1, 1)
 
 # true agreement (between 0 and 1)
-agr <- .9
+agr <- .7
 
 # generate continuous rating in (0,1)
 dt_oneway <- sim_data(
@@ -225,7 +236,7 @@ dt_oneway <- sim_data(
   B = budget_per_item,
   AGREEMENT = agr,
   ALPHA = alphas,
-  W=20,
+  W=50,
   DATA_TYPE = "continuous",
   SEED = 123
 )
@@ -245,9 +256,11 @@ fit_c_twoway <- agreement(
   WORKER_INDS = dt_oneway$id_worker,
   METHOD = "modified",
   MODEL = "twoway",
+    # CONTROL = list(PROF_MAX_ITER=10),
   VERBOSE = TRUE)
 
 # estimation via twoway specification | ordinal data
+tictoc::tic()
 fit_k6_twoway <- agreement(
   RATINGS = cont2ord(dt_oneway$rating, K=6),
   ITEM_INDS = dt_oneway$id_item,
@@ -255,5 +268,342 @@ fit_k6_twoway <- agreement(
   METHOD = "modified",
   MODEL = "twoway",
   VERBOSE = TRUE)
+tictoc::tic()
+
+set.seed(1)
+thr <- sort(runif(5))
+ratingk <- cont2ord(dt_oneway$rating, K=6, TRESHOLDS=thr)
+unique_rates <- sort(unique(ratingk))
+rates_map <- setNames(seq_along(unique_rates), unique_rates)
+ratingk <- as.numeric(rates_map[as.character(ratingk)])
+
+tictoc::tic()
+fit_k6_twoway <- agreement2(
+  RATINGS = ratingk,
+  ITEM_INDS = dt_oneway$id_item,
+  WORKER_INDS = dt_oneway$id_worker,
+  METHOD = "modified",
+  NUISANCE = c("items"),
+  CONTROL = list(
+    SEARCH_RANGE = 10,
+    MAX_ITER = 100,
+    PROF_SEARCH_RANGE = 5,
+    PROF_MAX_ITER = 10,
+    ALT_MAX_ITER = 10,
+    ALT_TOL = 1e-2
+  ),
+  VERBOSE = TRUE)
+tictoc::toc()
+
+tictoc::tic()
+fit_k6_twoway <- agreement2(
+  RATINGS = ratingk,
+  ITEM_INDS = dt_oneway$id_item,
+  WORKER_INDS = dt_oneway$id_worker,
+  METHOD = "modified",
+  NUISANCE = c("items"),
+  TAU_START = c(0, thr, 1),
+  CONTROL = list(
+    SEARCH_RANGE = 10,
+    MAX_ITER = 100,
+    PROF_SEARCH_RANGE = 5,
+    PROF_MAX_ITER = 10,
+    ALT_MAX_ITER = 10,
+    ALT_TOL = 1e-2
+  ),
+  VERBOSE = TRUE)
+tictoc::toc()
+```
+
+
+
+
+
+
+```{r}
+# setting dimension
+items <- 100 
+budget_per_item <- 10
+workers <- 100
+n_obs <- items * budget_per_item
+
+# item-specific intercepts to generate the data
+alphas <- runif(items, -1, 1)
+betas <- c(0, runif(workers-1, -1, 1))
+# true agreement (between 0 and 1)
+agr <- .7
+
+# generate continuous rating in (0,1)
+dt_twoway <- sim_data(
+  J = items,
+  B = budget_per_item,
+  W = workers,
+  AGREEMENT = agr,
+  ALPHA = alphas,
+  BETA = betas,
+  DATA_TYPE = "continuous",
+  SEED = 123
+)
+
+tictoc::tic()
+fit_twoway <- agreement2(
+  RATINGS = dt_twoway$rating,
+  ITEM_INDS = dt_twoway$id_item,
+  WORKER_INDS = dt_twoway$id_worker,
+  METHOD = "modified",
+  NUISANCE = c("items", "workers"),
+  CONTROL = list(
+    SEARCH_RANGE = 10,
+    MAX_ITER = 100,
+    PROF_SEARCH_RANGE = 5,
+    PROF_MAX_ITER = 10,
+    ALT_MAX_ITER = 10,
+    ALT_TOL = 1e-2
+  ),
+  VERBOSE = TRUE)
+tictoc::toc()
+
+# tictoc::tic()
+# fit_old <- agreement(
+#   RATINGS = dt_twoway$rating,
+#   ITEM_INDS = dt_twoway$id_item,
+#   METHOD = "modified",
+#   MODEL = "oneway",
+#   VERBOSE = TRUE)
+# tictoc::toc()
+tictoc::tic()
+fit_oneway <- agreement2(
+  RATINGS = dt_twoway$rating,
+  ITEM_INDS = dt_twoway$id_item,
+  WORKER_INDS = dt_twoway$id_worker,
+  METHOD = "modified",
+  NUISANCE = c("items"),
+  # BETA_START = rep(-.5, workers-1),
+  CONTROL = list(
+    SEARCH_RANGE = 10,
+    MAX_ITER = 100,
+    PROF_SEARCH_RANGE = 5,
+    PROF_MAX_ITER = 10,
+    ALT_MAX_ITER = 10,
+    ALT_TOL = 1e-2
+  ),
+  VERBOSE = TRUE)
+tictoc::toc()
+tictoc::tic()
+fit_twoway <- agreement2(
+  RATINGS = dt_twoway$rating,
+  ITEM_INDS = dt_twoway$id_item,
+  WORKER_INDS = dt_twoway$id_worker,
+  METHOD = "modified",
+  NUISANCE = c("items", "workers"),
+  CONTROL = list(
+    SEARCH_RANGE = 10,
+    MAX_ITER = 100,
+    PROF_SEARCH_RANGE = 5,
+    PROF_MAX_ITER = 10,
+    ALT_MAX_ITER = 10,
+    ALT_TOL = 1e-2
+  ),
+  VERBOSE = TRUE)
+tictoc::toc()
+tictoc::tic()
+fit_k6_twoway <- agreement2(
+  RATINGS = cont2ord(dt_twoway$rating, K=6),
+  ITEM_INDS = dt_twoway$id_item,
+  WORKER_INDS = dt_twoway$id_worker,
+  METHOD = "modified",
+  NUISANCE = c("items", "workers"),
+  CONTROL = list(
+    SEARCH_RANGE = 10,
+    MAX_ITER = 100,
+    PROF_SEARCH_RANGE = 5,
+    PROF_MAX_ITER = 10,
+    ALT_MAX_ITER = 20,
+    ALT_TOL = 1e-2
+  ),
+  VERBOSE = TRUE)
+tictoc::toc()
+
+# tictoc::tic()
+# fit_old <- agreement(
+#   RATINGS = cont2ord(dt_twoway$rating, K=6),
+#   ITEM_INDS = dt_twoway$id_item,
+#   METHOD = "modified",
+#   MODEL = "oneway",
+#   VERBOSE = TRUE)
+# tictoc::toc()
+
+tictoc::tic()
+fit_oneway <- agreement2(
+  RATINGS = cont2ord(dt_twoway$rating, K=6),
+  ITEM_INDS = dt_twoway$id_item,
+  WORKER_INDS = dt_twoway$id_worker,
+  METHOD = "modified",
+  NUISANCE = c("items"),
+  # BETA_START = rep(-2, workers-1),
+  CONTROL = list(
+    SEARCH_RANGE = 10,
+    MAX_ITER = 100,
+    PROF_SEARCH_RANGE = 5,
+    PROF_MAX_ITER = 10,
+    ALT_MAX_ITER = 10,
+    ALT_TOL = 1e-2
+  ),
+  VERBOSE = TRUE)
+tictoc::toc()
+```
+
+
+Non equispaced
+
+
+```{r}
+set.seed(123)
+
+# setting dimension
+items <- 200
+budget_per_item <- 10
+n_obs <- items * budget_per_item
+
+# item-specific intercepts to generate the data
+alphas <- runif(items, -1, 1)
+
+# true agreement (between 0 and 1)
+agr <- .7
+
+# generate continuous rating in (0,1)
+dt_oneway <- sim_data(
+  J = items,
+  B = budget_per_item,
+  AGREEMENT = agr,
+  ALPHA = alphas,
+  W=50,
+  DATA_TYPE = "continuous",
+  SEED = 123
+)
+
+init_tau <- function(y, K) {
+    counts <- tabulate(factor(y, levels = seq_len(K)), nbins = K)
+    cum_p <- cumsum(counts) / sum(counts)
+    c(0, cum_p[-K], 1)
+  }
+set.seed(1)
+
+K <- 6
+thr <- sort(runif(K-1))
+ratingk <- cont2ord(dt_oneway$rating, K=K, TRESHOLDS=thr)
+unique_rates <- sort(unique(ratingk))
+rates_map <- setNames(seq_along(unique_rates), unique_rates)
+ratingk <- as.numeric(rates_map[as.character(ratingk)])
+table(ratingk)
+init_tau(y=ratingk, K=K)
+
+# Profiled thresholds
+tictoc::tic()
+fit_k6_twoway <- agreement2(
+  RATINGS = ratingk,
+  ITEM_INDS = dt_oneway$id_item,
+  WORKER_INDS = dt_oneway$id_worker,
+  METHOD = "profile",
+  NUISANCE = c("items", "workers", "thresholds"),
+  # CONTROL = list(
+  #   SEARCH_RANGE = 10,
+  #   MAX_ITER = 10,
+  #   PROF_SEARCH_RANGE = 5,
+  #   PROF_MAX_ITER = 20,
+  #   ALT_MAX_ITER = 20,
+  #   ALT_TOL = 1e-4
+  # ),
+  VERBOSE = TRUE)
+fit_k6_twoway$profile$agreement
+tictoc::toc()
+
+# Fixed empirical
+tictoc::tic()
+fit_k6_twoway <- agreement2(
+  RATINGS = ratingk,
+  ITEM_INDS = dt_oneway$id_item,
+  WORKER_INDS = dt_oneway$id_worker,
+  METHOD = "profile",
+  NUISANCE = c("items", "workers"),
+  # CONTROL = list(
+  #   SEARCH_RANGE = 10,
+  #   MAX_ITER = 100,
+  #   PROF_SEARCH_RANGE = 5,
+  #   PROF_MAX_ITER = 10,
+  #   ALT_MAX_ITER = 10,
+  #   ALT_TOL = 1e-2
+  # ),
+  VERBOSE = TRUE)
+fit_k6_twoway$profile$agreement
+tictoc::toc()
+
+# Fixed true locations
+tictoc::tic()
+fit_k6_twoway <- agreement2(
+  RATINGS = ratingk,
+  ITEM_INDS = dt_oneway$id_item,
+  WORKER_INDS = dt_oneway$id_worker,
+  METHOD = "profile",
+  NUISANCE = c("items", "workers"),
+  TAU_START = c(0, thr, 1),
+  # CONTROL = list(
+  #   SEARCH_RANGE = 10,
+  #   MAX_ITER = 100,
+  #   PROF_SEARCH_RANGE = 5,
+  #   PROF_MAX_ITER = 10,
+  #   ALT_MAX_ITER = 10,
+  #   ALT_TOL = 1e-2
+  # ),
+  VERBOSE = TRUE)
+fit_k6_twoway$profile$agreement
+tictoc::toc()
+
+# Fixed empirical
+tictoc::tic()
+fit_k6_twoway <- agreement2(
+  RATINGS = ratingk,
+  ITEM_INDS = dt_oneway$id_item,
+  WORKER_INDS = dt_oneway$id_worker,
+  METHOD = "modified",
+  NUISANCE = c("items"),
+  # CONTROL = list(
+  #   SEARCH_RANGE = 10,
+  #   MAX_ITER = 100,
+  #   PROF_SEARCH_RANGE = 5,
+  #   PROF_MAX_ITER = 10,
+  #   ALT_MAX_ITER = 10,
+  #   ALT_TOL = 1e-2
+  # ),
+  VERBOSE = TRUE)
+fit_k6_twoway$profile$agreement
+tictoc::toc()
+
+# Fixed true
+K <- 6
+thr <- seq(0,1, by=1/K)
+thr[2:(K)] <- thr[2:(K)] + runif(K-1, -1e-1, 1e-1)
+thr
+tictoc::tic()
+fit_k6_twoway <- agreement2(
+  RATINGS = cont2ord(dt_oneway$rating, K=K, TRESHOLDS=thr[2:(K)]),
+  ITEM_INDS = dt_oneway$id_item,
+  WORKER_INDS = dt_oneway$id_worker,
+  METHOD = "modified",
+  NUISANCE = c("items"),
+  # TAU_START = seq(0,1,by=1/K),
+  TAU_START = thr,
+  # CONTROL = list(
+  #   SEARCH_RANGE = 10,
+  #   MAX_ITER = 100,
+  #   PROF_SEARCH_RANGE = 5,
+  #   PROF_MAX_ITER = 10,
+  #   ALT_MAX_ITER = 10,
+  #   ALT_TOL = 1e-2
+  # ),
+  VERBOSE = TRUE)
+fit_k6_twoway$profile$agreement
+tictoc::toc()
+
 
 ```

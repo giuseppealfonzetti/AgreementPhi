@@ -46,24 +46,23 @@
 #'
 #' @return Returns a list with maximum likelihood estimates and corresponding negative log-likelihood.
 #' @export
-agreement <- function(
+agreement2 <- function(
   RATINGS,
   ITEM_INDS,
   WORKER_INDS = NULL,
   METHOD = c("modified", "profile"),
-  MODEL = c("oneway", "twoway"),
   ALPHA_START = NULL,
   BETA_START = NULL,
+  TAU_START = NULL,
   PHI_START = NULL,
+  NUISANCE = c("items", "workers", "thresholds"),
   CONTROL = list(),
   VERBOSE = FALSE
 ) {
   METHOD <- match.arg(METHOD)
-  MODEL <- match.arg(MODEL)
-  if (MODEL == "twoway") {
-    stopifnot(!is.null(WORKER_INDS))
-  } else {
-    WORKER_INDS <- NULL
+
+  if (VERBOSE) {
+    message("\nDATA")
   }
   val_data <- validate_data(
     RATINGS = RATINGS,
@@ -78,11 +77,22 @@ agreement <- function(
     }
   }
 
+  params <- if (val_data$data_type == "ordinal") {
+    c("items", "workers", "thresholds")
+  } else {
+    c("items", "workers")
+  }
   if (VERBOSE) {
     message(paste(
-      "Fitting",
-      MODEL,
-      "model:"
+      "\nMODEL PARAMETERS"
+    ))
+    message(paste(
+      " - Nuisance:",
+      paste0(paste0(params[params %in% NUISANCE], collapse = ", "), ".")
+    ))
+    message(paste(
+      " - Constant :",
+      paste0(paste0(params[!(params %in% NUISANCE)], collapse = ", "), ".\n")
     ))
   }
 
@@ -90,7 +100,7 @@ agreement <- function(
     ALPHA_START <- rep(0, val_data$n_items)
   }
 
-  if (is.null(BETA_START) & MODEL == "twoway") {
+  if (is.null(BETA_START)) {
     BETA_START <- rep(0, val_data$n_workers - 1)
   }
 
@@ -98,22 +108,39 @@ agreement <- function(
     PHI_START <- agr2prec(.5)
   }
 
-  continuous <- TRUE
-  if (val_data$data_type == "ordinal") {
-    continuous <- FALSE
+  if (is.null(TAU_START)) {
+    # init_tau <- function(y, K) {
+    #   counts <- tabulate(factor(y, levels = seq_len(K)), nbins = K)
+    #   cum_p <- cumsum(counts) / sum(counts)
+    #   c(0, cum_p[-K], 1)
+    # }
+    counts <- tabulate(
+      factor(val_data$ratings, levels = seq_len(val_data$K)),
+      nbins = val_data$K
+    )
+    cum_p <- cumsum(counts) / sum(counts)
+    TAU_START <- c(0, cum_p[-K], 1)
+    # TAU_START <- seq(0, 1, by = 1 / val_data$K)
   }
 
-  CONTROL <- validate_cpp_control(CONTROL, MODEL, val_data$data_type)
+  CONTROL <- validate_cpp_control2(CONTROL)
   args <- c(
     list(
       Y = val_data$ratings * 1.0,
       ITEM_INDS = val_data$item_ids,
+      WORKER_INDS = val_data$worker_ids,
       ALPHA_START = ALPHA_START,
-      PHI = PHI_START,
+      BETA_START = c(0, BETA_START),
+      TAU_START = TAU_START,
+      PHI_START = PHI_START,
       K = val_data$K,
       J = val_data$n_items,
-      VERBOSE = VERBOSE,
-      CONTINUOUS = continuous
+      W = val_data$n_workers,
+      METHOD = METHOD,
+      DATA_TYPE = val_data$data_type,
+      WORKER_NUISANCE = "workers" %in% NUISANCE,
+      THRESHOLDS_NUISANCE = "thresholds" %in% NUISANCE,
+      VERBOSE = VERBOSE
     ),
     CONTROL
   )
@@ -122,92 +149,31 @@ agreement <- function(
     "cpp_args" = args,
     "data_type" = val_data$data_type,
     "method" = METHOD,
-    "model" = MODEL
+    "nuisance" = NUISANCE
   )
 
-  if (MODEL == "oneway") {
-    if (METHOD == "modified") {
-      opt <- do.call(cpp_get_phi_mp, args)
-      out[["pl_precision"]] <- opt[3]
-      out[["pl_agreement"]] <- prec2agr(opt[3])
-      out[["mpl_precision"]] <- opt[1]
-      out[["mpl_agreement"]] <- prec2agr(opt[1])
-      out[["loglik"]] <- opt[2]
-    } else {
-      opt <- do.call(cpp_get_phi_mle, args)
-      out[["pl_precision"]] <- opt[1]
-      out[["pl_agreement"]] <- prec2agr(opt[1])
-      out[["loglik"]] <- opt[2]
-    }
+  opt <- do.call(cpp_get_phi, args)
+  if (length(opt) == 3) {
+    out$profile$precision <- opt[3]
+    out$profile$agreement <- prec2agr(opt[3])
+    out$modified$precision <- opt[1]
+    out$modified$agreement <- prec2agr(opt[1])
   } else {
-    if (CONTROL$PROF_METHOD == "bfgs") {
-      if (METHOD == "modified") {
-        opt <- get_phi_modified_profile_twoway(
-          Y = val_data$ratings,
-          ITEM_INDS = val_data$item_ids,
-          WORKER_INDS = val_data$worker_ids,
-          LAMBDA_START = c(ALPHA_START, BETA_START),
-          PHI_START = PHI_START,
-          K = val_data$K,
-          J = val_data$n_items,
-          W = val_data$n_workers,
-          DATA_TYPE = val_data$data_type,
-          SEARCH_RANGE = args$SEARCH_RANGE,
-          MAX_ITER = args$MAX_ITER,
-          PROF_MAX_ITER = args$PROF_MAX_ITER,
-          VERBOSE = args$VERBOSE
-        )
-        out[["pl_precision"]] <- opt$pl_precision
-        out[["pl_agreement"]] <- prec2agr(opt$pl_precision)
-        out[["mpl_precision"]] <- opt$mpl_precision
-        out[["mpl_agreement"]] <- prec2agr(opt$mpl_precision)
-        out[["loglik"]] <- opt$loglik
-        out[["lambda_mle"]] <- opt$lambda_mle
-      } else {
-        opt <- get_phi_profile_twoway(
-          Y = val_data$ratings,
-          ITEM_INDS = val_data$item_ids,
-          WORKER_INDS = val_data$worker_ids,
-          LAMBDA_START = c(ALPHA_START, BETA_START),
-          PHI_START = PHI_START,
-          K = val_data$K,
-          J = val_data$n_items,
-          W = val_data$n_workers,
-          DATA_TYPE = val_data$data_type,
-          SEARCH_RANGE = args$SEARCH_RANGE,
-          MAX_ITER = args$MAX_ITER,
-          PROF_MAX_ITER = args$PROF_MAX_ITER,
-          VERBOSE = args$VERBOSE
-        )
-        out[["pl_precision"]] <- opt$precision
-        out[["pl_agreement"]] <- prec2agr(opt$precision)
-        out[["loglik"]] <- opt$loglik
-        out[["lambda_mle"]] <- opt$lambda_mle
-      }
-    } else {
-      if (METHOD == "modified") {
-        args$BETA_START <- c(0, BETA_START)
-        args$PROF_METHOD <- NULL
-        args$WORKER_INDS = val_data$worker_ids
-        args$W <- val_data$n_workers
-        opt <- do.call(cpp_twoway_get_phi_modified_profile, args)
-        out[["pl_precision"]] <- opt[3]
-        out[["pl_agreement"]] <- prec2agr(opt[3])
-        out[["mpl_precision"]] <- opt[1]
-        out[["mpl_agreement"]] <- prec2agr(opt[1])
-        out[["loglik"]] <- opt[2]
-        if (out[["pl_precision"]] < out[["mpl_precision"]]) {
-          warning(
-            "Possible divergence detected. Modified estimate might be unreliable. Try profiling via bfgs."
-          )
-        }
-      } else {
-        opt <- do.call(cpp_twoway_get_phi_profile, args)
-        out[["pl_precision"]] <- opt[1]
-        out[["pl_agreement"]] <- prec2agr(opt[1])
-        out[["loglik"]] <- opt[2]
-      }
-    }
+    out$profile$precision <- opt[1]
+    out$profile$agreement <- prec2agr(opt[1])
+    out$modified$precision <- NA
+    out$modified$agreement <- NA
+  }
+  out[["loglik"]] <- opt[2]
+
+  # if (out[["pl_precision"]] < out[["mpl_precision"]]) {
+  #   warning(
+  #     "Possible divergence detected. Modified estimate might be unreliable. Try profiling via bfgs."
+  #   )
+  # }
+
+  if (VERBOSE) {
+    message("Done!\n")
   }
 
   return(out)
