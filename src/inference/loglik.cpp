@@ -1,6 +1,10 @@
 #include "loglik.h"
 
-double AgreementPhi::continuous::twoway::loglik::profile(
+////////////////////////
+// CONTINUOUS RATINGS //
+////////////////////////
+
+double AgreementPhi::continuous::ll::profile(
                     const std::vector<double> Y,  
                     const std::vector<int> ITEM_INDS,
                     const std::vector<int> WORKER_INDS,
@@ -11,15 +15,15 @@ double AgreementPhi::continuous::twoway::loglik::profile(
                     const double PHI,
                     const int J,
                     const int W,
+                    const bool WORKER_NUISANCE,
                     const int PROF_UNI_RANGE,
                     const int PROF_UNI_MAX_ITER,
                     const int PROF_MAX_ITER,
                     const double PROF_TOL
 ){
 
-    std::vector<std::vector<double>> profiled_lambda = AgreementPhi::continuous::twoway::inference::get_lambda(
-        Y,  ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA,  BETA, PHI, J, W, PROF_UNI_RANGE,
-        PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+    std::vector<std::vector<double>> profiled_lambda = AgreementPhi::continuous::nuisance::get_lambda(
+        Y,  ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA,  BETA, PHI, J, W, WORKER_NUISANCE, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
 
     Eigen::VectorXd dlambda = Eigen::VectorXd::Zero(J + W - 1);
     Eigen::VectorXd jalphaalpha = Eigen::VectorXd::Zero(J);
@@ -32,8 +36,8 @@ double AgreementPhi::continuous::twoway::loglik::profile(
     lambda.insert(lambda.end(), profiled_lambda.at(1).begin() + 1, profiled_lambda.at(1).end());
 
     
-    double ll = AgreementPhi::continuous::twoway::joint_loglik(
-        Y, ITEM_INDS, WORKER_INDS, lambda, PHI, J, W,
+    double ll = AgreementPhi::continuous::joint_loglik(
+        Y, ITEM_INDS, WORKER_INDS, lambda, PHI, J, W, WORKER_NUISANCE,
         dlambda, jalphaalpha, jbetabeta, jalphabeta, 0
     );
 
@@ -42,7 +46,7 @@ double AgreementPhi::continuous::twoway::loglik::profile(
 }
 
 
-double AgreementPhi::continuous::twoway::loglik::modified_profile(
+double AgreementPhi::continuous::ll::modified_profile(
     const std::vector<double> Y,  
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
@@ -54,6 +58,7 @@ double AgreementPhi::continuous::twoway::loglik::modified_profile(
     const double PHI_MLE,
     const int J,
     const int W,
+    const bool WORKER_NUISANCE,
     const int PROF_UNI_RANGE,
     const int PROF_UNI_MAX_ITER,
     const int PROF_MAX_ITER,
@@ -61,9 +66,8 @@ double AgreementPhi::continuous::twoway::loglik::modified_profile(
 ){
 
     // profile nuisance parameters
-    std::vector<std::vector<double>> profiled_lambda = AgreementPhi::continuous::twoway::inference::get_lambda(
-        Y,  ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA_MLE,  BETA_MLE, PHI, J, W, PROF_UNI_RANGE,
-        PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+    std::vector<std::vector<double>> profiled_lambda = AgreementPhi::continuous::nuisance::get_lambda(
+        Y,  ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA_MLE,  BETA_MLE, PHI, J, W,     WORKER_NUISANCE, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
 
     Eigen::VectorXd dlambda = Eigen::VectorXd::Zero(J + W - 1);
     Eigen::VectorXd jalphaalpha = Eigen::VectorXd::Zero(J);
@@ -76,15 +80,15 @@ double AgreementPhi::continuous::twoway::loglik::modified_profile(
     profiled_vec.insert(profiled_vec.end(), profiled_lambda.at(1).begin() + 1, profiled_lambda.at(1).end());
 
     // evaluate profile log-likelihood
-    double ll = AgreementPhi::continuous::twoway::joint_loglik(
-        Y, ITEM_INDS, WORKER_INDS, profiled_vec, PHI, J, W,
+    double ll = AgreementPhi::continuous::joint_loglik(
+        Y, ITEM_INDS, WORKER_INDS, profiled_vec, PHI, J, W, WORKER_NUISANCE,
         dlambda, jalphaalpha, jbetabeta, jalphabeta, 0
     );
 
 
     // evaluate modifier contribution
-    ll += .5 * AgreementPhi::continuous::twoway::log_det_obs_info(
-        Y, ITEM_INDS, WORKER_INDS, profiled_vec, PHI, J, W
+    ll += .5 * AgreementPhi::continuous::log_det_obs_info(
+        Y, ITEM_INDS, WORKER_INDS, profiled_vec, PHI, J, W, WORKER_NUISANCE
     );
 
     std::vector<double> mle_vec;
@@ -92,34 +96,52 @@ double AgreementPhi::continuous::twoway::loglik::modified_profile(
     mle_vec.insert(mle_vec.end(), ALPHA_MLE.begin(), ALPHA_MLE.end());
     mle_vec.insert(mle_vec.end(), BETA_MLE.begin() + 1, BETA_MLE.end());
 
-    ll -= AgreementPhi::continuous::twoway::log_det_E0d0d1(
-        ITEM_INDS, WORKER_INDS, mle_vec, profiled_vec, PHI_MLE, PHI, J, W
+    ll -= AgreementPhi::continuous::log_det_E0d0d1(
+        ITEM_INDS, WORKER_INDS, mle_vec, profiled_vec, PHI_MLE, PHI, J, W, WORKER_NUISANCE
     );
 
     return ll;
 
 }
 
-double AgreementPhi::ordinal::twoway::loglik::profile(
+/////////////////////
+// ORDINAL RATINGS //
+/////////////////////
+
+double AgreementPhi::ordinal::ll::profile(
                     const std::vector<double> Y,  
                     const std::vector<int> ITEM_INDS,
                     const std::vector<int> WORKER_INDS,
                     const std::vector<std::vector<int>> ITEM_DICT,
                     const std::vector<std::vector<int>> WORKER_DICT,
+                    const std::vector<std::vector<int>> CAT_DICT,
                     const std::vector<double> ALPHA,
                     const std::vector<double> BETA,
+                    const std::vector<double> TAU,
                     const double PHI,
                     const int J,
                     const int W,
                     const int K,
+                    const bool WORKER_NUISANCE,
+                    const bool THRESHOLDS_NUISANCE,
                     const int PROF_UNI_RANGE,
                     const int PROF_UNI_MAX_ITER,
                     const int PROF_MAX_ITER,
                     const double PROF_TOL
 ){
-    std::vector<std::vector<double>> profiled_lambda = AgreementPhi::ordinal::twoway::inference::get_lambda(
-        Y,  ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA,  BETA, PHI, J, W, K, PROF_UNI_RANGE,
+
+
+    
+
+    std::vector<std::vector<double>> profiled_lambda = AgreementPhi::ordinal::nuisance::get_lambda2(
+        Y,  ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT, ALPHA,  BETA, TAU, PHI, J, W, K, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_UNI_RANGE,
         PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+
+    // Rcpp::Rcout<<"tau: ";
+    // for (double i: profiled_lambda.at(2))
+    // Rcpp::Rcout << i << ' ';
+    // Rcpp::Rcout<<"\n";
+
 
     Eigen::VectorXd dlambda = Eigen::VectorXd::Zero(J + W - 1);
     Eigen::VectorXd jalphaalpha = Eigen::VectorXd::Zero(J);
@@ -131,37 +153,45 @@ double AgreementPhi::ordinal::twoway::loglik::profile(
     lambda.insert(lambda.end(), profiled_lambda.at(0).begin(), profiled_lambda.at(0).end());
     lambda.insert(lambda.end(), profiled_lambda.at(1).begin() + 1, profiled_lambda.at(1).end());
 
-    double ll = AgreementPhi::ordinal::twoway::joint_loglik(
-        Y, ITEM_INDS, WORKER_INDS, lambda, PHI, J, W, K, 
+    double ll = AgreementPhi::ordinal::joint_loglik(
+        Y, ITEM_INDS, WORKER_INDS, lambda, profiled_lambda.at(2), PHI, J, W, K, WORKER_NUISANCE,
         dlambda, jalphaalpha, jbetabeta, jalphabeta, 0
     );
 
     return ll;
 }
 
-double AgreementPhi::ordinal::twoway::loglik::modified_profile(
+double AgreementPhi::ordinal::ll::modified_profile(
     const std::vector<double> Y,  
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
     const std::vector<std::vector<int>> ITEM_DICT,
     const std::vector<std::vector<int>> WORKER_DICT,
+    const std::vector<std::vector<int>> CAT_DICT,
     const std::vector<double> ALPHA_MLE,
     const std::vector<double> BETA_MLE,
+    const std::vector<double> TAU_MLE,
     const double PHI,
     const double PHI_MLE,
     const int J,
     const int W,
     const int K,
+    const bool WORKER_NUISANCE,
+    const bool THRESHOLDS_NUISANCE,
     const int PROF_UNI_RANGE,
     const int PROF_UNI_MAX_ITER,
     const int PROF_MAX_ITER,
     const double PROF_TOL
 ){
 
-    // profile nuisance parameters
-    std::vector<std::vector<double>> profiled_lambda = AgreementPhi::ordinal::twoway::inference::get_lambda(
-        Y,  ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA_MLE,  BETA_MLE, PHI, J, W, K, PROF_UNI_RANGE,
+    std::vector<std::vector<double>> profiled_lambda = AgreementPhi::ordinal::nuisance::get_lambda2(
+        Y,  ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT, ALPHA_MLE,  BETA_MLE, TAU_MLE, PHI, J, W, K, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_UNI_RANGE,
         PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+
+    // Rcpp::Rcout<<"tau: ";
+    // for (double i: profiled_lambda.at(2))
+    // Rcpp::Rcout << i << ' ';
+    // Rcpp::Rcout<<"\n";
 
     Eigen::VectorXd dlambda = Eigen::VectorXd::Zero(J + W - 1);
     Eigen::VectorXd jalphaalpha = Eigen::VectorXd::Zero(J);
@@ -174,15 +204,15 @@ double AgreementPhi::ordinal::twoway::loglik::modified_profile(
     profiled_vec.insert(profiled_vec.end(), profiled_lambda.at(1).begin() + 1, profiled_lambda.at(1).end());
 
     // evaluate profile log-likelihood
-    double ll = AgreementPhi::ordinal::twoway::joint_loglik(
-        Y, ITEM_INDS, WORKER_INDS, profiled_vec, PHI, J, W, K,
+    double ll = AgreementPhi::ordinal::joint_loglik(
+        Y, ITEM_INDS, WORKER_INDS, profiled_vec, TAU_MLE, PHI, J, W, K,WORKER_NUISANCE,
         dlambda, jalphaalpha, jbetabeta, jalphabeta, 0
     );
 
 
     // evaluate modifier contribution
-    ll += .5 * AgreementPhi::ordinal::twoway::log_det_obs_info(
-        Y, ITEM_INDS, WORKER_INDS, profiled_vec, PHI, J, W, K
+    ll += .5 * AgreementPhi::ordinal::log_det_obs_info(
+        Y, ITEM_INDS, WORKER_INDS, profiled_vec, TAU_MLE, PHI, J, W, K, WORKER_NUISANCE
     );
 
     std::vector<double> mle_vec;
@@ -190,10 +220,11 @@ double AgreementPhi::ordinal::twoway::loglik::modified_profile(
     mle_vec.insert(mle_vec.end(), ALPHA_MLE.begin(), ALPHA_MLE.end());
     mle_vec.insert(mle_vec.end(), BETA_MLE.begin() + 1, BETA_MLE.end());
 
-    ll -= AgreementPhi::ordinal::twoway::log_det_E0d0d1(
-        ITEM_INDS, WORKER_INDS, mle_vec, profiled_vec, PHI_MLE, PHI, J, W, K
+    ll -= AgreementPhi::ordinal::log_det_E0d0d1(
+        ITEM_INDS, WORKER_INDS, mle_vec, profiled_vec,  PHI_MLE, PHI, TAU_MLE, J, W, K, WORKER_NUISANCE
     );
 
     return ll;
 
 }
+

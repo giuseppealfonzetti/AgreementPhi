@@ -10,6 +10,7 @@ profile_loglik_twoway <- function(
   DATA_TYPE,
   PROF_MAX_ITER
 ) {
+  tau_vec <- if (DATA_TYPE == "ordinal") seq(0, 1, length.out = K + 1) else NULL
   lambda_hat <- twoway_profiling_bfgs(
     Y = Y,
     ITEM_INDS = ITEM_INDS,
@@ -20,7 +21,9 @@ profile_loglik_twoway <- function(
     W = W,
     K = K,
     DATA_TYPE = DATA_TYPE,
-    MAX_ITER = PROF_MAX_ITER
+    MAX_ITER = PROF_MAX_ITER,
+    WORKER_NUISANCE = TRUE,
+    TAU = tau_vec
   )
   if (DATA_TYPE == "continuous") {
     result <- cpp_continuous_twoway_joint_loglik(
@@ -31,6 +34,7 @@ profile_loglik_twoway <- function(
       PHI = PHI,
       J = J,
       W = W,
+      WORKER_NUISANCE = TRUE,
       GRADFLAG = 0L
     )
   } else {
@@ -39,10 +43,12 @@ profile_loglik_twoway <- function(
       ITEM_INDS = ITEM_INDS,
       WORKER_INDS = WORKER_INDS,
       LAMBDA = lambda_hat,
+      TAU = tau_vec,
       PHI = PHI,
       J = J,
       W = W,
       K = K,
+      WORKER_NUISANCE = TRUE,
       GRADFLAG = 0L
     )
   }
@@ -94,7 +100,8 @@ modified_profile_loglik_twoway <- function(
       LAMBDA = profile_res$lambda_hat,
       PHI = PHI,
       J = J,
-      W = W
+      W = W,
+      WORKER_NUISANCE = TRUE
     )
 
     log_det_I <- cpp_continuous_twoway_log_det_E0d0d1(
@@ -105,18 +112,22 @@ modified_profile_loglik_twoway <- function(
       PHI0 = PHI_MLE,
       PHI1 = PHI,
       J = J,
-      W = W
+      W = W,
+      WORKER_NUISANCE = TRUE
     )
   } else {
+    tau_vec <- seq(0, 1, length.out = K + 1)
     log_det_J <- cpp_ordinal_twoway_log_det_obs_info(
       Y = Y,
       ITEM_INDS = ITEM_INDS,
       WORKER_INDS = WORKER_INDS,
       LAMBDA = profile_res$lambda_hat,
+      TAU = tau_vec,
       PHI = PHI,
       K = K,
       J = J,
-      W = W
+      W = W,
+      WORKER_NUISANCE = TRUE
     )
 
     log_det_I <- cpp_ordinal_twoway_log_det_E0d0d1(
@@ -126,9 +137,11 @@ modified_profile_loglik_twoway <- function(
       LAMBDA1 = profile_res$lambda_hat,
       PHI0 = PHI_MLE,
       PHI1 = PHI,
+      TAU = tau_vec,
       J = J,
       W = W,
-      K = K
+      K = K,
+      WORKER_NUISANCE = TRUE
     )
   }
 

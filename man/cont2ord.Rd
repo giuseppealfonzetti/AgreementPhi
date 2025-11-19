@@ -4,12 +4,14 @@
 \alias{cont2ord}
 \title{Discretise continuous data}
 \usage{
-cont2ord(X, K)
+cont2ord(X, K, TRESHOLDS = NULL)
 }
 \arguments{
 \item{X}{Vector of continuous data in (0,1).}
 
 \item{K}{Number of ordinal categories.}
+
+\item{TRESHOLDS}{Threshold vector of length K-1. If null, thresholds are assumed to be equispaced.}
 }
 \value{
 Discretised vector
