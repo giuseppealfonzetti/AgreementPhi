@@ -60,6 +60,7 @@ double AgreementPhi::continuous::joint_loglik(
     const double PHI,
     const int J, 
     const int W,
+    const bool ITEMS_NUISANCE,
     const bool WORKER_NUISANCE,
     Eigen::Ref<Eigen::VectorXd> DLAMBDA,
     Eigen::Ref<Eigen::VectorXd> JALPHAALPHA,
@@ -91,13 +92,23 @@ double AgreementPhi::continuous::joint_loglik(
             if(w>0) DLAMBDA(J + w - 1) += dwrtmu * dmu_deta;
             
             if(GRADFLAG > 1){
-                double d2l = dwrtmu2 * pow(dmu_deta, 2) + dwrtmu * d2mu_deta2;
-                
-                JALPHAALPHA(j) -= d2l;
-                if(WORKER_NUISANCE){
-                    if(w>0) JBETABETA(w - 1) -= d2l;
-                    if(w>0) JALPHABETA(j, w - 1) -= d2l;
+
+                if(ITEMS_NUISANCE | WORKER_NUISANCE){
+                    double d2l = dwrtmu2 * pow(dmu_deta, 2) + dwrtmu * d2mu_deta2;
+                    if(ITEMS_NUISANCE){
+                        JALPHAALPHA(j) -= d2l;
+                    }
+                    
+                    if(WORKER_NUISANCE){
+                        if(w>0) JBETABETA(w - 1) -= d2l;
+                        
+                    }
+
+                    if(ITEMS_NUISANCE&WORKER_NUISANCE){
+                        if(w>0) JALPHABETA(j, w - 1) -= d2l;
+                    }
                 }
+                
                 
             }
         }
@@ -115,6 +126,7 @@ double AgreementPhi::continuous::log_det_obs_info(
     const double PHI,
     const int J,
     const int W,
+    const bool ITEMS_NUISANCE,
     const bool WORKER_NUISANCE
 ){
     Eigen::VectorXd dlambda = Eigen::VectorXd::Zero(J + W - 1);
@@ -123,11 +135,15 @@ double AgreementPhi::continuous::log_det_obs_info(
     Eigen::MatrixXd jalphabeta = Eigen::MatrixXd::Zero(J, W - 1);
     
     AgreementPhi::continuous::joint_loglik(
-        Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W, WORKER_NUISANCE,
+        Y, ITEM_INDS, WORKER_INDS, LAMBDA, PHI, J, W, ITEMS_NUISANCE, WORKER_NUISANCE,
         dlambda, jalphaalpha, jbetabeta, jalphabeta, 2
     );
     
-    double log_det_alpha = jalphaalpha.array().log().sum();
+    double log_det_ob_info = 0;
+    if(ITEMS_NUISANCE){
+        //log_det_alpha
+        log_det_ob_info += jalphaalpha.array().log().sum();
+    }
     
     if(WORKER_NUISANCE){
         Eigen::VectorXd sqrt_inv_alpha = jalphaalpha.array().pow(-0.5);
@@ -137,10 +153,10 @@ double AgreementPhi::continuous::log_det_obs_info(
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(schur);
         double log_det_schur = es.eigenvalues().array().log().sum();
         
-        return log_det_alpha + log_det_schur;
-    }else{
-        return log_det_alpha;
+        log_det_ob_info += log_det_schur;
     }
+
+    return log_det_ob_info;
     
 }
 
@@ -153,6 +169,7 @@ double AgreementPhi::continuous::log_det_E0d0d1(
     const double PHI1,
     const int J,
     const int W,
+    const bool ITEMS_NUISANCE,
     const bool WORKER_NUISANCE
 ){
     const int n = ITEM_INDS.size();
@@ -183,7 +200,12 @@ double AgreementPhi::continuous::log_det_E0d0d1(
         }
     }
     
-    double log_det_alpha = Ialphaalpha.array().log().sum();
+    double log_det_ex_info = 0;
+    if(ITEMS_NUISANCE){
+        //log_det_alpha
+        log_det_ex_info += Ialphaalpha.array().log().sum();
+    }
+
     
     if(WORKER_NUISANCE){
         Eigen::VectorXd sqrt_inv_alpha = Ialphaalpha.array().pow(-0.5);
@@ -192,10 +214,10 @@ double AgreementPhi::continuous::log_det_E0d0d1(
         
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(schur);
         double log_det_schur = es.eigenvalues().array().log().sum();
-        
-        return log_det_alpha + log_det_schur;
-    }else{
-        return log_det_alpha;
+        log_det_ex_info += log_det_schur;
+        // return log_det_alpha + log_det_schur;
     }
+
+    return log_det_ex_info;
     
 }

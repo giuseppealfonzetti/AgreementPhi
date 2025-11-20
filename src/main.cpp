@@ -19,7 +19,7 @@
 // SHARED  INTERFACE //
 ////////////////////////
 // [[Rcpp::export]]
-std::vector<double> cpp_get_phi(
+Rcpp::List cpp_get_phi(
     const std::vector<double> Y,  
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
@@ -32,6 +32,7 @@ std::vector<double> cpp_get_phi(
     const int K,
     const std::string METHOD,
     const std::string DATA_TYPE,
+    const bool ITEMS_NUISANCE,
     const bool WORKER_NUISANCE,
     const bool THRESHOLDS_NUISANCE,
     const bool VERBOSE,
@@ -45,26 +46,76 @@ std::vector<double> cpp_get_phi(
     std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
     std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
     std::vector<double> res;
+    double ll;
+    double profile_phi;
+    double modified_phi = std::numeric_limits<double>::quiet_NaN();
+    std::vector<double> alpha;
+    std::vector<double> beta;
+    std::vector<double> tau;
+
+
     if(METHOD == "profile"){
         if(DATA_TYPE=="continuous"){
             res = AgreementPhi::continuous::inference::get_phi_profile(
-                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START, BETA_START, PHI_START, J, W, WORKER_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
+                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START, BETA_START, PHI_START, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
+            profile_phi = res.at(0);
+            ll = res.at(1);
+            std::vector<std::vector<double>> lambda= AgreementPhi::continuous::nuisance::get_lambda(
+                Y,  ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START,  BETA_START, profile_phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_SEARCH_RANGE,
+                PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL);
+            alpha=lambda.at(0);
+            beta=lambda.at(1);
+            
         }else if(DATA_TYPE=="ordinal"){
 
             std::vector<std::vector<int>> cat_dict = AgreementPhi::utils::categories_dict(Y, K);
             res = AgreementPhi::ordinal::inference::get_phi_profile(
-                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, cat_dict, ALPHA_START, BETA_START, TAU_START, PHI_START, J, W, K, WORKER_NUISANCE, THRESHOLDS_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
+                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, cat_dict, ALPHA_START, BETA_START, TAU_START, PHI_START, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
+            profile_phi = res.at(0);
+            ll = res.at(1);
+
+            std::vector<std::vector<double>> lambda = AgreementPhi::ordinal::nuisance::get_lambda2(
+                Y,  ITEM_INDS, WORKER_INDS, item_dict, worker_dict, cat_dict, ALPHA_START,  BETA_START, TAU_START, profile_phi, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_SEARCH_RANGE,
+                PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL);
+            alpha=lambda.at(0);
+            beta=lambda.at(1);
+            tau=lambda.at(2);
+            
         }else{
             throw std::invalid_argument("Invalid DATA_TYPE");
         }
+
+        
+
+        
     }else if(METHOD == "modified"){
         if(DATA_TYPE=="continuous"){
             res = AgreementPhi::continuous::inference::get_phi_modified_profile(
-                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START, BETA_START, PHI_START, J, W, WORKER_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
+                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START, BETA_START, PHI_START, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
+            modified_phi = res.at(0);
+            profile_phi = res.at(2);
+            ll = res.at(1);
+            std::vector<std::vector<double>> lambda= AgreementPhi::continuous::nuisance::get_lambda(
+                Y,  ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START,  BETA_START, modified_phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_SEARCH_RANGE,
+                PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL);
+            alpha=lambda.at(0);
+            beta=lambda.at(1);
+            
         }else if(DATA_TYPE=="ordinal"){
             std::vector<std::vector<int>> cat_dict = AgreementPhi::utils::categories_dict(Y, K);
             res = AgreementPhi::ordinal::inference::get_phi_modified_profile(
-                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, cat_dict, ALPHA_START, BETA_START, TAU_START, PHI_START, J, W, K, WORKER_NUISANCE, THRESHOLDS_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
+                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, cat_dict, ALPHA_START, BETA_START, TAU_START, PHI_START, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
+            modified_phi = res.at(0);
+            profile_phi = res.at(2);
+            ll = res.at(1);
+
+            std::vector<std::vector<double>> lambda = AgreementPhi::ordinal::nuisance::get_lambda2(
+                Y,  ITEM_INDS, WORKER_INDS, item_dict, worker_dict, cat_dict, ALPHA_START,  BETA_START, TAU_START, modified_phi, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_SEARCH_RANGE,
+                PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL);
+            alpha=lambda.at(0);
+            beta=lambda.at(1);
+            tau=lambda.at(2);
+
         }else{
             throw std::invalid_argument("Invalid DATA_TYPE");
         }
@@ -74,7 +125,17 @@ std::vector<double> cpp_get_phi(
     }
     
 
-    return res;
+
+    Rcpp::List output = Rcpp::List::create(
+        Rcpp::Named("alpha") = alpha,
+        Rcpp::Named("beta") = beta,
+        Rcpp::Named("tau") = tau,
+        Rcpp::Named("loglik") = ll,
+        Rcpp::Named("profile_phi") = profile_phi,
+        Rcpp::Named("modified_phi") = modified_phi
+    );
+
+  return(output);
     
     
 

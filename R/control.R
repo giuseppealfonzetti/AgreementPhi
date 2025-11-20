@@ -158,7 +158,39 @@ validate_data <- function(
   return(out)
 }
 
+validate_nuisance <- function(NUISANCE) {
+  stopifnot(is.vector(NUISANCE))
+  stopifnot(all(NUISANCE %in% c("items", "workers", "thresholds")))
+  return(NUISANCE)
+}
 
+
+validate_params_type <- function(NUISANCE, TARGET, DATA_TYPE) {
+  stopifnot(is.vector(NUISANCE))
+  stopifnot(all(NUISANCE %in% c("items", "workers", "thresholds")))
+  stopifnot(is.vector(TARGET))
+  stopifnot(all(TARGET %in% c("phi", "thresholds")))
+
+  params <- c("items", "workers", "thresholds")
+  if (DATA_TYPE == "continuous") {
+    params <- c("items", "workers")
+    NUISANCE <- NUISANCE[NUISANCE != "thresholds"]
+    TARGET <- TARGET[TARGET != "thresholds"]
+  }
+
+  constant <- params[!(params %in% NUISANCE) & !(params %in% TARGET)]
+  if (("thresholds" %in% NUISANCE) | ("thresholds" %in% constant)) {
+    TARGET <- TARGET[TARGET != "thresholds"]
+  }
+
+  out <- list(
+    constant = constant,
+    nuisance = NUISANCE,
+    target = TARGET
+  )
+
+  return(out)
+}
 # validate_cpp_control <- function(LIST = NULL, MODEL, DATA_TYPE) {
 #   out <- list()
 
@@ -270,7 +302,7 @@ validate_cpp_control2 <- function(LIST = NULL) {
 
   # search range for profiling
   if (is.null(LIST$PROF_SEARCH_RANGE)) {
-    LIST$PROF_SEARCH_RANGE <- 5
+    LIST$PROF_SEARCH_RANGE <- 3
   }
   stopifnot(is.numeric(LIST$PROF_SEARCH_RANGE))
   stopifnot(LIST$PROF_SEARCH_RANGE > 0)
@@ -278,7 +310,7 @@ validate_cpp_control2 <- function(LIST = NULL) {
 
   # max iter for profiling
   if (is.null(LIST$PROF_MAX_ITER)) {
-    LIST$PROF_MAX_ITER <- 20
+    LIST$PROF_MAX_ITER <- 10
   }
   stopifnot(is.numeric(LIST$PROF_MAX_ITER))
   stopifnot(LIST$PROF_MAX_ITER > 0)

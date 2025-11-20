@@ -38,6 +38,7 @@ namespace AgreementPhi{
                 const double PHI,
                 const int J, 
                 const int W,
+                const bool ITEMS_NUISANCE,
                 const bool WORKER_NUISANCE,
                 Eigen::Ref<Eigen::VectorXd> DLAMBDA,
                 Eigen::Ref<Eigen::VectorXd> JALPHAALPHA,
@@ -54,6 +55,7 @@ namespace AgreementPhi{
                 const double PHI,
                 const int J,
                 const int W,
+                const bool ITEMS_NUISANCE,
                 const bool WORKER_NUISANCE
             );
 
@@ -66,6 +68,7 @@ namespace AgreementPhi{
             const double PHI1,
             const int J,
             const int W,
+            const bool ITEMS_NUISANCE,
             const bool WORKER_NUISANCE
         );
     }

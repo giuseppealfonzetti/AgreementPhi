@@ -43,6 +43,7 @@ namespace AgreementPhi{
             const int J, 
             const int W,
             const int K,
+            const bool ITEMS_NUISANCE,
             const bool WORKER_NUISANCE,
             Eigen::Ref<Eigen::VectorXd> DLAMBDA,
             Eigen::Ref<Eigen::VectorXd> JALPHAALPHA,
@@ -61,6 +62,7 @@ namespace AgreementPhi{
             const int J,
             const int W,
             const int K,
+            const bool ITEMS_NUISANCE,
             const bool WORKER_NUISANCE
         );
 
@@ -75,6 +77,7 @@ namespace AgreementPhi{
             const int J,
             const int W,
             const int K,
+            const bool ITEMS_NUISANCE,
             const bool WORKER_NUISANCE
         );
     }

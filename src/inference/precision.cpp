@@ -14,6 +14,7 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_profile(
     const double PHI_START,
     const int J,
     const int W,
+    const bool ITEMS_NUISANCE,
     const bool WORKER_NUISANCE,
     const double SEARCH_RANGE,
     const int MAX_ITER,
@@ -25,7 +26,7 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_profile(
 ){
     auto neg_profile_likelihood = [&](double phi){
         double ll = AgreementPhi::continuous::ll::profile(
-                Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA, BETA, phi, J, W, WORKER_NUISANCE, PROF_UNI_RANGE,
+                Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA, BETA, phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_UNI_RANGE,
                 PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
         return -ll; 
     };
@@ -57,6 +58,7 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
     const double PHI_START,
     const int J,
     const int W,
+    const bool ITEMS_NUISANCE,
     const bool WORKER_NUISANCE,
     const double SEARCH_RANGE,
     const int MAX_ITER,
@@ -68,20 +70,20 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
 ){
     // get mle for phi via profile likleihood
     std::vector<double> phi_mle = AgreementPhi::continuous::inference::get_phi_profile(
-        Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA, BETA, PHI_START, J, W,WORKER_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE,
+        Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA, BETA, PHI_START, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE,
         PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, VERBOSE);
     
     if(VERBOSE) Rcpp::Rcout<< "Non-adjusted agreement: " << utils::prec2agr(phi_mle.at(0)) << "\n";   
     
     // get mle for lambda
     std::vector<std::vector<double>> lambda_mle = AgreementPhi::continuous::nuisance::get_lambda(
-        Y,  ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA,  BETA, phi_mle.at(0), J, W, WORKER_NUISANCE, PROF_UNI_RANGE,
+        Y,  ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA,  BETA, phi_mle.at(0), J, W, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_UNI_RANGE,
         PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
 
     // negative modified profile log-likelihood to minimize
     auto neg_modified_profile_likelihood = [&](double phi){
         double ll = AgreementPhi::continuous::ll::modified_profile(
-                Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, lambda_mle.at(0), lambda_mle.at(1), phi, phi_mle.at(0), J, W, WORKER_NUISANCE, PROF_UNI_RANGE,
+                Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, lambda_mle.at(0), lambda_mle.at(1), phi, phi_mle.at(0), J, W, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_UNI_RANGE,
                 PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
         return -ll; 
     };
@@ -126,6 +128,7 @@ std::vector<double> AgreementPhi::ordinal::inference::get_phi_profile(
     const int J,
     const int W,
     const int K,
+    const bool ITEMS_NUISANCE,
     const bool WORKER_NUISANCE,
     const bool THRESHOLDS_NUISANCE,
     const double SEARCH_RANGE,
@@ -138,7 +141,7 @@ std::vector<double> AgreementPhi::ordinal::inference::get_phi_profile(
 ){
     auto neg_profile_likelihood = [&](double phi){
         double ll = AgreementPhi::ordinal::ll::profile(
-                Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT, ALPHA, BETA, TAU, phi, J, W, K, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_UNI_RANGE,
+                Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT, ALPHA, BETA, TAU, phi, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_UNI_RANGE,
                 PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
         return -ll; 
     };
@@ -172,6 +175,7 @@ std::vector<double> AgreementPhi::ordinal::inference::get_phi_modified_profile(
     const int J,
     const int W,
     const int K,
+    const bool ITEMS_NUISANCE,
     const bool WORKER_NUISANCE,
     const bool THRESHOLDS_NUISANCE,
     const double SEARCH_RANGE,
@@ -184,7 +188,7 @@ std::vector<double> AgreementPhi::ordinal::inference::get_phi_modified_profile(
 ){
     // get mle for phi via profile likleihood
     std::vector<double> phi_mle = AgreementPhi::ordinal::inference::get_phi_profile(
-        Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT, ALPHA, BETA, TAU, PHI_START, J, W, K, WORKER_NUISANCE, THRESHOLDS_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE,
+        Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT, ALPHA, BETA, TAU, PHI_START, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE,
         PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, VERBOSE);
     
     if(VERBOSE) Rcpp::Rcout<< "Non-adjusted agreement: " << utils::prec2agr(phi_mle.at(0)) << "\n";   
@@ -192,19 +196,19 @@ std::vector<double> AgreementPhi::ordinal::inference::get_phi_modified_profile(
 
     // get mle for lambda
     std::vector<std::vector<double>> lambda_mle = AgreementPhi::ordinal::nuisance::get_lambda2(
-        Y,  ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT, ALPHA,  BETA, TAU, phi_mle.at(0), J, W, K, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_UNI_RANGE,
+        Y,  ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT, ALPHA,  BETA, TAU, phi_mle.at(0), J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_UNI_RANGE,
         PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
 
     
-    Rcpp::Rcout<<"tau: ";
-    for (double i: lambda_mle.at(2))
-    Rcpp::Rcout << i << ' ';
-    Rcpp::Rcout<<"\n";
+    // Rcpp::Rcout<<"tau: ";
+    // for (double i: lambda_mle.at(2))
+    // Rcpp::Rcout << i << ' ';
+    // Rcpp::Rcout<<"\n";
 
     // negative modified profile log-likelihood to minimize
     auto neg_modified_profile_likelihood = [&](double phi){
         double ll = AgreementPhi::ordinal::ll::modified_profile(
-                Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT, lambda_mle.at(0), lambda_mle.at(1), lambda_mle.at(2), phi, phi_mle.at(0), J, W, K, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_UNI_RANGE,
+                Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT, lambda_mle.at(0), lambda_mle.at(1), lambda_mle.at(2), phi, phi_mle.at(0), J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_UNI_RANGE,
                 PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
         return -ll; 
     };
