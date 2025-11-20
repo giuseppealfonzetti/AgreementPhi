@@ -55,7 +55,8 @@ agreement2 <- function(
   BETA_START = NULL,
   TAU_START = NULL,
   PHI_START = NULL,
-  NUISANCE = c("items", "workers", "thresholds"),
+  NUISANCE = c("items", "workers"),
+  TARGET = c("phi", "thresholds"),
   CONTROL = list(),
   VERBOSE = FALSE
 ) {
@@ -71,28 +72,30 @@ agreement2 <- function(
     VERBOSE = VERBOSE
   )
 
+  params_type <- validate_params_type(NUISANCE, TARGET, val_data$n_items)
+  # NUISANCE <- validate_nuisance(NUISANCE)
+
   if (val_data$ave_ratings_per_item^3 < val_data$n_items) {
     if (VERBOSE) {
       message("Average number of ratings per item is lower than reccomended")
     }
   }
 
-  params <- if (val_data$data_type == "ordinal") {
-    c("items", "workers", "thresholds")
-  } else {
-    c("items", "workers")
-  }
   if (VERBOSE) {
     message(paste(
       "\nMODEL PARAMETERS"
     ))
     message(paste(
-      " - Nuisance:",
-      paste0(paste0(params[params %in% NUISANCE], collapse = ", "), ".")
+      " - Constant:",
+      paste0(paste0(params_type$constant, collapse = ", "))
     ))
     message(paste(
-      " - Constant :",
-      paste0(paste0(params[!(params %in% NUISANCE)], collapse = ", "), ".\n")
+      " - Nuisance:",
+      paste0(paste0(params_type$nuisance, collapse = ", "), ".")
+    ))
+    message(paste(
+      " - Target:",
+      paste0(paste0(params_type$target, collapse = ", "), ".")
     ))
   }
 
@@ -109,11 +112,6 @@ agreement2 <- function(
   }
 
   if (is.null(TAU_START)) {
-    # init_tau <- function(y, K) {
-    #   counts <- tabulate(factor(y, levels = seq_len(K)), nbins = K)
-    #   cum_p <- cumsum(counts) / sum(counts)
-    #   c(0, cum_p[-K], 1)
-    # }
     counts <- tabulate(
       factor(val_data$ratings, levels = seq_len(val_data$K)),
       nbins = val_data$K
@@ -138,8 +136,9 @@ agreement2 <- function(
       W = val_data$n_workers,
       METHOD = METHOD,
       DATA_TYPE = val_data$data_type,
-      WORKER_NUISANCE = "workers" %in% NUISANCE,
-      THRESHOLDS_NUISANCE = "thresholds" %in% NUISANCE,
+      ITEMS_NUISANCE = "items" %in% params_type$nuisance,
+      WORKER_NUISANCE = "workers" %in% params_type$nuisance,
+      THRESHOLDS_NUISANCE = "thresholds" %in% params_type$nuisance,
       VERBOSE = VERBOSE
     ),
     CONTROL
@@ -149,28 +148,23 @@ agreement2 <- function(
     "cpp_args" = args,
     "data_type" = val_data$data_type,
     "method" = METHOD,
-    "nuisance" = NUISANCE
+    "params_type" = params_type
   )
 
   opt <- do.call(cpp_get_phi, args)
-  if (length(opt) == 3) {
-    out$profile$precision <- opt[3]
-    out$profile$agreement <- prec2agr(opt[3])
-    out$modified$precision <- opt[1]
-    out$modified$agreement <- prec2agr(opt[1])
-  } else {
-    out$profile$precision <- opt[1]
-    out$profile$agreement <- prec2agr(opt[1])
-    out$modified$precision <- NA
-    out$modified$agreement <- NA
-  }
-  out[["loglik"]] <- opt[2]
 
-  # if (out[["pl_precision"]] < out[["mpl_precision"]]) {
-  #   warning(
-  #     "Possible divergence detected. Modified estimate might be unreliable. Try profiling via bfgs."
-  #   )
-  # }
+  out$alpha <- opt$alpha
+  out$beta <- opt$beta
+  out$tau <- opt$tau
+  out$profile$precision <- opt$profile_phi
+  out$profile$agreement <- prec2agr(opt$profile_phi)
+  out$modified$precision <- opt$modified_phi
+  out$modified$agreement <- if (!is.na(opt$modified_phi)) {
+    prec2agr(opt$modified_phi)
+  } else {
+    NaN
+  }
+  out$loglik <- opt$loglik
 
   if (VERBOSE) {
     message("Done!\n")
