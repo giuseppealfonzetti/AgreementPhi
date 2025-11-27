@@ -329,5 +329,23 @@ validate_cpp_control2 <- function(LIST = NULL) {
   stopifnot(LIST$ALT_TOL > 0)
   out$ALT_TOL <- LIST$ALT_TOL
 
+  # LBFGS control parameters (optional)
+  if (!is.null(LIST$LBFGS_MAX_LINESEARCH)) {
+    stopifnot(is.numeric(LIST$LBFGS_MAX_LINESEARCH))
+    stopifnot(LIST$LBFGS_MAX_LINESEARCH > 0)
+    out$LBFGS_MAX_LINESEARCH <- as.integer(LIST$LBFGS_MAX_LINESEARCH)
+  }
+
+  if (!is.null(LIST$LBFGS_MAX_ITERATIONS)) {
+    stopifnot(is.numeric(LIST$LBFGS_MAX_ITERATIONS))
+    stopifnot(LIST$LBFGS_MAX_ITERATIONS > 0)
+    out$LBFGS_MAX_ITERATIONS <- as.integer(LIST$LBFGS_MAX_ITERATIONS)
+  }
+
+  if (!is.null(LIST$LBFGS_INVISIBLE)) {
+    stopifnot(is.logical(LIST$LBFGS_INVISIBLE))
+    out$LBFGS_INVISIBLE <- LIST$LBFGS_INVISIBLE
+  }
+
   return(out)
 }

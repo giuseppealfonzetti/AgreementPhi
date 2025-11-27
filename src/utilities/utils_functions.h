@@ -66,7 +66,45 @@ namespace AgreementPhi{
             const double log2_half = log(2.0) / 2.0;
             return 1.0 - pow(2.0, -PRECISION * log2_half);
         }
+
+        inline std::vector<double> raw2tau(const std::vector<double> RAW_TAU) {
+            const int n = static_cast<int>(RAW_TAU.size());
+            std::vector<double> out(n + 2);
+            out.front() = 0.0;
+
+            double denom = 1.0;
+            for (double v : RAW_TAU) {
+                denom += std::exp(v);
+            }
+
+            double csum = 0.0;
+            for (int i = 0; i < n; ++i) {
+                csum += std::exp(RAW_TAU[i]);
+                out[i + 1] = csum / denom;
+            }
+            out.back() = 1.0;
+            return out;
+        }
+
+        inline std::vector<double> tau2raw(const std::vector<double> TAU) {
+            const int m = static_cast<int>(TAU.size());
+            const int n = m - 2;
+
+            std::vector<double> gaps(m - 1);
+            for (int i = 0; i < m - 1; ++i) {
+                gaps[i] = TAU[i + 1] - TAU[i];
+            }
+            const double last_gap = gaps[n]; 
+
+            std::vector<double> raw(n);
+            for (int i = 0; i < n; ++i) {
+                raw[i] = std::log(static_cast<double>(n) * gaps[i] / last_gap);
+            }
+            return raw;
+        }
     }
+
+    
 }
 
 #endif

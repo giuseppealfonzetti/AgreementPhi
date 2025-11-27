@@ -80,6 +80,48 @@ namespace AgreementPhi{
             const bool ITEMS_NUISANCE,
             const bool WORKER_NUISANCE
         );
+
+        double E0_dmu0dmu1_extended(
+            const double MU0,
+            const double PHI0,
+            const double MU1,
+            const double PHI1,
+            const std::vector<double> TAU0,
+            const std::vector<double> TAU1,
+            const int K
+        );
+
+        double log_det_E0d0d1_extended(
+            const std::vector<int>& ITEM_INDS,
+            const std::vector<int>& WORKER_INDS,
+            const std::vector<double>&  LAMBDA0,
+            const std::vector<double>&  LAMBDA1,
+            const double PHI0,
+            const double PHI1,
+            const std::vector<double>&  TAU0,
+            const std::vector<double>&  TAU1,
+            const int J,
+            const int W,
+            const int K,
+            const bool ITEMS_NUISANCE,
+            const bool WORKER_NUISANCE
+        );
+
+        // Compute gradient of joint log-likelihood w.r.t. thresholds
+        void grad_tau(
+            const std::vector<double>& Y,
+            const std::vector<int>& ITEM_INDS,
+            const std::vector<int>& WORKER_INDS,
+            const std::vector<double>& LAMBDA,
+            const std::vector<double>& TAU,
+            const double PHI,
+            const int J,
+            const int W,
+            const int K,
+            const bool ITEMS_NUISANCE,
+            const bool WORKER_NUISANCE,
+            std::vector<double>& GRAD_TAU
+        );
     }
 }
 
