@@ -412,6 +412,27 @@ double cpp_ordinal_twoway_log_det_E0d0d1(
     );
 }
 
+// [[Rcpp::export]]
+double cpp_ordinal_twoway_log_det_E0d0d1_extended(
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const std::vector<double> LAMBDA0,
+    const std::vector<double> LAMBDA1,
+    const double PHI0,
+    const double PHI1,
+    const std::vector<double> TAU0,
+    const std::vector<double> TAU1,
+    const int J,
+    const int W,
+    const int K,
+    const bool ITEMS_NUISANCE,
+    const bool WORKER_NUISANCE
+){
+    return AgreementPhi::ordinal::log_det_E0d0d1_extended(
+        ITEM_INDS, WORKER_INDS, LAMBDA0, LAMBDA1, PHI0, PHI1, TAU0, TAU1, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE
+    );
+}
+
 // // [[Rcpp::export]]
 // std::vector<double> cpp_ordinal_profile_tau(
 //     const std::vector<double> Y,  

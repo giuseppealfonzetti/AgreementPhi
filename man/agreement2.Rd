@@ -13,7 +13,8 @@ agreement2(
   BETA_START = NULL,
   TAU_START = NULL,
   PHI_START = NULL,
-  NUISANCE = c("items", "workers", "thresholds"),
+  NUISANCE = c("items", "workers"),
+  TARGET = c("phi", "thresholds"),
   CONTROL = list(),
   VERBOSE = FALSE
 )

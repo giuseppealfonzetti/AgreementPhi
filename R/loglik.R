@@ -1,3 +1,173 @@
+profile_likelihood_cpp <- function(
+  Y,
+  ITEM_INDS,
+  WORKER_INDS = NULL,
+  ALPHA_START,
+  BETA_START = NULL,
+  TAU_START = NULL,
+  PHI,
+  J,
+  W = NULL,
+  K,
+  DATA_TYPE = c("continuous", "ordinal"),
+  ITEMS_NUISANCE = TRUE,
+  WORKER_NUISANCE = TRUE,
+  THRESHOLDS_NUISANCE = FALSE,
+  PROF_SEARCH_RANGE,
+  PROF_UNI_MAX_ITER,
+  ALT_MAX_ITER,
+  ALT_TOL
+) {
+  DATA_TYPE <- match.arg(DATA_TYPE)
+  stopifnot(length(Y) == length(ITEM_INDS))
+
+  item_inds <- as.integer(ITEM_INDS)
+  worker_inds <- WORKER_INDS
+  if (is.null(worker_inds)) {
+    worker_inds <- rep(1L, length(Y))
+  } else {
+    stopifnot(length(worker_inds) == length(Y))
+    worker_inds <- as.integer(worker_inds)
+  }
+
+  if (is.null(J)) {
+    J <- length(unique(item_inds))
+  }
+
+  if (is.null(W)) {
+    W <- max(worker_inds)
+  }
+
+  alpha_start <- ALPHA_START
+  stopifnot(length(alpha_start) == J)
+
+  beta_start <- BETA_START
+  if (is.null(beta_start)) {
+    beta_start <- rep(0, W)
+  } else if (length(beta_start) < W) {
+    beta_start <- c(beta_start, rep(0, W - length(beta_start)))
+  } else if (length(beta_start) > W) {
+    beta_start <- beta_start[seq_len(W)]
+  }
+
+  if (DATA_TYPE == "continuous") {
+    K <- 1L
+    THRESHOLDS_NUISANCE <- FALSE
+  }
+
+  tau_start <- TAU_START
+  if (is.null(tau_start) || length(tau_start) != K + 1) {
+    tau_start <- seq(0, 1, length.out = K + 1)
+  }
+
+  cpp_profile_likelihood(
+    Y = as.numeric(Y),
+    ITEM_INDS = item_inds,
+    WORKER_INDS = worker_inds,
+    ALPHA_START = alpha_start,
+    BETA_START = beta_start,
+    TAU_START = tau_start,
+    PHI = PHI,
+    J = as.integer(J),
+    W = as.integer(W),
+    K = as.integer(K),
+    DATA_TYPE = DATA_TYPE,
+    ITEMS_NUISANCE = ITEMS_NUISANCE,
+    WORKER_NUISANCE = WORKER_NUISANCE,
+    THRESHOLDS_NUISANCE = THRESHOLDS_NUISANCE,
+    PROF_SEARCH_RANGE = PROF_SEARCH_RANGE,
+    PROF_UNI_MAX_ITER = PROF_UNI_MAX_ITER,
+    ALT_MAX_ITER = ALT_MAX_ITER,
+    ALT_TOL = ALT_TOL
+  )
+}
+
+
+modified_profile_likelihood_cpp <- function(
+  Y,
+  ITEM_INDS,
+  WORKER_INDS = NULL,
+  ALPHA_START,
+  BETA_START = NULL,
+  PAR,
+  J,
+  W = NULL,
+  K,
+  ITEMS_NUISANCE = TRUE,
+  WORKER_NUISANCE = TRUE,
+  PROF_SEARCH_RANGE,
+  PROF_UNI_MAX_ITER,
+  ALT_MAX_ITER,
+  ALT_TOL
+) {
+  R_neg_prof_ext <- function(
+    PAR,
+    Y,
+    ITEM_INDS,
+    WORKER_INDS,
+    ALPHA_START,
+    BETA_START,
+    J,
+    W,
+    K,
+    ITEMS_NUISANCE,
+    WORKER_NUISANCE,
+    PROF_SEARCH_RANGE,
+    PROF_UNI_MAX_ITER,
+    ALT_MAX_ITER,
+    ALT_TOL
+  ) {
+    raw_phi <- PAR[1]
+    raw_tau <- PAR[2:length(PAR)]
+    phi <- exp(raw_phi)
+    tau <- raw2tau(raw_tau)
+
+    -cpp_profile_likelihood(
+      Y = as.numeric(Y),
+      ITEM_INDS = ITEM_INDS,
+      WORKER_INDS = WORKER_INDS,
+      ALPHA_START = ALPHA_START,
+      BETA_START = BETA_START,
+      TAU_START = tau,
+      PHI = phi,
+      J = as.integer(J),
+      W = as.integer(W),
+      K = as.integer(K),
+      DATA_TYPE = "ordinal",
+      ITEMS_NUISANCE = ITEMS_NUISANCE,
+      WORKER_NUISANCE = WORKER_NUISANCE,
+      THRESHOLDS_NUISANCE = FALSE,
+      PROF_SEARCH_RANGE = PROF_SEARCH_RANGE,
+      PROF_UNI_MAX_ITER = PROF_UNI_MAX_ITER,
+      ALT_MAX_ITER = ALT_MAX_ITER,
+      ALT_TOL = ALT_TOL
+    )
+  }
+
+  tictoc::tic()
+  opt <- optim(
+    par = PAR,
+    fn = R_neg_prof_ext,
+    Y = Y,
+    ITEM_INDS = ITEM_INDS,
+    WORKER_INDS = WORKER_INDS,
+    ALPHA_START = ALPHA_START,
+    BETA_START = BETA_START,
+    J = J,
+    W = W,
+    K = K,
+    ITEMS_NUISANCE = ITEMS_NUISANCE,
+    WORKER_NUISANCE = WORKER_NUISANCE,
+    THRESHOLDS_NUISANCE = FALSE,
+    PROF_SEARCH_RANGE = .PROF_SEARCH_RANGE,
+    PROF_UNI_MAX_ITER = PROF_UNI_MAX_ITER,
+    ALT_MAX_ITER = ALT_MAX_ITER,
+    ALT_TOL = ALT_TOL
+  )
+  tictoc::toc()
+}
+
+
 profile_loglik_twoway <- function(
   Y,
   ITEM_INDS,

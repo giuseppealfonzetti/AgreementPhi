@@ -151,20 +151,289 @@ agreement2 <- function(
     "params_type" = params_type
   )
 
-  opt <- do.call(cpp_get_phi, args)
+  if ("thresholds" %in% TARGET) {
+    if (METHOD == "modified") {
+      stop("Modified profile likelihood not implemented for thresholds target")
+    } else {
+      # Profile likelihood optimization over both phi and tau
 
-  out$alpha <- opt$alpha
-  out$beta <- opt$beta
-  out$tau <- opt$tau
-  out$profile$precision <- opt$profile_phi
-  out$profile$agreement <- prec2agr(opt$profile_phi)
-  out$modified$precision <- opt$modified_phi
-  out$modified$agreement <- if (!is.na(opt$modified_phi)) {
-    prec2agr(opt$modified_phi)
+      # Transform starting values to raw parameters
+      raw_phi_start <- log(args$PHI_START)
+      raw_tau_start <- tau2raw(args$TAU_START)
+      start_par <- c(raw_phi_start, raw_tau_start)
+
+      # Extract arguments for C++ functions
+      cpp_args <- list(
+        Y = args$Y,
+        ITEM_INDS = args$ITEM_INDS,
+        WORKER_INDS = args$WORKER_INDS,
+        ALPHA = args$ALPHA_START,
+        BETA = args$BETA_START,
+        J = args$J,
+        W = args$W,
+        K = args$K,
+        ITEMS_NUISANCE = args$ITEMS_NUISANCE,
+        WORKER_NUISANCE = args$WORKER_NUISANCE,
+        PROF_UNI_RANGE = as.integer(args$PROF_SEARCH_RANGE),
+        PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
+        PROF_MAX_ITER = as.integer(args$ALT_MAX_ITER),
+        PROF_TOL = args$ALT_TOL
+      )
+
+      # Extract lbfgs control options if provided in CONTROL
+      lbfgs_control <- list()
+      if (!is.null(args$LBFGS_MAX_LINESEARCH)) {
+        lbfgs_control$max_linesearch <- args$LBFGS_MAX_LINESEARCH
+      }
+      if (!is.null(args$LBFGS_MAX_ITERATIONS)) {
+        lbfgs_control$max_iterations <- args$LBFGS_MAX_ITERATIONS
+      }
+      if (!is.null(args$LBFGS_INVISIBLE)) {
+        lbfgs_control$invisible <- args$LBFGS_INVISIBLE
+      }
+
+      # Run optimization
+      opt_result <- get_phi_tau_profile(
+        START_PAR = start_par,
+        cpp_args = cpp_args,
+        lbfgs_control = lbfgs_control
+      )
+
+      # Extract optimal parameters
+      raw_phi_opt <- opt_result$par[1]
+      raw_tau_opt <- opt_result$par[-1]
+
+      # Transform back to natural scale
+      phi_opt <- exp(raw_phi_opt)
+      tau_opt <- raw2tau(raw_tau_opt)
+
+      # Profile nuisance parameters at optimum
+      profiled_final <- cpp_ordinal_get_lambda2(
+        Y = args$Y,
+        ITEM_INDS = args$ITEM_INDS,
+        WORKER_INDS = args$WORKER_INDS,
+        ALPHA = args$ALPHA_START,
+        BETA = args$BETA_START,
+        TAU = tau_opt,
+        PHI = phi_opt,
+        J = args$J,
+        W = args$W,
+        K = args$K,
+        ITEMS_NUISANCE = args$ITEMS_NUISANCE,
+        WORKER_NUISANCE = args$WORKER_NUISANCE,
+        THRESHOLDS_NUISANCE = FALSE,
+        PROF_UNI_RANGE = args$PROF_SEARCH_RANGE,
+        PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
+        PROF_MAX_ITER = as.integer(args$ALT_MAX_ITER),
+        TOL = args$ALT_TOL
+      )
+
+      # Store results
+      out$alpha <- profiled_final$alpha
+      out$beta <- profiled_final$beta
+      out$tau <- tau_opt
+      out$profile$precision <- phi_opt
+      out$profile$agreement <- prec2agr(phi_opt)
+      out$modified$precision <- NA
+      out$modified$agreement <- NaN
+      out$loglik <- -opt_result$value  # lbfgs minimizes, we want max loglik
+      out$convergence <- opt_result$convergence
+    }
   } else {
-    NaN
+    # NEW PATH: Use nested optimization when thresholds are nuisance
+    if ("thresholds" %in% params_type$nuisance && val_data$data_type == "ordinal") {
+      # Transform TAU_START to raw parameters
+      raw_tau_start <- tau2raw(args$TAU_START)
+
+      # Build cpp_args for C++ profiling functions (common for both methods)
+      cpp_args <- list(
+        Y = args$Y,
+        ITEM_INDS = args$ITEM_INDS,
+        WORKER_INDS = args$WORKER_INDS,
+        ALPHA = args$ALPHA_START,
+        BETA = args$BETA_START,
+        J = args$J,
+        W = args$W,
+        K = args$K,
+        ITEMS_NUISANCE = args$ITEMS_NUISANCE,
+        WORKER_NUISANCE = args$WORKER_NUISANCE,
+        PROF_UNI_RANGE = as.integer(args$PROF_SEARCH_RANGE),
+        PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
+        PROF_MAX_ITER = as.integer(args$ALT_MAX_ITER),
+        PROF_TOL = args$ALT_TOL
+      )
+
+      # Extract lbfgs control options if provided (common for both methods)
+      lbfgs_control <- list()
+      if (!is.null(args$LBFGS_MAX_LINESEARCH)) {
+        lbfgs_control$max_linesearch <- args$LBFGS_MAX_LINESEARCH
+      }
+      if (!is.null(args$LBFGS_MAX_ITERATIONS)) {
+        lbfgs_control$max_iterations <- args$LBFGS_MAX_ITERATIONS
+      }
+      if (!is.null(args$LBFGS_INVISIBLE)) {
+        lbfgs_control$invisible <- args$LBFGS_INVISIBLE
+      }
+
+      if (METHOD == "profile") {
+        # PROFILE LIKELIHOOD: Use Brent over phi with nested L-BFGS over tau
+        opt_result <- get_phi_profile_nested(
+          PHI_START = args$PHI_START,
+          RAW_TAU_START = raw_tau_start,
+          cpp_args = cpp_args,
+          lbfgs_control = lbfgs_control,
+          SEARCH_RANGE = args$SEARCH_RANGE,
+          brent_tol = 1e-4
+        )
+
+        # Extract optimal parameters
+        phi_opt <- opt_result$phi
+        tau_opt <- opt_result$tau
+
+        # Profile nuisance parameters at optimum
+        profiled_final <- cpp_ordinal_get_lambda2(
+          Y = args$Y,
+          ITEM_INDS = args$ITEM_INDS,
+          WORKER_INDS = args$WORKER_INDS,
+          ALPHA = args$ALPHA_START,
+          BETA = args$BETA_START,
+          TAU = tau_opt,
+          PHI = phi_opt,
+          J = args$J,
+          W = args$W,
+          K = args$K,
+          ITEMS_NUISANCE = args$ITEMS_NUISANCE,
+          WORKER_NUISANCE = args$WORKER_NUISANCE,
+          THRESHOLDS_NUISANCE = FALSE,
+          PROF_UNI_RANGE = as.integer(args$PROF_SEARCH_RANGE),
+          PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
+          PROF_MAX_ITER = as.integer(args$ALT_MAX_ITER),
+          TOL = args$ALT_TOL
+        )
+
+        # Store results
+        out$alpha <- profiled_final$alpha
+        out$beta <- profiled_final$beta
+        out$tau <- tau_opt
+        out$profile$precision <- phi_opt
+        out$profile$agreement <- prec2agr(phi_opt)
+        out$modified$precision <- NA
+        out$modified$agreement <- NaN
+        out$loglik <- opt_result$loglik
+        out$convergence <- opt_result$convergence
+
+      } else if (METHOD == "modified") {
+        # MODIFIED PROFILE LIKELIHOOD: First compute MLE, then apply correction
+
+        # STEP 1: Compute MLE using joint optimization (as if TARGET=c("phi","thresholds"))
+        raw_phi_start <- log(args$PHI_START)
+        start_par <- c(raw_phi_start, raw_tau_start)
+
+        mle_result <- get_phi_tau_profile(
+          START_PAR = start_par,
+          cpp_args = cpp_args,
+          lbfgs_control = lbfgs_control
+        )
+
+        # Extract MLE values
+        raw_phi_mle <- mle_result$par[1]
+        raw_tau_mle <- mle_result$par[-1]
+        phi_mle <- exp(raw_phi_mle)
+        tau_mle <- raw2tau(raw_tau_mle)
+
+        # Profile alpha/beta at MLE
+        profiled_mle <- cpp_ordinal_get_lambda2(
+          Y = args$Y,
+          ITEM_INDS = args$ITEM_INDS,
+          WORKER_INDS = args$WORKER_INDS,
+          ALPHA = args$ALPHA_START,
+          BETA = args$BETA_START,
+          TAU = tau_mle,
+          PHI = phi_mle,
+          J = args$J,
+          W = args$W,
+          K = args$K,
+          ITEMS_NUISANCE = args$ITEMS_NUISANCE,
+          WORKER_NUISANCE = args$WORKER_NUISANCE,
+          THRESHOLDS_NUISANCE = FALSE,
+          PROF_UNI_RANGE = as.integer(args$PROF_SEARCH_RANGE),
+          PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
+          PROF_MAX_ITER = as.integer(args$ALT_MAX_ITER),
+          TOL = args$ALT_TOL
+        )
+
+        alpha_mle <- profiled_mle$alpha
+        beta_mle <- profiled_mle$beta
+
+        # STEP 2: Compute modified profile using Barndorff-Nielsen correction
+        mod_result <- get_phi_modified_profile_nested(
+          PHI_START = phi_mle,
+          RAW_TAU_START = raw_tau_mle,
+          ALPHA_MLE = alpha_mle,
+          BETA_MLE = beta_mle,
+          TAU_MLE = tau_mle,
+          PHI_MLE = phi_mle,
+          cpp_args = cpp_args,
+          lbfgs_control = lbfgs_control,
+          SEARCH_RANGE = args$SEARCH_RANGE,
+          brent_tol = 1e-4
+        )
+
+        # Extract modified profile optimal parameters
+        phi_mod <- mod_result$phi
+        tau_mod <- mod_result$tau
+
+        # Profile alpha/beta at modified optimum
+        profiled_final <- cpp_ordinal_get_lambda2(
+          Y = args$Y,
+          ITEM_INDS = args$ITEM_INDS,
+          WORKER_INDS = args$WORKER_INDS,
+          ALPHA = args$ALPHA_START,
+          BETA = args$BETA_START,
+          TAU = tau_mod,
+          PHI = phi_mod,
+          J = args$J,
+          W = args$W,
+          K = args$K,
+          ITEMS_NUISANCE = args$ITEMS_NUISANCE,
+          WORKER_NUISANCE = args$WORKER_NUISANCE,
+          THRESHOLDS_NUISANCE = FALSE,
+          PROF_UNI_RANGE = as.integer(args$PROF_SEARCH_RANGE),
+          PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
+          PROF_MAX_ITER = as.integer(args$ALT_MAX_ITER),
+          TOL = args$ALT_TOL
+        )
+
+        # Store results
+        out$alpha <- profiled_final$alpha
+        out$beta <- profiled_final$beta
+        out$tau <- tau_mod
+        out$profile$precision <- phi_mle
+        out$profile$agreement <- prec2agr(phi_mle)
+        out$modified$precision <- phi_mod
+        out$modified$agreement <- prec2agr(phi_mod)
+        out$loglik <- mod_result$loglik
+        out$convergence <- mod_result$convergence
+      }
+
+    } else {
+      # EXISTING PATH: Use current cpp_get_phi for all other cases
+      opt <- do.call(cpp_get_phi, args)
+
+      out$alpha <- opt$alpha
+      out$beta <- opt$beta
+      out$tau <- opt$tau
+      out$profile$precision <- opt$profile_phi
+      out$profile$agreement <- prec2agr(opt$profile_phi)
+      out$modified$precision <- opt$modified_phi
+      out$modified$agreement <- if (!is.na(opt$modified_phi)) {
+        prec2agr(opt$modified_phi)
+      } else {
+        NaN
+      }
+      out$loglik <- opt$loglik
+    }
   }
-  out$loglik <- opt$loglik
 
   if (VERBOSE) {
     message("Done!\n")

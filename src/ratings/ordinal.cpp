@@ -300,3 +300,161 @@ double AgreementPhi::ordinal::log_det_E0d0d1(
     
     return log_det_ex_info;
 }
+
+
+
+
+
+
+double AgreementPhi::ordinal::E0_dmu0dmu1_extended(
+    const double MU0,
+    const double PHI0,
+    const double MU1,
+    const double PHI1,
+    const std::vector<double> TAU0,
+    const std::vector<double> TAU1,
+    const int K)
+{
+
+
+    double out = 0;
+    for(int c=1; c<=K; c++){
+        double dmu0 = 0;
+        double dmu02 = 0;
+        double ll0 = ordinal::loglik(c, MU0, PHI0, TAU0, dmu0, dmu02, 1);
+
+        double dmu1 = 0;
+        double dmu12 = 0;
+        double ll1 = ordinal::loglik(c, MU1, PHI1, TAU1, dmu1, dmu12, 1);
+
+        out += dmu0*dmu1*exp(ll0);
+
+    }
+    return out;
+}
+
+double AgreementPhi::ordinal::log_det_E0d0d1_extended(
+    const std::vector<int>& ITEM_INDS,
+    const std::vector<int>& WORKER_INDS,
+    const std::vector<double>&  LAMBDA0,
+    const std::vector<double>&  LAMBDA1,
+    const double PHI0,
+    const double PHI1,
+    const std::vector<double>&  TAU0,
+    const std::vector<double>&  TAU1,
+    const int J,
+    const int W,
+    const int K,
+    const bool ITEMS_NUISANCE,
+    const bool WORKER_NUISANCE
+){
+    const int n = ITEM_INDS.size();
+    
+    Eigen::VectorXd Ialphaalpha = Eigen::VectorXd::Zero(J);
+    Eigen::VectorXd Ibetabeta = Eigen::VectorXd::Zero(W - 1);
+    Eigen::MatrixXd Ialphabeta = Eigen::MatrixXd::Zero(J, W - 1);
+
+    std::vector<double> mu0(n), mu1(n);
+    for(int i = 0; i < n; ++i){
+        int j = ITEM_INDS.at(i) - 1;
+        int w = WORKER_INDS.at(i) - 1;
+        double eta0 = LAMBDA0.at(j) + ((w == 0) ? 0.0 : LAMBDA0.at(J + w - 1));
+        double eta1 = LAMBDA1.at(j) + ((w == 0) ? 0.0 : LAMBDA1.at(J + w - 1));
+        double mu0 = link::mu(eta0);
+        double mu1 = link::mu(eta1);
+        double e = ordinal::E0_dmu0dmu1_extended(mu0, PHI0, mu1, PHI1, TAU0, TAU1, K);
+        double dmu0_dalpha = link::dmu(mu0);
+        double dmu1_dalpha = link::dmu(mu1);
+        double dmu0_dbeta = (w > 0) ? dmu0_dalpha : 0.0;
+        double dmu1_dbeta = (w > 0) ? dmu1_dalpha : 0.0;
+        
+        Ialphaalpha(j) += dmu0_dalpha * dmu1_dalpha * e;
+        if(WORKER_NUISANCE){
+            if(w > 0){
+                Ibetabeta(w - 1) += dmu0_dbeta * dmu1_dbeta * e;
+                Ialphabeta(j, w - 1) += dmu0_dalpha * dmu1_dbeta * e;
+            }
+        }
+    }
+    
+    double log_det_ex_info=0;
+    if(ITEMS_NUISANCE){
+        double log_det_alpha = Ialphaalpha.array().log().sum();
+        log_det_ex_info += log_det_alpha;
+    }
+    
+    if(WORKER_NUISANCE){
+        Eigen::VectorXd sqrt_inv_alpha = Ialphaalpha.array().pow(-0.5);
+        Eigen::MatrixXd Ha = sqrt_inv_alpha.asDiagonal() * Ialphabeta;
+        Eigen::MatrixXd schur = Eigen::MatrixXd(Ibetabeta.asDiagonal()) - Ha.transpose() * Ha;
+        
+        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(schur);
+        double log_det_schur = es.eigenvalues().array().log().sum();
+        
+        log_det_ex_info += log_det_schur;
+    }
+    
+    return log_det_ex_info;
+}
+void AgreementPhi::ordinal::grad_tau(
+    const std::vector<double>& Y,
+    const std::vector<int>& ITEM_INDS,
+    const std::vector<int>& WORKER_INDS,
+    const std::vector<double>& LAMBDA,
+    const std::vector<double>& TAU,
+    const double PHI,
+    const int J,
+    const int W,
+    const int K,
+    const bool ITEMS_NUISANCE,
+    const bool WORKER_NUISANCE,
+    std::vector<double>& GRAD_TAU
+){
+    // Compute gradient of joint log-likelihood w.r.t. thresholds
+    // By envelope theorem, this is just ∂L/∂τ evaluated at profiled (α, β)
+
+    const int n = Y.size();
+    GRAD_TAU.assign(K - 1, 0.0);  // Gradient for τ_1, ..., τ_{K-1}
+
+    for(int i = 0; i < n; ++i){
+        int j = ITEM_INDS.at(i) - 1;
+        int w = WORKER_INDS.at(i) - 1;
+        int c = static_cast<int>(Y.at(i));  // Category (1 to K)
+
+        // Compute mean
+        double eta = LAMBDA.at(j);
+        if(WORKER_NUISANCE && w > 0){
+            eta += LAMBDA.at(J + w - 1);
+        }
+        double mu = link::mu(eta);
+
+        // Beta distribution parameters
+        double a = mu * PHI;
+        double b = (1.0 - mu) * PHI;
+
+        // Thresholds for this observation
+        double tau_c = TAU.at(c);
+        double tau_cm1 = TAU.at(c - 1);
+
+        // CDFs
+        double F_c = boost::math::ibeta(a, b, tau_c);
+        double F_cm1 = boost::math::ibeta(a, b, tau_cm1);
+        double prob = F_c - F_cm1;
+
+        // Contribution to gradient for τ_{c-1} (lower threshold)
+        if(c > 1){  // τ_0 = 0 is fixed
+            // PDF at τ_{c-1} using ibeta_derivative
+            double pdf_cm1 = boost::math::ibeta_derivative(a, b, tau_cm1);
+            // ∂log L/∂τ_{c-1} = -f(τ_{c-1}) / prob
+            GRAD_TAU.at(c - 2) -= pdf_cm1 / std::max(prob, 1e-12);
+        }
+
+        // Contribution to gradient for τ_c (upper threshold)
+        if(c < K){  // τ_K = 1 is fixed
+            // PDF at τ_c using ibeta_derivative
+            double pdf_c = boost::math::ibeta_derivative(a, b, tau_c);
+            // ∂log L/∂τ_c = +f(τ_c) / prob
+            GRAD_TAU.at(c - 1) += pdf_c / std::max(prob, 1e-12);
+        }
+    }
+}
