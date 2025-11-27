@@ -71,8 +71,6 @@ profile_loglik_nested <- function(
   cpp_args = list(),
   lbfgs_control = list()
 ) {
-  # Objective function: profile likelihood for fixed RAW_PHI, optimizing over RAW_TAU
-  # IMPORTANT: Negate because lbfgs minimizes but we want to maximize log-likelihood
   R_profile_tau <- function(RAW_TAU_VEC) {
     -do.call(
       cpp_profile_extended,
@@ -86,8 +84,6 @@ profile_loglik_nested <- function(
     )
   }
 
-  # Gradient function: gradient wrt RAW_TAU for fixed RAW_PHI
-  # IMPORTANT: Negate because lbfgs minimizes but we want to maximize log-likelihood
   R_profile_tau_grad <- function(RAW_TAU_VEC) {
     -do.call(
       cpp_profile_extended_grad_raw_tau,
@@ -101,7 +97,6 @@ profile_loglik_nested <- function(
     )
   }
 
-  # Set default lbfgs control parameters if not specified
   if (is.null(lbfgs_control$max_linesearch)) {
     lbfgs_control$max_linesearch <- 5
   }
@@ -150,16 +145,18 @@ get_phi_profile_nested <- function(
   SEARCH_RANGE = 5,
   brent_tol = 1e-4
 ) {
-  # Objective function for Brent's method
-  # For each PHI value, profile out RAW_TAU using L-BFGS with analytical gradient
-  # IMPORTANT: Negate because optimize() minimizes but we want to maximize log-likelihood
+  # Track current best tau estimate for warm starting
+  current_raw_tau <- RAW_TAU_START
+
   objective_phi <- function(phi) {
     result <- profile_loglik_nested(
       RAW_PHI = log(phi),
-      RAW_TAU_START = RAW_TAU_START,
+      RAW_TAU_START = current_raw_tau,  # Use warm start
       cpp_args = cpp_args,
       lbfgs_control = lbfgs_control
     )
+    # Update starting point for next evaluation (warm start)
+    current_raw_tau <<- result$raw_tau_opt
     # Return negative log-likelihood for minimization
     return(-result$loglik)
   }
@@ -181,7 +178,7 @@ get_phi_profile_nested <- function(
   # Re-run profiling at optimal PHI to get optimal RAW_TAU and other details
   final_profile <- profile_loglik_nested(
     RAW_PHI = log(phi_opt),
-    RAW_TAU_START = RAW_TAU_START,
+    RAW_TAU_START = current_raw_tau,  # Use warm start
     cpp_args = cpp_args,
     lbfgs_control = lbfgs_control
   )
@@ -306,11 +303,14 @@ get_phi_modified_profile_nested <- function(
   SEARCH_RANGE = 5,
   brent_tol = 1e-4
 ) {
+  # Track current best tau estimate for warm starting
+  current_raw_tau <- RAW_TAU_START
+
   # Objective function using modified profile likelihood
   objective_phi <- function(AGR) {
     result <- modified_profile_loglik_nested(
       RAW_PHI = log(agr2prec(AGR)),
-      RAW_TAU_START = RAW_TAU_START,
+      RAW_TAU_START = current_raw_tau,  # Use warm start
       ALPHA_MLE = ALPHA_MLE,
       BETA_MLE = BETA_MLE,
       TAU_MLE = TAU_MLE,
@@ -318,6 +318,8 @@ get_phi_modified_profile_nested <- function(
       cpp_args = cpp_args,
       lbfgs_control = lbfgs_control
     )
+    # Update starting point for next evaluation (warm start)
+    current_raw_tau <<- result$raw_tau_opt
     # Return negative log-likelihood for minimization
     return(-result$loglik)
   }
@@ -339,7 +341,7 @@ get_phi_modified_profile_nested <- function(
   # Re-run profiling at optimal PHI to get optimal RAW_TAU and other details
   final_profile <- modified_profile_loglik_nested(
     RAW_PHI = log(phi_opt),
-    RAW_TAU_START = RAW_TAU_START,
+    RAW_TAU_START = current_raw_tau,  # Use warm start
     ALPHA_MLE = ALPHA_MLE,
     BETA_MLE = BETA_MLE,
     TAU_MLE = TAU_MLE,
