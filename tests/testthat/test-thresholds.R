@@ -2,9 +2,9 @@
 
 test_that("cpp_ordinal_get_lambda2 profiles thresholds", {
   set.seed(42)
-  J <- 8
-  B <- 6
-  W <- 12
+  J <- 100
+  B <- 10
+  W <- 20
   K <- 6
 
   alphas <- rnorm(J, 0, 0.5)
@@ -16,7 +16,7 @@ test_that("cpp_ordinal_get_lambda2 profiles thresholds", {
     J = J,
     B = B,
     W = W,
-    AGREEMENT = 0.7,
+    AGREEMENT = 0.5,
     ALPHA = alphas,
     BETA = betas,
     DATA_TYPE = "continuous",
@@ -33,20 +33,25 @@ test_that("cpp_ordinal_get_lambda2 profiles thresholds", {
     Y = rating_k,
     ITEM_INDS = as.integer(dt$id_item),
     WORKER_INDS = as.integer(dt$id_worker),
-    ALPHA = alphas,
-    BETA = betas,
+    ALPHA = rep(0, J),
+    BETA = rep(0, W),
     TAU = tau_start,
-    PHI = agr2prec(0.7),
+    PHI = agr2prec(0.5),
     J = J,
     W = W,
     K = K,
+    ITEMS_NUISANCE = FALSE,
     WORKER_NUISANCE = FALSE,
     THRESHOLDS_NUISANCE = TRUE,
-    PROF_UNI_RANGE = 5,
+    PROF_UNI_RANGE = 2,
     PROF_UNI_MAX_ITER = 50L,
     PROF_MAX_ITER = 20L,
     TOL = 1e-4
   )
+  profiled
+  alphas
+  betas
+  thr
 
   tau_hat <- profiled$tau
 

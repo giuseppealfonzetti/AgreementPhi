@@ -24,6 +24,23 @@ agr2prec <- function(X) {
   return(out)
 }
 
+
+#' @export
+raw2tau <- function(X) {
+  tau <- cumsum(exp(X)) / (sum(exp(X)) + 1)
+  out <- c(0, tau, 1)
+  return(out)
+}
+
+#' @export
+tau2raw <- function(X) {
+  n <- length(X) - 2
+  gaps <- diff(X)
+  last_gap <- gaps[n + 1]
+  z <- n * gaps[seq_len(n)] / last_gap
+  log(z)
+}
+
 #' Discretise continuous data
 #'
 #' @param X Vector of continuous data in (0,1).
@@ -79,18 +96,62 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
   )
   phi_range <- sapply(agreement_range, agr2prec)
 
+  J <- if (!is.null(args$J)) args$J else length(unique(args$ITEM_INDS))
+  worker_inds <- args$WORKER_INDS
+  if (is.null(worker_inds)) {
+    worker_inds <- rep(1L, length(args$Y))
+  } else {
+    worker_inds <- as.integer(worker_inds)
+  }
+  W <- args$W
+  if (is.null(W) || W <= 0) {
+    W <- max(worker_inds)
+  }
+  beta_start <- args$BETA_START
+  if (is.null(beta_start) || length(beta_start) == 0) {
+    beta_start <- rep(0, W)
+  }
+  tau_start <- args$TAU_START
+  if (is.null(tau_start) || length(tau_start) != args$K + 1) {
+    tau_start <- seq(0, 1, length.out = args$K + 1)
+  }
+  data_type <- if (!is.null(args$DATA_TYPE)) args$DATA_TYPE else X$data_type
+  items_nuis <- if (!is.null(args$ITEMS_NUISANCE)) args$ITEMS_NUISANCE else TRUE
+  worker_nuis <- if (!is.null(args$WORKER_NUISANCE)) {
+    args$WORKER_NUISANCE
+  } else {
+    TRUE
+  }
+  thresholds_nuis <- if (!is.null(args$THRESHOLDS_NUISANCE)) {
+    args$THRESHOLDS_NUISANCE
+  } else {
+    FALSE
+  }
+  K <- if (!is.null(args$K)) args$K else 1L
+  alpha_start <- args$ALPHA_START
+  if (is.null(alpha_start) || length(alpha_start) != J) {
+    alpha_start <- rep(0, J)
+  }
   pl_range <- sapply(phi_range, function(x) {
     cpp_profile_likelihood(
-      Y = X$cpp_args$Y,
-      ITEM_INDS = X$cpp_args$ITEM_INDS,
-      ALPHA_START = X$cpp_args$ALPHA_START,
+      Y = args$Y,
+      ITEM_INDS = as.integer(args$ITEM_INDS),
+      WORKER_INDS = worker_inds,
+      ALPHA_START = alpha_start,
+      BETA_START = beta_start,
+      TAU_START = tau_start,
       PHI = x,
-      K = X$cpp_args$K,
-      J = X$cpp_args$J,
-      PROF_SEARCH_RANGE = X$cpp_args$PROF_SEARCH_RANGE,
-      PROF_MAX_ITER = X$cpp_args$PROF_MAX_ITER,
-      PROF_METHOD = X$cpp_args$PROF_METHOD,
-      CONTINUOUS = X$cpp_args$CONTINUOUS
+      J = J,
+      W = W,
+      K = K,
+      DATA_TYPE = data_type,
+      ITEMS_NUISANCE = items_nuis,
+      WORKER_NUISANCE = worker_nuis,
+      THRESHOLDS_NUISANCE = thresholds_nuis,
+      PROF_SEARCH_RANGE = args$PROF_SEARCH_RANGE,
+      PROF_UNI_MAX_ITER = args$PROF_MAX_ITER,
+      ALT_MAX_ITER = args$ALT_MAX_ITER,
+      ALT_TOL = args$ALT_TOL
     )
   })
 
@@ -110,20 +171,26 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
   mpl_range <- NA
   if (X$method == "modified") {
     mpl_range <- sapply(phi_range, function(x) {
-      cpp_modified_profile_likelihood(
-        Y = X$cpp_args$Y,
-        ITEM_INDS = X$cpp_args$ITEM_INDS,
-        ALPHA_START = X$cpp_args$ALPHA_START,
+      cpp_modified_profile_likelihood_extended(
+        Y = args$Y,
+        ITEM_INDS = as.integer(args$ITEM_INDS),
+        WORKER_INDS = worker_inds,
+        ALPHA_MLE = X$alpha,
+        BETA_MLE = X$beta,
+        TAU_MLE = if (data_type == "ordinal") X$tau else c(0, 1),
         PHI = x,
         PHI_MLE = X$pl_precision,
-        K = X$cpp_args$K,
-        J = X$cpp_args$J,
-        SEARCH_RANGE = X$cpp_args$SEARCH_RANGE,
-        MAX_ITER = X$cpp_args$MAX_ITER,
-        PROF_SEARCH_RANGE = X$cpp_args$PROF_SEARCH_RANGE,
-        PROF_MAX_ITER = X$cpp_args$PROF_MAX_ITER,
-        PROF_METHOD = X$cpp_args$PROF_METHOD,
-        CONTINUOUS = X$cpp_args$CONTINUOUS
+        J = J,
+        W = W,
+        K = K,
+        DATA_TYPE = data_type,
+        ITEMS_NUISANCE = items_nuis,
+        WORKER_NUISANCE = worker_nuis,
+        THRESHOLDS_NUISANCE = thresholds_nuis,
+        PROF_SEARCH_RANGE = args$PROF_SEARCH_RANGE,
+        PROF_UNI_MAX_ITER = args$PROF_MAX_ITER,
+        ALT_MAX_ITER = args$ALT_MAX_ITER,
+        ALT_TOL = args$ALT_TOL
       )
     })
 
