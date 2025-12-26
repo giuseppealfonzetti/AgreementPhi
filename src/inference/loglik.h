@@ -53,7 +53,7 @@ namespace AgreementPhi{
     namespace ordinal{
         namespace ll{
                 double profile(
-                    const std::vector<double> Y,  
+                    const std::vector<double> Y,
                     const std::vector<int> ITEM_INDS,
                     const std::vector<int> WORKER_INDS,
                     const std::vector<std::vector<int>> ITEM_DICT,
@@ -76,7 +76,7 @@ namespace AgreementPhi{
                 );
 
                 double modified_profile(
-                    const std::vector<double> Y,  
+                    const std::vector<double> Y,
                     const std::vector<int> ITEM_INDS,
                     const std::vector<int> WORKER_INDS,
                     const std::vector<std::vector<int>> ITEM_DICT,
@@ -179,7 +179,7 @@ namespace AgreementPhi{
                 // profile likelihood where phi and tau are explicitely reparametrised to
                 // account for positivity, bounds and ordering constraints
                 double profile_extended(
-                    const std::vector<double> Y,  
+                    const std::vector<double> Y,
                     const std::vector<int> ITEM_INDS,
                     const std::vector<int> WORKER_INDS,
                     const std::vector<std::vector<int>> ITEM_DICT,
@@ -202,7 +202,7 @@ namespace AgreementPhi{
 
                 // Gradient of profile_extended wrt RAW_TAU
                 Eigen::VectorXd profile_extended_grad_raw_tau(
-                    const std::vector<double> Y,  
+                    const std::vector<double> Y,
                     const std::vector<int> ITEM_INDS,
                     const std::vector<int> WORKER_INDS,
                     const std::vector<std::vector<int>> ITEM_DICT,
@@ -225,7 +225,7 @@ namespace AgreementPhi{
 
                 // Gradient of profile_extended wrt RAW_PHI
                 double profile_extended_grad_raw_phi(
-                    const std::vector<double> Y,  
+                    const std::vector<double> Y,
                     const std::vector<int> ITEM_INDS,
                     const std::vector<int> WORKER_INDS,
                     const std::vector<std::vector<int>> ITEM_DICT,
@@ -248,7 +248,7 @@ namespace AgreementPhi{
 
                 // Gradient of profile_extended wrt RAW_PHI and RAW_TAU
                 Eigen::VectorXd profile_extended_grad(
-                    const std::vector<double> Y,  
+                    const std::vector<double> Y,
                     const std::vector<int> ITEM_INDS,
                     const std::vector<int> WORKER_INDS,
                     const std::vector<std::vector<int>> ITEM_DICT,

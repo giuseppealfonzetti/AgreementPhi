@@ -16,7 +16,8 @@ agreement2(
   NUISANCE = c("items", "workers"),
   TARGET = c("phi", "thresholds"),
   CONTROL = list(),
-  VERBOSE = FALSE
+  VERBOSE = FALSE,
+  NCORES = 1
 )
 }
 \arguments{

@@ -77,7 +77,7 @@ profile_loglik_nested <- function(
       c(
         list(
           RAW_TAU = RAW_TAU_VEC,
-          RAW_PHI = RAW_PHI # Fixed value
+          RAW_PHI = RAW_PHI
         ),
         cpp_args
       )
@@ -90,7 +90,7 @@ profile_loglik_nested <- function(
       c(
         list(
           RAW_TAU = RAW_TAU_VEC,
-          RAW_PHI = RAW_PHI # Fixed value
+          RAW_PHI = RAW_PHI
         ),
         cpp_args
       )
@@ -107,14 +107,12 @@ profile_loglik_nested <- function(
     lbfgs_control$invisible <- 1
   }
 
-  # Convert logical to integer for lbfgs
   if (
     !is.null(lbfgs_control$invisible) && is.logical(lbfgs_control$invisible)
   ) {
     lbfgs_control$invisible <- as.integer(lbfgs_control$invisible)
   }
 
-  # Build lbfgs call arguments
   lbfgs_args <- c(
     list(
       vars = RAW_TAU_START,
@@ -127,8 +125,7 @@ profile_loglik_nested <- function(
   # Run optimization over RAW_TAU
   opt <- do.call(lbfgs::lbfgs, lbfgs_args)
 
-  # Add profiled log-likelihood and optimal parameters for clarity
-  opt$loglik <- -opt$value # Max log-likelihood at this RAW_PHI
+  opt$loglik <- -opt$value
   opt$raw_phi <- RAW_PHI
   opt$raw_tau_opt <- opt$par
 
@@ -151,7 +148,7 @@ get_phi_profile_nested <- function(
   objective_phi <- function(phi) {
     result <- profile_loglik_nested(
       RAW_PHI = log(phi),
-      RAW_TAU_START = current_raw_tau,  # Use warm start
+      RAW_TAU_START = current_raw_tau, # Use warm start
       cpp_args = cpp_args,
       lbfgs_control = lbfgs_control
     )
@@ -178,7 +175,7 @@ get_phi_profile_nested <- function(
   # Re-run profiling at optimal PHI to get optimal RAW_TAU and other details
   final_profile <- profile_loglik_nested(
     RAW_PHI = log(phi_opt),
-    RAW_TAU_START = current_raw_tau,  # Use warm start
+    RAW_TAU_START = current_raw_tau, # Use warm start
     cpp_args = cpp_args,
     lbfgs_control = lbfgs_control
   )
@@ -218,11 +215,8 @@ modified_profile_loglik_nested <- function(
     lbfgs_control = lbfgs_control
   )
 
-  # STEP B: Extract profiled parameters
-  phi <- exp(RAW_PHI)
   tau_profiled <- raw2tau(profile_result$raw_tau_opt)
 
-  # STEP C: Profile alpha/beta at (phi, tau_profiled) to get lambda for corrections
   profiled_lambda <- cpp_ordinal_get_lambda2(
     Y = cpp_args$Y,
     ITEM_INDS = cpp_args$ITEM_INDS,
@@ -230,7 +224,7 @@ modified_profile_loglik_nested <- function(
     ALPHA = cpp_args$ALPHA,
     BETA = cpp_args$BETA,
     TAU = tau_profiled,
-    PHI = phi,
+    PHI = exp(RAW_PHI),
     J = cpp_args$J,
     W = cpp_args$W,
     K = cpp_args$K,
@@ -243,18 +237,16 @@ modified_profile_loglik_nested <- function(
     TOL = cpp_args$PROF_TOL
   )
 
-  # Construct lambda vector (remove first beta which is constrained to 0)
   lambda_profiled <- c(profiled_lambda$alpha, profiled_lambda$beta[-1])
   lambda_mle <- c(ALPHA_MLE, BETA_MLE[-1])
 
-  # STEP D: Compute log det of observed information J(λ̂)
   log_det_J <- cpp_ordinal_twoway_log_det_obs_info(
     Y = cpp_args$Y,
     ITEM_INDS = cpp_args$ITEM_INDS,
     WORKER_INDS = cpp_args$WORKER_INDS,
     LAMBDA = lambda_profiled,
     TAU = tau_profiled,
-    PHI = phi,
+    PHI = exp(RAW_PHI),
     K = cpp_args$K,
     J = cpp_args$J,
     W = cpp_args$W,
@@ -262,14 +254,13 @@ modified_profile_loglik_nested <- function(
     WORKER_NUISANCE = cpp_args$WORKER_NUISANCE
   )
 
-  # STEP E: Compute log det of expected cross-information I(θ₀, θ₁)
   log_det_I <- cpp_ordinal_twoway_log_det_E0d0d1_extended(
     ITEM_INDS = cpp_args$ITEM_INDS,
     WORKER_INDS = cpp_args$WORKER_INDS,
     LAMBDA0 = lambda_mle,
     LAMBDA1 = lambda_profiled,
     PHI0 = PHI_MLE,
-    PHI1 = phi,
+    PHI1 = exp(RAW_PHI),
     TAU0 = TAU_MLE,
     TAU1 = tau_profiled,
     J = cpp_args$J,
@@ -278,11 +269,23 @@ modified_profile_loglik_nested <- function(
     ITEMS_NUISANCE = cpp_args$ITEMS_NUISANCE,
     WORKER_NUISANCE = cpp_args$WORKER_NUISANCE
   )
+  # log_det_I <- cpp_ordinal_twoway_log_det_E0d0d1(
+  #   ITEM_INDS = cpp_args$ITEM_INDS,
+  #   WORKER_INDS = cpp_args$WORKER_INDS,
+  #   LAMBDA0 = lambda_mle,
+  #   LAMBDA1 = lambda_profiled,
+  #   PHI0 = PHI_MLE,
+  #   PHI1 = phi,
+  #   TAU = TAU_MLE,
+  #   J = cpp_args$J,
+  #   W = cpp_args$W,
+  #   K = cpp_args$K,
+  #   ITEMS_NUISANCE = cpp_args$ITEMS_NUISANCE,
+  #   WORKER_NUISANCE = cpp_args$WORKER_NUISANCE
+  # )
 
-  # STEP F: Apply Barndorff-Nielsen correction
   modified_loglik <- profile_result$loglik + 0.5 * log_det_J - log_det_I
 
-  # STEP G: Update result with modified likelihood
   profile_result$loglik <- modified_loglik
   profile_result$modified_loglik <- modified_loglik
 
@@ -303,14 +306,12 @@ get_phi_modified_profile_nested <- function(
   SEARCH_RANGE = 5,
   brent_tol = 1e-4
 ) {
-  # Track current best tau estimate for warm starting
-  current_raw_tau <- RAW_TAU_START
-
   # Objective function using modified profile likelihood
-  objective_phi <- function(AGR) {
+  objective_phi <- function(RAW_PHI) {
+    # cat("current tau:", raw2tau(current_raw_tau), "\n")
     result <- modified_profile_loglik_nested(
-      RAW_PHI = log(agr2prec(AGR)),
-      RAW_TAU_START = current_raw_tau,  # Use warm start
+      RAW_PHI = RAW_PHI,
+      RAW_TAU_START = RAW_TAU_START,
       ALPHA_MLE = ALPHA_MLE,
       BETA_MLE = BETA_MLE,
       TAU_MLE = TAU_MLE,
@@ -319,29 +320,29 @@ get_phi_modified_profile_nested <- function(
       lbfgs_control = lbfgs_control
     )
     # Update starting point for next evaluation (warm start)
-    current_raw_tau <<- result$raw_tau_opt
+    # current_raw_tau <- result$raw_tau_opt
     # Return negative log-likelihood for minimization
     return(-result$loglik)
   }
 
   # Define search interval around starting value (on phi scale)
-  lower <- max(1e-2, PHI_START - SEARCH_RANGE)
-  upper <- min(10, PHI_START + SEARCH_RANGE)
+  lower <- max(-0.8, log(PHI_START) - 1.5)
+  upper <- min(1, log(PHI_START) + 1.5)
 
   # Run Brent's method to find optimal PHI
   opt_result <- optimize(
     f = objective_phi,
-    interval = c(1e-2, 1 - 1e-2),
+    interval = c(lower, upper),
     tol = brent_tol
   )
 
   # Get optimal PHI from Brent's method
-  phi_opt <- agr2prec(opt_result$minimum)
+  phi_opt <- exp(opt_result$minimum)
 
   # Re-run profiling at optimal PHI to get optimal RAW_TAU and other details
   final_profile <- modified_profile_loglik_nested(
     RAW_PHI = log(phi_opt),
-    RAW_TAU_START = current_raw_tau,  # Use warm start
+    RAW_TAU_START = RAW_TAU_START,
     ALPHA_MLE = ALPHA_MLE,
     BETA_MLE = BETA_MLE,
     TAU_MLE = TAU_MLE,

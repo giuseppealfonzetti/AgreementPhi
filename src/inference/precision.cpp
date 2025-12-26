@@ -4,7 +4,7 @@
 /////////////////////////
 
 std::vector<double> AgreementPhi::continuous::inference::get_phi_profile(
-    const std::vector<double> Y,  
+    const std::vector<double> Y,
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
     const std::vector<std::vector<int>> ITEM_DICT,
@@ -24,12 +24,12 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_profile(
     const double PROF_TOL,
     const bool VERBOSE
 ){
-    
+
     auto neg_profile_likelihood = [&](double phi){
         double ll = AgreementPhi::continuous::ll::profile(
                 Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA, BETA, phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_UNI_RANGE,
                 PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
-        return -ll; 
+        return -ll;
     };
 
     double lower = 1e-8; 
@@ -51,7 +51,7 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_profile(
 
 
 std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profile(
-    const std::vector<double> Y,  
+    const std::vector<double> Y,
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
     const std::vector<std::vector<int>> ITEM_DICT,
@@ -75,9 +75,9 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
     std::vector<double> phi_mle = AgreementPhi::continuous::inference::get_phi_profile(
         Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA, BETA, PHI_START, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE,
         PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, VERBOSE);
-    
-    if(VERBOSE) Rcpp::Rcout<< "Non-adjusted agreement: " << utils::prec2agr(phi_mle.at(0)) << "\n";   
-    
+
+    if(VERBOSE) Rcpp::Rcout<< "Non-adjusted agreement: " << utils::prec2agr(phi_mle.at(0)) << "\n";
+
     // get mle for lambda
     std::vector<std::vector<double>> lambda_mle = AgreementPhi::continuous::nuisance::get_lambda(
         Y,  ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA,  BETA, phi_mle.at(0), J, W, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_UNI_RANGE,
@@ -140,12 +140,13 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
 //     const int PROF_UNI_MAX_ITER,
 //     const int PROF_MAX_ITER,
 //     const double PROF_TOL,
-//     const bool VERBOSE
+//     const bool VERBOSE,
+//     const int NCORES
 // ){
 //     auto neg_profile_likelihood = [&](double phi){
 //         double ll = AgreementPhi::ordinal::ll::profile(
 //                 Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT, ALPHA, BETA, TAU, phi, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_UNI_RANGE,
-//                 PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+//                 PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, NCORES);
 //         return -ll; 
 //     };
 
@@ -203,14 +204,14 @@ std::vector<double> AgreementPhi::ordinal::inference::get_phi_profile(
         std::vector<double> alpha_start = best.initialized ? best.alpha : ALPHA;
         std::vector<double> beta_start = best.initialized ? best.beta : BETA;
         std::vector<double> tau_start = best.initialized ? best.tau : TAU;
-        
+
         // Profile with warm start
         std::vector<std::vector<double>> profiled = AgreementPhi::ordinal::nuisance::get_lambda2(
             Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT,
             alpha_start, beta_start, tau_start, phi, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE,
             PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL
         );
-        
+
         // Compute likelihood
         Eigen::VectorXd dlambda = Eigen::VectorXd::Zero(J + W - 1);
         Eigen::VectorXd jalphaalpha = Eigen::VectorXd::Zero(J);
@@ -281,7 +282,8 @@ std::vector<double> AgreementPhi::ordinal::inference::get_phi_profile(
 //     const int PROF_UNI_MAX_ITER,
 //     const int PROF_MAX_ITER,
 //     const double PROF_TOL,
-//     const bool VERBOSE
+//     const bool VERBOSE,
+//     const int NCORES
 // ){
 //     // get mle for phi via profile likleihood
 //     std::vector<double> phi_mle = AgreementPhi::ordinal::inference::get_phi_profile(
@@ -294,7 +296,7 @@ std::vector<double> AgreementPhi::ordinal::inference::get_phi_profile(
 //     // get mle for lambda
 //     std::vector<std::vector<double>> lambda_mle = AgreementPhi::ordinal::nuisance::get_lambda2(
 //         Y,  ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT, ALPHA,  BETA, TAU, phi_mle.at(0), J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_UNI_RANGE,
-//         PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+//         PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, NCORES);
 
     
 //     // Rcpp::Rcout<<"tau: ";
@@ -306,7 +308,7 @@ std::vector<double> AgreementPhi::ordinal::inference::get_phi_profile(
 //     auto neg_modified_profile_likelihood = [&](double phi){
 //         double ll = AgreementPhi::ordinal::ll::modified_profile(
 //                 Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT, lambda_mle.at(0), lambda_mle.at(1), lambda_mle.at(2), phi, phi_mle.at(0), J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_UNI_RANGE,
-//                 PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+//                 PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, NCORES);
 //         return -ll; 
 //     };
 
@@ -400,14 +402,14 @@ std::vector<double> AgreementPhi::ordinal::inference::get_phi_modified_profile(
         std::vector<double> alpha_start = best.initialized ? best.alpha : lambda_mle.at(0);
         std::vector<double> beta_start = best.initialized ? best.beta : lambda_mle.at(1);
         std::vector<double> tau_start = best.initialized ? best.tau : lambda_mle.at(2);
-        
+
         // Profile with warm start
         std::vector<std::vector<double>> profiled = AgreementPhi::ordinal::nuisance::get_lambda2(
             Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT,
             alpha_start, beta_start, tau_start, phi, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE,
             PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL
         );
-        
+
         // Compute modified profile likelihood
         Eigen::VectorXd dlambda = Eigen::VectorXd::Zero(J + W - 1);
         Eigen::VectorXd jalphaalpha = Eigen::VectorXd::Zero(J);

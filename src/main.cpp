@@ -4,6 +4,7 @@
 #include <functional>
 #include <algorithm>
 #include <Eigen/Dense>
+#include <RcppParallel.h>
 #define EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
 #define EIGEN_DONT_PARALLELIZE
 #include "rcpptests.h"
@@ -21,7 +22,7 @@
 ///////////////////////////////////////////////////////////
 // [[Rcpp::export]]
 Rcpp::List cpp_get_phi(
-    const std::vector<double> Y,  
+    const std::vector<double> Y,
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
     const std::vector<double> ALPHA_START,
