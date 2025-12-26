@@ -491,7 +491,7 @@ std::vector<std::vector<double>> cpp_continuous_profiling(
 
 // [[Rcpp::export]]
 std::vector<std::vector<double>> cpp_ordinal_profiling(
-    const std::vector<double> Y,  
+    const std::vector<double> Y,
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
     const std::vector<double> ALPHA,

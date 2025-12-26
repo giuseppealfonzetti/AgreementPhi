@@ -90,7 +90,7 @@ namespace AgreementPhi{
             //     const int PROF_MAX_ITER,
             //     const double TOL);
             std::vector<std::vector<double>> get_lambda2(
-                const std::vector<double> Y,  
+                const std::vector<double> Y,
                 const std::vector<int> ITEM_INDS,
                 const std::vector<int> WORKER_INDS,
                 const std::vector<std::vector<int>> ITEM_DICT,

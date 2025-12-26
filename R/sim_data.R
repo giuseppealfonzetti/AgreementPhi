@@ -20,6 +20,7 @@ sim_data <- function(
   AGREEMENT,
   ALPHA,
   BETA = NULL,
+  NU = 0,
   DATA_TYPE = c("ordinal", "continuous"),
   K = 6,
   SEED = 123
@@ -73,8 +74,12 @@ sim_data <- function(
   obs_a <- obs_mu * precision
   obs_b <- (1 - obs_mu) * precision
 
-  obs_beta <- apply(cbind(obs_a, obs_b), 1, function(par) {
-    rbeta(1, par[1], par[2])
+  # obs_beta <- apply(cbind(obs_a, obs_b), 1, function(par) {
+  #   rbeta(1, par[1], par[2])
+  # })
+
+  obs_beta <- sapply(obs_mu, function(x) {
+    betareg::rxbetax(1, mu = x, phi = precision, nu = NU)
   })
 
   if (DATA_TYPE == "ordinal") {

@@ -11,6 +11,7 @@ sim_data(
   AGREEMENT,
   ALPHA,
   BETA = NULL,
+  NU = 0,
   DATA_TYPE = c("ordinal", "continuous"),
   K = 6,
   SEED = 123

@@ -58,9 +58,12 @@ agreement2 <- function(
   NUISANCE = c("items", "workers"),
   TARGET = c("phi", "thresholds"),
   CONTROL = list(),
-  VERBOSE = FALSE
+  VERBOSE = FALSE,
+  NCORES = 1
 ) {
   METHOD <- match.arg(METHOD)
+
+  RcppParallel::setThreadOptions(numThreads = NCORES)
 
   if (VERBOSE) {
     message("\nDATA")
@@ -138,7 +141,7 @@ agreement2 <- function(
       DATA_TYPE = val_data$data_type,
       ITEMS_NUISANCE = "items" %in% params_type$nuisance,
       WORKER_NUISANCE = "workers" %in% params_type$nuisance,
-      THRESHOLDS_NUISANCE = "thresholds" %in% params_type$nuisance,
+      # THRESHOLDS_NUISANCE = "thresholds" %in% params_type$nuisance,
       VERBOSE = VERBOSE
     ),
     CONTROL
@@ -236,12 +239,14 @@ agreement2 <- function(
       out$profile$agreement <- prec2agr(phi_opt)
       out$modified$precision <- NA
       out$modified$agreement <- NaN
-      out$loglik <- -opt_result$value  # lbfgs minimizes, we want max loglik
+      out$loglik <- -opt_result$value # lbfgs minimizes, we want max loglik
       out$convergence <- opt_result$convergence
     }
   } else {
     # NEW PATH: Use nested optimization when thresholds are nuisance
-    if ("thresholds" %in% params_type$nuisance && val_data$data_type == "ordinal") {
+    if (
+      "thresholds" %in% params_type$nuisance && val_data$data_type == "ordinal"
+    ) {
       # Transform TAU_START to raw parameters
       raw_tau_start <- tau2raw(args$TAU_START)
 
@@ -321,25 +326,37 @@ agreement2 <- function(
         out$modified$agreement <- NaN
         out$loglik <- opt_result$loglik
         out$convergence <- opt_result$convergence
-
       } else if (METHOD == "modified") {
         # MODIFIED PROFILE LIKELIHOOD: First compute MLE, then apply correction
 
         # STEP 1: Compute MLE using joint optimization (as if TARGET=c("phi","thresholds"))
-        raw_phi_start <- log(args$PHI_START)
-        start_par <- c(raw_phi_start, raw_tau_start)
+        # raw_phi_start <- log(args$PHI_START)
+        # start_par <- c(raw_phi_start, raw_tau_start)
 
-        mle_result <- get_phi_tau_profile(
-          START_PAR = start_par,
+        # mle_result <- get_phi_tau_profile(
+        #   START_PAR = start_par,
+        #   cpp_args = cpp_args,
+        #   lbfgs_control = lbfgs_control
+        # )
+
+        mle_result <- get_phi_profile_nested(
+          PHI_START = args$PHI_START,
+          RAW_TAU_START = raw_tau_start,
           cpp_args = cpp_args,
-          lbfgs_control = lbfgs_control
+          lbfgs_control = lbfgs_control,
+          SEARCH_RANGE = args$SEARCH_RANGE,
+          brent_tol = 1e-4
         )
 
-        # Extract MLE values
-        raw_phi_mle <- mle_result$par[1]
-        raw_tau_mle <- mle_result$par[-1]
-        phi_mle <- exp(raw_phi_mle)
-        tau_mle <- raw2tau(raw_tau_mle)
+        # Extract optimal parameters
+        phi_mle <- mle_result$phi
+        tau_mle <- mle_result$tau
+
+        # # Extract MLE values
+        # raw_phi_mle <- mle_result$par[1]
+        # raw_tau_mle <- mle_result$par[-1]
+        # phi_mle <- exp(raw_phi_mle)
+        # tau_mle <- raw2tau(raw_tau_mle)
 
         # Profile alpha/beta at MLE
         profiled_mle <- cpp_ordinal_get_lambda2(
@@ -366,9 +383,11 @@ agreement2 <- function(
         beta_mle <- profiled_mle$beta
 
         # STEP 2: Compute modified profile using Barndorff-Nielsen correction
+        cpp_args$PROF_UNI_RANGE <- 2
+        lbfgs_control$max_iterations <- 20
         mod_result <- get_phi_modified_profile_nested(
           PHI_START = phi_mle,
-          RAW_TAU_START = raw_tau_mle,
+          RAW_TAU_START = tau2raw(tau_mle),
           ALPHA_MLE = alpha_mle,
           BETA_MLE = beta_mle,
           TAU_MLE = tau_mle,
@@ -388,8 +407,8 @@ agreement2 <- function(
           Y = args$Y,
           ITEM_INDS = args$ITEM_INDS,
           WORKER_INDS = args$WORKER_INDS,
-          ALPHA = args$ALPHA_START,
-          BETA = args$BETA_START,
+          ALPHA = alpha_mle,
+          BETA = beta_mle,
           TAU = tau_mod,
           PHI = phi_mod,
           J = args$J,
@@ -408,6 +427,9 @@ agreement2 <- function(
         out$alpha <- profiled_final$alpha
         out$beta <- profiled_final$beta
         out$tau <- tau_mod
+        # out$alpha <- alpha_mle
+        # out$beta <- beta_mle
+        # out$tau <- tau_mle
         out$profile$precision <- phi_mle
         out$profile$agreement <- prec2agr(phi_mle)
         out$modified$precision <- phi_mod
@@ -415,7 +437,6 @@ agreement2 <- function(
         out$loglik <- mod_result$loglik
         out$convergence <- mod_result$convergence
       }
-
     } else {
       # EXISTING PATH: Use current cpp_get_phi for all other cases
       opt <- do.call(cpp_get_phi, args)

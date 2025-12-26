@@ -62,7 +62,7 @@ namespace AgreementPhi{
     namespace ordinal{
         namespace inference{
             std::vector<double> get_phi_profile(
-                const std::vector<double> Y,  
+                const std::vector<double> Y,
                 const std::vector<int> ITEM_INDS,
                 const std::vector<int> WORKER_INDS,
                 const std::vector<std::vector<int>> ITEM_DICT,
@@ -88,7 +88,7 @@ namespace AgreementPhi{
             );
 
             std::vector<double> get_phi_modified_profile(
-                const std::vector<double> Y,  
+                const std::vector<double> Y,
                 const std::vector<int> ITEM_INDS,
                 const std::vector<int> WORKER_INDS,
                 const std::vector<std::vector<int>> ITEM_DICT,

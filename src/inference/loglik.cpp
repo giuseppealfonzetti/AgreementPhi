@@ -5,7 +5,7 @@
 ////////////////////////
 
 double AgreementPhi::continuous::ll::profile(
-                    const std::vector<double> Y,  
+                    const std::vector<double> Y,
                     const std::vector<int> ITEM_INDS,
                     const std::vector<int> WORKER_INDS,
                     const std::vector<std::vector<int>> ITEM_DICT,
@@ -48,7 +48,7 @@ double AgreementPhi::continuous::ll::profile(
 
 
 double AgreementPhi::continuous::ll::modified_profile(
-    const std::vector<double> Y,  
+    const std::vector<double> Y,
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
     const std::vector<std::vector<int>> ITEM_DICT,
@@ -753,7 +753,8 @@ Eigen::VectorXd AgreementPhi::ordinal::ll::profile_extended_grad(
 //     const int PROF_UNI_RANGE,
 //     const int PROF_UNI_MAX_ITER,
 //     const int PROF_MAX_ITER,
-//     const double PROF_TOL
+//     const double PROF_TOL,
+//     const int NCORES
 // ){
 //     // Analytical Hessian using chain rule:
 //     // ∂²L/∂raw_τ² = J^T × H_τ × J + gradient terms with ∂²τ/∂raw_τ²
