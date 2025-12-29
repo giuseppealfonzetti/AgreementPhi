@@ -269,6 +269,75 @@ namespace AgreementPhi{
                     const double PROF_TOL
                 );
 
+                // Profile likelihood with parsimonious gamma parameterization (2 params instead of K-1)
+                double profile_extended_gamma(
+                    const std::vector<double> Y,
+                    const std::vector<int> ITEM_INDS,
+                    const std::vector<int> WORKER_INDS,
+                    const std::vector<std::vector<int>> ITEM_DICT,
+                    const std::vector<std::vector<int>> WORKER_DICT,
+                    const std::vector<std::vector<int>> CAT_DICT,
+                    const std::vector<double> ALPHA,
+                    const std::vector<double> BETA,
+                    const std::vector<double> GAMMA,  // 2 parameters
+                    const double RAW_PHI,
+                    const int J,
+                    const int W,
+                    const int K,
+                    const bool ITEMS_NUISANCE,
+                    const bool WORKER_NUISANCE,
+                    const int PROF_UNI_RANGE,
+                    const int PROF_UNI_MAX_ITER,
+                    const int PROF_MAX_ITER,
+                    const double PROF_TOL
+                );
+
+                // Gradient of profile_extended_gamma wrt GAMMA
+                Eigen::VectorXd profile_extended_grad_gamma(
+                    const std::vector<double> Y,
+                    const std::vector<int> ITEM_INDS,
+                    const std::vector<int> WORKER_INDS,
+                    const std::vector<std::vector<int>> ITEM_DICT,
+                    const std::vector<std::vector<int>> WORKER_DICT,
+                    const std::vector<std::vector<int>> CAT_DICT,
+                    const std::vector<double> ALPHA,
+                    const std::vector<double> BETA,
+                    const std::vector<double> GAMMA,
+                    const double RAW_PHI,
+                    const int J,
+                    const int W,
+                    const int K,
+                    const bool ITEMS_NUISANCE,
+                    const bool WORKER_NUISANCE,
+                    const int PROF_UNI_RANGE,
+                    const int PROF_UNI_MAX_ITER,
+                    const int PROF_MAX_ITER,
+                    const double PROF_TOL
+                );
+
+                // Combined gradient for RAW_PHI and GAMMA
+                Eigen::VectorXd profile_extended_grad_gamma_phi(
+                    const std::vector<double> Y,
+                    const std::vector<int> ITEM_INDS,
+                    const std::vector<int> WORKER_INDS,
+                    const std::vector<std::vector<int>> ITEM_DICT,
+                    const std::vector<std::vector<int>> WORKER_DICT,
+                    const std::vector<std::vector<int>> CAT_DICT,
+                    const std::vector<double> ALPHA,
+                    const std::vector<double> BETA,
+                    const std::vector<double> GAMMA,
+                    const double RAW_PHI,
+                    const int J,
+                    const int W,
+                    const int K,
+                    const bool ITEMS_NUISANCE,
+                    const bool WORKER_NUISANCE,
+                    const int PROF_UNI_RANGE,
+                    const int PROF_UNI_MAX_ITER,
+                    const int PROF_MAX_ITER,
+                    const double PROF_TOL
+                );
+
                 // Hessian of profile_extended wrt RAW_TAU
                 // Eigen::MatrixXd profile_extended_hess_raw_tau(
                 //     const std::vector<double> Y,  

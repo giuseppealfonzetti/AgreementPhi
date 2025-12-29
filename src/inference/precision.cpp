@@ -114,56 +114,6 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
     
 }
 
-///////////////////////
-// ORDINAL RATINGS  //
-///////////////////////
-// std::vector<double> AgreementPhi::ordinal::inference::get_phi_profile(
-//     const std::vector<double> Y,  
-//     const std::vector<int> ITEM_INDS,
-//     const std::vector<int> WORKER_INDS,
-//     const std::vector<std::vector<int>> ITEM_DICT,
-//     const std::vector<std::vector<int>> WORKER_DICT,
-//     const std::vector<std::vector<int>> CAT_DICT,
-//     const std::vector<double> ALPHA,
-//     const std::vector<double> BETA,
-//     const std::vector<double> TAU,
-//     const double PHI_START,
-//     const int J,
-//     const int W,
-//     const int K,
-//     const bool ITEMS_NUISANCE,
-//     const bool WORKER_NUISANCE,
-//     const bool THRESHOLDS_NUISANCE,
-//     const double SEARCH_RANGE,
-//     const int MAX_ITER,
-//     const double PROF_UNI_RANGE,
-//     const int PROF_UNI_MAX_ITER,
-//     const int PROF_MAX_ITER,
-//     const double PROF_TOL,
-//     const bool VERBOSE,
-//     const int NCORES
-// ){
-//     auto neg_profile_likelihood = [&](double phi){
-//         double ll = AgreementPhi::ordinal::ll::profile(
-//                 Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT, ALPHA, BETA, TAU, phi, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_UNI_RANGE,
-//                 PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, NCORES);
-//         return -ll; 
-//     };
-
-//     double lower = 1e-8; 
-//     double upper = PHI_START + SEARCH_RANGE;
-
-//     const int digits = std::numeric_limits<double>::digits;
-//     boost::uintmax_t max_iter = MAX_ITER;
-//     auto result = boost::math::tools::brent_find_minima(
-//         neg_profile_likelihood, lower, upper, digits, max_iter
-//     );
-
-//     std::vector<double> out(2);
-//     out[0] = result.first;
-//     out[1] = result.second;
-//     return out;
-// }
 
 std::vector<double> AgreementPhi::ordinal::inference::get_phi_profile(
     const std::vector<double> Y,  

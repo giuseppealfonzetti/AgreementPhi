@@ -10,7 +10,6 @@ namespace nuisance {
 
 // Worker for parallel item profiling
 struct ParallelItemWorker : public RcppParallel::Worker {
-    // Read-only inputs (shared across threads)
     const std::vector<double>& Y;
     const std::vector<int>& ITEM_INDS;
     const std::vector<int>& WORKER_INDS;
@@ -23,7 +22,6 @@ struct ParallelItemWorker : public RcppParallel::Worker {
     const int PROF_UNI_MAX_ITER;
     const double mean_alpha;
 
-    // Write-once outputs (each thread writes to different index)
     std::vector<double>& alphas_new;
 
     // Constructor
@@ -46,17 +44,15 @@ struct ParallelItemWorker : public RcppParallel::Worker {
         PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITER), mean_alpha(mean_alpha),
         alphas_new(alphas_new) {}
 
-    // Parallel operator
     void operator()(std::size_t begin, std::size_t end) {
-        // Profile items in parallel
         for(std::size_t j = begin; j < end; ++j) {
             alphas_new[j] = AgreementPhi::ordinal::nuisance::brent_profiling(
                 Y,
                 ITEM_DICT,
-                j + 1,  // 1-indexed
+                j + 1,  
                 WORKER_INDS,
                 betas_best,
-                alphas_best[j],  // Starting value
+                alphas_best[j],  
                 PHI,
                 taus_best,
                 PROF_UNI_RANGE,
@@ -69,7 +65,6 @@ struct ParallelItemWorker : public RcppParallel::Worker {
 
 // Worker for parallel worker profiling
 struct ParallelWorkerWorker : public RcppParallel::Worker {
-    // Read-only inputs (shared across threads)
     const std::vector<double>& Y;
     const std::vector<int>& ITEM_INDS;
     const std::vector<int>& WORKER_INDS;
@@ -82,7 +77,6 @@ struct ParallelWorkerWorker : public RcppParallel::Worker {
     const int PROF_UNI_MAX_ITER;
     const double mean_beta;
 
-    // Write-once outputs (each thread writes to different index)
     std::vector<double>& betas_new;
 
     // Constructor
@@ -107,17 +101,15 @@ struct ParallelWorkerWorker : public RcppParallel::Worker {
 
     // Parallel operator
     void operator()(std::size_t begin, std::size_t end) {
-        // Profile workers in parallel (skip first worker as it's constrained to 0)
         for(std::size_t w = begin; w < end; ++w) {
-            if(w == 0) continue;  // First worker is constrained to 0
-
+            if(w == 0) continue;  
             betas_new[w] = AgreementPhi::ordinal::nuisance::brent_profiling(
                 Y,
                 WORKER_DICT,
                 w + 1,  // 1-indexed
                 ITEM_INDS,
                 alphas_best,
-                betas_best[w],  // Starting value
+                betas_best[w],  
                 PHI,
                 taus_best,
                 PROF_UNI_RANGE,
@@ -128,8 +120,8 @@ struct ParallelWorkerWorker : public RcppParallel::Worker {
     }
 };
 
-} // namespace nuisance
-} // namespace ordinal
-} // namespace AgreementPhi
+} 
+} 
+} 
 
 #endif

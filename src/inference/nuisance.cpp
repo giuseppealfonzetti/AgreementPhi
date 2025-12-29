@@ -1,6 +1,5 @@
 #include "nuisance.h"
 #include "nuisance_parallel.h"
-#include <RcppParallel.h>
 
 ///////////////////////////////////////////////
 // CONTINUOUS RATINGS | UNIVARIATE PROFILING //

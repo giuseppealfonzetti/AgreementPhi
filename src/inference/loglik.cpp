@@ -493,9 +493,15 @@ void AgreementPhi::ordinal::ll::profile_grad_tau(
     );
 }
 
-
+/* COMMENTED OUT 2025-12-26: Old profile likelihood functions using raw_tau (K-1 parameters)
+ * Replaced by profile_extended_gamma and related functions using gamma parameterization (2 parameters).
+ * Functions: profile_extended, compute_dtau_drawtau, profile_extended_grad_raw_tau,
+ *            profile_extended_grad_raw_phi, profile_extended_grad
+ * Retained for potential rollback or future use when thresholds are not nuisance.
+ */
+/*
 double AgreementPhi::ordinal::ll::profile_extended(
-                    const std::vector<double> Y,  
+                    const std::vector<double> Y,
                     const std::vector<int> ITEM_INDS,
                     const std::vector<int> WORKER_INDS,
                     const std::vector<std::vector<int>> ITEM_DICT,
@@ -528,7 +534,7 @@ double AgreementPhi::ordinal::ll::profile_extended(
     Eigen::VectorXd jalphaalpha = Eigen::VectorXd::Zero(J);
     Eigen::VectorXd jbetabeta = Eigen::VectorXd::Zero(W - 1);
     Eigen::MatrixXd jalphabeta = Eigen::MatrixXd::Zero(J, W - 1);
-    
+
     std::vector<double> lambda;
     lambda.reserve(J + W - 1);
     lambda.insert(lambda.end(), profiled_lambda.at(0).begin(), profiled_lambda.at(0).end());
@@ -730,6 +736,187 @@ Eigen::VectorXd AgreementPhi::ordinal::ll::profile_extended_grad(
     Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT, ALPHA,
     BETA, RAW_TAU, RAW_PHI, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE,
     PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+
+    return out;
+}
+*/
+/* END COMMENTED OUT profile_extended raw_tau functions */
+
+// Profile likelihood with parsimonious gamma parameterization (2 parameters)
+// This is the analogue of profile_extended() but uses GAMMA (2 params) instead of RAW_TAU (K-1 params)
+double AgreementPhi::ordinal::ll::profile_extended_gamma(
+    const std::vector<double> Y,
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const std::vector<std::vector<int>> ITEM_DICT,
+    const std::vector<std::vector<int>> WORKER_DICT,
+    const std::vector<std::vector<int>> CAT_DICT,
+    const std::vector<double> ALPHA,
+    const std::vector<double> BETA,
+    const std::vector<double> GAMMA,  // 2 parameters: [gamma_1, gamma_2]
+    const double RAW_PHI,
+    const int J,
+    const int W,
+    const int K,
+    const bool ITEMS_NUISANCE,
+    const bool WORKER_NUISANCE,
+    const int PROF_UNI_RANGE,
+    const int PROF_UNI_MAX_ITER,
+    const int PROF_MAX_ITER,
+    const double PROF_TOL
+){
+    // Transform gamma to tau
+    double phi = std::exp(RAW_PHI);
+    std::vector<double> tau = AgreementPhi::utils::gamma2tau_parsimonious(GAMMA, K);
+
+    // Profile (alpha, beta) for fixed (phi, tau)
+    std::vector<std::vector<double>> profiled_lambda = AgreementPhi::ordinal::nuisance::get_lambda2(
+        Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT,
+        ALPHA, BETA, tau, phi, J, W, K,
+        ITEMS_NUISANCE, WORKER_NUISANCE,
+        false,  // THRESHOLDS_NUISANCE = FALSE (tau is fixed)
+        PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL
+    );
+
+    // Compute profile likelihood
+    Eigen::VectorXd dlambda = Eigen::VectorXd::Zero(J + W - 1);
+    Eigen::VectorXd jalphaalpha = Eigen::VectorXd::Zero(J);
+    Eigen::VectorXd jbetabeta = Eigen::VectorXd::Zero(W - 1);
+    Eigen::MatrixXd jalphabeta = Eigen::MatrixXd::Zero(J, W - 1);
+
+    std::vector<double> lambda;
+    lambda.reserve(J + W - 1);
+    lambda.insert(lambda.end(), profiled_lambda.at(0).begin(), profiled_lambda.at(0).end());
+    lambda.insert(lambda.end(), profiled_lambda.at(1).begin() + 1, profiled_lambda.at(1).end());
+
+    double ll = AgreementPhi::ordinal::joint_loglik(
+        Y, ITEM_INDS, WORKER_INDS, lambda, tau, phi, J, W, K,
+        ITEMS_NUISANCE, WORKER_NUISANCE,
+        dlambda, jalphaalpha, jbetabeta, jalphabeta, 0
+    );
+
+    return ll;
+}
+
+// Gradient of profile_extended_gamma wrt GAMMA
+// Uses chain rule: ∂L/∂gamma = (∂tau/∂gamma)^T × ∂L/∂tau
+Eigen::VectorXd AgreementPhi::ordinal::ll::profile_extended_grad_gamma(
+    const std::vector<double> Y,
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const std::vector<std::vector<int>> ITEM_DICT,
+    const std::vector<std::vector<int>> WORKER_DICT,
+    const std::vector<std::vector<int>> CAT_DICT,
+    const std::vector<double> ALPHA,
+    const std::vector<double> BETA,
+    const std::vector<double> GAMMA,
+    const double RAW_PHI,
+    const int J,
+    const int W,
+    const int K,
+    const bool ITEMS_NUISANCE,
+    const bool WORKER_NUISANCE,
+    const int PROF_UNI_RANGE,
+    const int PROF_UNI_MAX_ITER,
+    const int PROF_MAX_ITER,
+    const double PROF_TOL
+){
+    // Step 1: Transform gamma to tau
+    double phi = std::exp(RAW_PHI);
+    std::vector<double> tau = AgreementPhi::utils::gamma2tau_parsimonious(GAMMA, K);
+
+    // Step 2: Profile (alpha, beta) for fixed (phi, tau)
+    std::vector<std::vector<double>> profiled_lambda = AgreementPhi::ordinal::nuisance::get_lambda2(
+        Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT,
+        ALPHA, BETA, tau, phi, J, W, K,
+        ITEMS_NUISANCE, WORKER_NUISANCE,
+        false,  // THRESHOLDS_NUISANCE = FALSE
+        PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL
+    );
+
+    std::vector<double> alpha_prof = profiled_lambda.at(0);
+    std::vector<double> beta_prof = profiled_lambda.at(1);
+
+    // Step 3: Construct lambda vector
+    std::vector<double> lambda_vec;
+    lambda_vec.reserve(J + W - 1);
+    lambda_vec.insert(lambda_vec.end(), alpha_prof.begin(), alpha_prof.end());
+    lambda_vec.insert(lambda_vec.end(), beta_prof.begin() + 1, beta_prof.end());
+
+    // Step 4: Compute gradient ∂L/∂τ at profiled (α, β)
+    // Reuse existing grad_tau function
+    std::vector<double> grad_tau_vec;
+    AgreementPhi::ordinal::grad_tau(
+        Y, ITEM_INDS, WORKER_INDS, lambda_vec, tau, phi,
+        J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE,
+        grad_tau_vec
+    );
+
+    // grad_tau_vec has length K-1 (for tau_1, ..., tau_{K-1})
+    Eigen::VectorXd grad_tau = Eigen::Map<Eigen::VectorXd>(grad_tau_vec.data(), K - 1);
+
+    // Step 5: Compute Jacobian ∂τ/∂gamma
+    Eigen::MatrixXd dtau_dgamma = AgreementPhi::utils::compute_dtau_dgamma_parsimonious(GAMMA, K);
+
+    // Step 6: Apply chain rule: ∂L/∂gamma = (∂τ/∂gamma)^T × ∂L/∂τ
+    // We need rows 1 through K-1 of the Jacobian (corresponding to tau_1, ..., tau_{K-1})
+    Eigen::MatrixXd dtau_relevant = dtau_dgamma.block(1, 0, K - 1, 2);
+    Eigen::VectorXd grad_gamma = dtau_relevant.transpose() * grad_tau;
+
+    return grad_gamma;  // Length 2 vector
+}
+
+// Combined gradient for both RAW_PHI and GAMMA
+Eigen::VectorXd AgreementPhi::ordinal::ll::profile_extended_grad_gamma_phi(
+    const std::vector<double> Y,
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const std::vector<std::vector<int>> ITEM_DICT,
+    const std::vector<std::vector<int>> WORKER_DICT,
+    const std::vector<std::vector<int>> CAT_DICT,
+    const std::vector<double> ALPHA,
+    const std::vector<double> BETA,
+    const std::vector<double> GAMMA,
+    const double RAW_PHI,
+    const int J,
+    const int W,
+    const int K,
+    const bool ITEMS_NUISANCE,
+    const bool WORKER_NUISANCE,
+    const int PROF_UNI_RANGE,
+    const int PROF_UNI_MAX_ITER,
+    const int PROF_MAX_ITER,
+    const double PROF_TOL
+){
+    Eigen::VectorXd out(3);  // [grad_raw_phi, grad_gamma_1, grad_gamma_2]
+
+    // Gradient wrt RAW_PHI (using finite differences as in original code)
+    const double h = 1e-8;
+    double ll_center = profile_extended_gamma(
+        Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT,
+        ALPHA, BETA, GAMMA, RAW_PHI, J, W, K,
+        ITEMS_NUISANCE, WORKER_NUISANCE,
+        PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL
+    );
+
+    double ll_forward = profile_extended_gamma(
+        Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT,
+        ALPHA, BETA, GAMMA, RAW_PHI + h, J, W, K,
+        ITEMS_NUISANCE, WORKER_NUISANCE,
+        PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL
+    );
+
+    out(0) = (ll_forward - ll_center) / h;
+
+    // Gradient wrt GAMMA
+    Eigen::VectorXd grad_gamma = profile_extended_grad_gamma(
+        Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, CAT_DICT,
+        ALPHA, BETA, GAMMA, RAW_PHI, J, W, K,
+        ITEMS_NUISANCE, WORKER_NUISANCE,
+        PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL
+    );
+
+    out.tail(2) = grad_gamma;
 
     return out;
 }
