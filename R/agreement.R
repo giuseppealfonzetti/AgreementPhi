@@ -46,7 +46,7 @@
 #'
 #' @return Returns a list with maximum likelihood estimates and corresponding negative log-likelihood.
 #' @export
-agreement2 <- function(
+agreement <- function(
   RATINGS,
   ITEM_INDS,
   WORKER_INDS = NULL,
@@ -281,10 +281,13 @@ agreement2 <- function(
       }
 
       if (METHOD == "profile") {
-        # PROFILE LIKELIHOOD: Use Brent over phi with nested L-BFGS over tau
-        opt_result <- get_phi_profile_nested(
+        # PROFILE LIKELIHOOD: Use Brent over phi with nested L-BFGS over gamma (parsimonious)
+        # Initialize gamma from TAU_START
+        gamma_start <- tau2gamma(args$TAU_START)
+
+        opt_result <- get_phi_profile_nested_gamma(
           PHI_START = args$PHI_START,
-          RAW_TAU_START = raw_tau_start,
+          GAMMA_START = gamma_start,
           cpp_args = cpp_args,
           lbfgs_control = lbfgs_control,
           SEARCH_RANGE = args$SEARCH_RANGE,
@@ -329,19 +332,12 @@ agreement2 <- function(
       } else if (METHOD == "modified") {
         # MODIFIED PROFILE LIKELIHOOD: First compute MLE, then apply correction
 
-        # STEP 1: Compute MLE using joint optimization (as if TARGET=c("phi","thresholds"))
-        # raw_phi_start <- log(args$PHI_START)
-        # start_par <- c(raw_phi_start, raw_tau_start)
+        # STEP 1: Compute MLE using nested optimization with gamma parameterization
+        gamma_start <- tau2gamma(args$TAU_START)
 
-        # mle_result <- get_phi_tau_profile(
-        #   START_PAR = start_par,
-        #   cpp_args = cpp_args,
-        #   lbfgs_control = lbfgs_control
-        # )
-
-        mle_result <- get_phi_profile_nested(
+        mle_result <- get_phi_profile_nested_gamma(
           PHI_START = args$PHI_START,
-          RAW_TAU_START = raw_tau_start,
+          GAMMA_START = gamma_start,
           cpp_args = cpp_args,
           lbfgs_control = lbfgs_control,
           SEARCH_RANGE = args$SEARCH_RANGE,
@@ -383,11 +379,13 @@ agreement2 <- function(
         beta_mle <- profiled_mle$beta
 
         # STEP 2: Compute modified profile using Barndorff-Nielsen correction
-        cpp_args$PROF_UNI_RANGE <- 2
-        lbfgs_control$max_iterations <- 20
-        mod_result <- get_phi_modified_profile_nested(
+        # cpp_args$PROF_UNI_RANGE <- 2
+        lbfgs_control$max_iterations <- 10
+        gamma_start_mod <- tau2gamma(tau_mle)
+
+        mod_result <- get_phi_modified_profile_nested_gamma(
           PHI_START = phi_mle,
-          RAW_TAU_START = tau2raw(tau_mle),
+          GAMMA_START = gamma_start_mod,
           ALPHA_MLE = alpha_mle,
           BETA_MLE = beta_mle,
           TAU_MLE = tau_mle,

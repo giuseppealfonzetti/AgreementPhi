@@ -41,6 +41,14 @@ tau2raw <- function(X) {
   log(z)
 }
 
+#' @export
+set_tau <- function(X, K) {
+  stopifnot(length(X) == 2)
+  stopifnot(all(X < 1) & all(X > 0))
+  stopifnot(X[1] < X[2])
+  out <- c(0, seq(X[1], X[2], length.out = K - 1), 1)
+  return(out)
+}
 #' Discretise continuous data
 #'
 #' @param X Vector of continuous data in (0,1).
