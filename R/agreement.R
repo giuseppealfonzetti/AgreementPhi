@@ -115,13 +115,7 @@ agreement <- function(
   }
 
   if (is.null(TAU_START)) {
-    counts <- tabulate(
-      factor(val_data$ratings, levels = seq_len(val_data$K)),
-      nbins = val_data$K
-    )
-    cum_p <- cumsum(counts) / sum(counts)
-    TAU_START <- c(0, cum_p[-K], 1)
-    # TAU_START <- seq(0, 1, by = 1 / val_data$K)
+    TAU_START <- seq(0, 1, by = 1 / val_data$K)
   }
 
   CONTROL <- validate_cpp_control2(CONTROL)
