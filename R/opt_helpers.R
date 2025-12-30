@@ -60,10 +60,10 @@ profile_loglik_nested_gamma <- function(
 
   # Set L-BFGS defaults
   if (is.null(lbfgs_control$max_linesearch)) {
-    lbfgs_control$max_linesearch <- 10
+    lbfgs_control$max_linesearch <- 20
   }
   if (is.null(lbfgs_control$max_iterations)) {
-    lbfgs_control$max_iterations <- 15
+    lbfgs_control$max_iterations <- 1
   }
   if (is.null(lbfgs_control$invisible)) {
     lbfgs_control$invisible <- 1
