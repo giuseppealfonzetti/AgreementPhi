@@ -283,9 +283,9 @@ get_phi_modified_profile_nested_gamma <- function(
   SEARCH_RANGE = 5,
   brent_tol = 1e-4
 ) {
-  objective_phi <- function(RAW_PHI) {
+  objective_phi <- function(PHI) {
     result <- modified_profile_loglik_nested_gamma(
-      RAW_PHI = RAW_PHI,
+      RAW_PHI = log(PHI),
       GAMMA_START = GAMMA_START,
       ALPHA_MLE = ALPHA_MLE,
       BETA_MLE = BETA_MLE,
@@ -297,8 +297,10 @@ get_phi_modified_profile_nested_gamma <- function(
     return(-result$loglik)
   }
 
-  lower <- max(-0.8, log(PHI_MLE) - 3)
-  upper <- min(3, log(PHI_MLE) + 3)
+  # lower <- max(-0.8, log(PHI_MLE) - 3)
+  # upper <- min(3, log(PHI_MLE) + 3)
+  lower <- max(0, PHI_MLE - SEARCH_RANGE)
+  upper <- min(20, PHI_MLE + SEARCH_RANGE)
 
   opt_result <- optimize(
     f = objective_phi,
@@ -306,7 +308,8 @@ get_phi_modified_profile_nested_gamma <- function(
     tol = brent_tol
   )
 
-  phi_opt <- exp(opt_result$minimum)
+  # phi_opt <- exp(opt_result$minimum)
+  phi_opt <- opt_result$minimum
 
   final_profile <- modified_profile_loglik_nested_gamma(
     RAW_PHI = log(phi_opt),
