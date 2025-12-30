@@ -329,7 +329,7 @@ validate_cpp_control2 <- function(LIST = NULL) {
   stopifnot(LIST$ALT_TOL > 0)
   out$ALT_TOL <- LIST$ALT_TOL
 
-  # LBFGS control parameters (optional)
+  # LBFGS control parameters
   if (!is.null(LIST$LBFGS_MAX_LINESEARCH)) {
     stopifnot(is.numeric(LIST$LBFGS_MAX_LINESEARCH))
     stopifnot(LIST$LBFGS_MAX_LINESEARCH > 0)

@@ -116,6 +116,9 @@ agreement <- function(
 
   if (is.null(TAU_START)) {
     TAU_START <- seq(0, 1, by = 1 / val_data$K)
+    if ("thresholds" %in% NUISANCE) {
+      TAU_START <- init_tau(val_data$ratings, val_data$K)
+    }
   }
 
   CONTROL <- validate_cpp_control2(CONTROL)
@@ -374,7 +377,7 @@ agreement <- function(
 
         # STEP 2: Compute modified profile using Barndorff-Nielsen correction
         # cpp_args$PROF_UNI_RANGE <- 2
-        lbfgs_control$max_iterations <- 10
+        lbfgs_control$max_iterations <- 5
         gamma_start_mod <- tau2gamma(tau_mle)
 
         mod_result <- get_phi_modified_profile_nested_gamma(

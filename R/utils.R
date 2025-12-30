@@ -49,6 +49,14 @@ set_tau <- function(X, K) {
   out <- c(0, seq(X[1], X[2], length.out = K - 1), 1)
   return(out)
 }
+
+#' @export
+init_tau <- function(Y, K) {
+  counts <- tabulate(factor(Y, levels = seq_len(K)), nbins = K)
+  cum_p <- cumsum(counts) / sum(counts)
+  c(0, cum_p[-K], 1)
+}
+
 #' Discretise continuous data
 #'
 #' @param X Vector of continuous data in (0,1).
