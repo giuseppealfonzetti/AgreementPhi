@@ -286,7 +286,7 @@ validate_cpp_control2 <- function(LIST = NULL) {
 
   # search range for precision
   if (is.null(LIST$SEARCH_RANGE)) {
-    LIST$SEARCH_RANGE <- 10
+    LIST$SEARCH_RANGE <- 8
   }
   stopifnot(is.numeric(LIST$SEARCH_RANGE))
   stopifnot(LIST$SEARCH_RANGE > 0)

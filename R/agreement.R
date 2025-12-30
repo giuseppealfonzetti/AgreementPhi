@@ -378,11 +378,10 @@ agreement <- function(
         # STEP 2: Compute modified profile using Barndorff-Nielsen correction
         # cpp_args$PROF_UNI_RANGE <- 2
         lbfgs_control$max_iterations <- 5
-        gamma_start_mod <- tau2gamma(tau_mle)
 
         mod_result <- get_phi_modified_profile_nested_gamma(
           PHI_START = phi_mle,
-          GAMMA_START = gamma_start_mod,
+          GAMMA_START = tau2gamma(tau_mle),
           ALPHA_MLE = alpha_mle,
           BETA_MLE = beta_mle,
           TAU_MLE = tau_mle,
