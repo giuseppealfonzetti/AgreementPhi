@@ -63,7 +63,7 @@ profile_loglik_nested_gamma <- function(
     lbfgs_control$max_linesearch <- 20
   }
   if (is.null(lbfgs_control$max_iterations)) {
-    lbfgs_control$max_iterations <- 1
+    lbfgs_control$max_iterations <- 10
   }
   if (is.null(lbfgs_control$invisible)) {
     lbfgs_control$invisible <- 1
