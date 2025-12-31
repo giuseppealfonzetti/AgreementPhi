@@ -150,8 +150,7 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
       lbfgs_control$invisible <- args$LBFGS_INVISIBLE
     }
 
-    # Initialize gamma from fitted tau
-    gamma_start <- tau2gamma(X$tau)
+    gamma_start <- tau2gamma(args$TAU_START)
 
     # Compute profile likelihood with warm-starting
     pl_range <- numeric(length(phi_range))
@@ -210,7 +209,7 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
     # Compute modified profile likelihood over grid
     if (data_type == "ordinal" && "thresholds" %in% X$params_type$nuisance) {
       # Initialize gamma from fitted tau
-      gamma_start <- tau2gamma(X$tau)
+      gamma_start <- tau2gamma(args$TAU_START)
 
       # Extract MLE values
       alpha_mle <- X$alpha
@@ -232,7 +231,7 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
         )
         mpl_range[i] <- result$loglik
         # Warm-start next iteration
-        gamma_start <- result$gamma_opt
+        # gamma_start <- result$gamma_opt
       }
     } else {
       # For continuous data or ordinal with fixed thresholds
@@ -277,8 +276,8 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
   out <- data.frame(
     precision = phi_range,
     agreement = agreement_range,
-    profile_rll = pl_range,
-    modified_rll = mpl_range
+    profile_ll = pl_range,
+    modified_ll = mpl_range
   )
 
   return(out)
