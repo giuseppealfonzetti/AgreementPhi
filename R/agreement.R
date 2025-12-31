@@ -338,7 +338,7 @@ agreement <- function(
           cpp_args = cpp_args,
           lbfgs_control = lbfgs_control,
           SEARCH_RANGE = args$SEARCH_RANGE,
-          brent_tol = 1e-4
+          brent_tol = 1e-6
         )
 
         # Extract optimal parameters
@@ -389,7 +389,7 @@ agreement <- function(
           cpp_args = cpp_args,
           lbfgs_control = lbfgs_control,
           SEARCH_RANGE = args$SEARCH_RANGE,
-          brent_tol = 1e-4
+          brent_tol = 1e-6
         )
 
         # Extract modified profile optimal parameters

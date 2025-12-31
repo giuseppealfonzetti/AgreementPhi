@@ -63,7 +63,7 @@ profile_loglik_nested_gamma <- function(
     lbfgs_control$max_linesearch <- 20
   }
   if (is.null(lbfgs_control$max_iterations)) {
-    lbfgs_control$max_iterations <- 1
+    lbfgs_control$max_iterations <- 10
   }
   if (is.null(lbfgs_control$invisible)) {
     lbfgs_control$invisible <- 1
@@ -109,7 +109,7 @@ get_phi_profile_nested_gamma <- function(
   cpp_args = list(),
   lbfgs_control = list(),
   SEARCH_RANGE = 5,
-  brent_tol = 1e-4
+  brent_tol = 1e-6
 ) {
   # Track current best gamma estimate for warm starting
   current_gamma <- GAMMA_START
@@ -121,14 +121,22 @@ get_phi_profile_nested_gamma <- function(
       cpp_args = cpp_args,
       lbfgs_control = lbfgs_control
     )
+
+    # cat(paste0(
+    #   "phi:",
+    #   exp(raw_phi),
+    #   " | loglik:",
+    #   round(result$loglik, 3),
+    #   "\n"
+    # ))
     # Update for warm start
-    current_gamma <- result$gamma_opt
+    # current_gamma <<- result$gamma_opt
     return(-result$loglik)
   }
 
   # Search interval for PHI
-  lower <- max(-0.8, log(PHI_START) - SEARCH_RANGE)
-  upper <- min(3, log(PHI_START) + SEARCH_RANGE)
+  lower <- max(-0.8, log(PHI_START) - 3)
+  upper <- min(3, log(PHI_START) + 3)
 
   # Brent's method to find optimal PHI
   opt_result <- optimize(
@@ -137,11 +145,11 @@ get_phi_profile_nested_gamma <- function(
     tol = brent_tol
   )
 
-  phi_opt <- opt_result$minimum
+  raw_phi_opt <- opt_result$minimum
 
   # Final profiling at optimal PHI
   final_profile <- profile_loglik_nested_gamma(
-    RAW_PHI = log(phi_opt),
+    RAW_PHI = raw_phi_opt,
     GAMMA_START = current_gamma,
     cpp_args = cpp_args,
     lbfgs_control = lbfgs_control
@@ -151,13 +159,13 @@ get_phi_profile_nested_gamma <- function(
   tau_opt <- gamma2tau(final_profile$gamma_opt, cpp_args$K)
 
   out <- list(
-    par = c(log(phi_opt), final_profile$gamma_opt),
+    par = c(raw_phi_opt, final_profile$gamma_opt),
     value = -final_profile$loglik,
     convergence = final_profile$convergence,
     loglik = final_profile$loglik,
-    raw_phi = log(phi_opt),
+    raw_phi = (raw_phi_opt),
     gamma = final_profile$gamma_opt,
-    phi = phi_opt,
+    phi = exp(raw_phi_opt),
     tau = tau_opt
   )
 
@@ -281,11 +289,11 @@ get_phi_modified_profile_nested_gamma <- function(
   cpp_args = list(),
   lbfgs_control = list(),
   SEARCH_RANGE = 5,
-  brent_tol = 1e-4
+  brent_tol = 1e-6
 ) {
-  objective_phi <- function(PHI) {
+  objective_phi <- function(RAW_PHI) {
     result <- modified_profile_loglik_nested_gamma(
-      RAW_PHI = log(PHI),
+      RAW_PHI = RAW_PHI,
       GAMMA_START = GAMMA_START,
       ALPHA_MLE = ALPHA_MLE,
       BETA_MLE = BETA_MLE,
@@ -297,10 +305,10 @@ get_phi_modified_profile_nested_gamma <- function(
     return(-result$loglik)
   }
 
-  # lower <- max(-0.8, log(PHI_MLE) - 3)
-  # upper <- min(3, log(PHI_MLE) + 3)
-  lower <- max(0, PHI_MLE - SEARCH_RANGE)
-  upper <- min(20, PHI_MLE + SEARCH_RANGE)
+  lower <- max(-0.8, log(PHI_MLE) - 3)
+  upper <- min(3, log(PHI_MLE) + 3)
+  # lower <- max(0, PHI_MLE - SEARCH_RANGE)
+  # upper <- min(20, PHI_MLE + SEARCH_RANGE)
 
   opt_result <- optimize(
     f = objective_phi,
@@ -308,11 +316,11 @@ get_phi_modified_profile_nested_gamma <- function(
     tol = brent_tol
   )
 
-  # phi_opt <- exp(opt_result$minimum)
-  phi_opt <- opt_result$minimum
+  raw_phi_opt <- opt_result$minimum
+  # phi_opt <- opt_result$minimum
 
   final_profile <- modified_profile_loglik_nested_gamma(
-    RAW_PHI = log(phi_opt),
+    RAW_PHI = raw_phi_opt,
     GAMMA_START = GAMMA_START,
     ALPHA_MLE = ALPHA_MLE,
     BETA_MLE = BETA_MLE,
@@ -325,13 +333,13 @@ get_phi_modified_profile_nested_gamma <- function(
   tau_opt <- gamma2tau(final_profile$gamma_opt, cpp_args$K)
 
   out <- list(
-    par = c(log(phi_opt), final_profile$gamma_opt),
+    par = c(raw_phi_opt, final_profile$gamma_opt),
     value = -final_profile$loglik,
     convergence = final_profile$convergence,
     loglik = final_profile$loglik,
-    raw_phi = log(phi_opt),
+    raw_phi = raw_phi_opt,
     gamma = final_profile$gamma_opt,
-    phi = phi_opt,
+    phi = exp(raw_phi_opt),
     tau = tau_opt
   )
 
