@@ -377,7 +377,7 @@ agreement <- function(
 
         # STEP 2: Compute modified profile using Barndorff-Nielsen correction
         # cpp_args$PROF_UNI_RANGE <- 2
-        lbfgs_control$max_iterations <- 1
+        # lbfgs_control$max_iterations <- 1
 
         mod_result <- get_phi_modified_profile_nested_gamma(
           PHI_START = phi_mle,
