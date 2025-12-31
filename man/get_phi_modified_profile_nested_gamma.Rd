@@ -14,7 +14,7 @@ get_phi_modified_profile_nested_gamma(
   cpp_args = list(),
   lbfgs_control = list(),
   SEARCH_RANGE = 5,
-  brent_tol = 1e-04
+  brent_tol = 1e-06
 )
 }
 \arguments{
