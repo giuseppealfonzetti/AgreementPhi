@@ -84,8 +84,17 @@ profile_loglik_nested_gamma <- function(
     lbfgs_control
   )
 
+  # ucminf_args <- c(
+  #   list(
+  #     par = GAMMA_START,
+  #     fn = R_profile_gamma,
+  #     gr = R_profile_gamma_grad
+  #   )
+  # )
+
   # Run L-BFGS optimization over GAMMA (2 params instead of K-1)
   opt <- do.call(lbfgs::lbfgs, lbfgs_args)
+  # opt <- do.call(ucminf::ucminf, ucminf_args)
 
   opt$loglik <- -opt$value
   opt$raw_phi <- RAW_PHI
@@ -114,9 +123,9 @@ get_phi_profile_nested_gamma <- function(
   # Track current best gamma estimate for warm starting
   current_gamma <- GAMMA_START
 
-  objective_phi <- function(raw_phi) {
+  objective_phi <- function(AGR) {
     result <- profile_loglik_nested_gamma(
-      RAW_PHI = raw_phi,
+      RAW_PHI = log(agr2prec(AGR)),
       GAMMA_START = current_gamma,
       cpp_args = cpp_args,
       lbfgs_control = lbfgs_control
@@ -130,14 +139,15 @@ get_phi_profile_nested_gamma <- function(
     #   "\n"
     # ))
     # Update for warm start
-    # current_gamma <<- result$gamma_opt
+    # current_gamma <- result$gamma_opt
     return(-result$loglik)
   }
 
   # Search interval for PHI
-  lower <- max(-0.8, log(PHI_START) - 3)
-  upper <- min(3, log(PHI_START) + 3)
-
+  # lower <- max(-0.8, log(PHI_START) - 3)
+  # upper <- min(3, log(PHI_START) + 3)
+  lower <- 1e-2
+  upper <- 1 - 1e-2
   # Brent's method to find optimal PHI
   opt_result <- optimize(
     f = objective_phi,
@@ -145,7 +155,8 @@ get_phi_profile_nested_gamma <- function(
     tol = brent_tol
   )
 
-  raw_phi_opt <- opt_result$minimum
+  # raw_phi_opt <- opt_result$minimum
+  raw_phi_opt <- log(agr2prec(opt_result$minimum))
 
   # Final profiling at optimal PHI
   final_profile <- profile_loglik_nested_gamma(
@@ -291,10 +302,11 @@ get_phi_modified_profile_nested_gamma <- function(
   SEARCH_RANGE = 5,
   brent_tol = 1e-6
 ) {
-  objective_phi <- function(RAW_PHI) {
+  current_gamma <- GAMMA_START
+  objective_phi <- function(AGR) {
     result <- modified_profile_loglik_nested_gamma(
-      RAW_PHI = RAW_PHI,
-      GAMMA_START = GAMMA_START,
+      RAW_PHI = log(agr2prec(AGR)),
+      GAMMA_START = current_gamma,
       ALPHA_MLE = ALPHA_MLE,
       BETA_MLE = BETA_MLE,
       TAU_MLE = TAU_MLE,
@@ -302,13 +314,16 @@ get_phi_modified_profile_nested_gamma <- function(
       cpp_args = cpp_args,
       lbfgs_control = lbfgs_control
     )
+    # current_gamma <- result$gamma_opt
     return(-result$loglik)
   }
 
-  lower <- max(-0.8, log(PHI_MLE) - 3)
-  upper <- min(3, log(PHI_MLE) + 3)
+  # lower <- max(-0.8, log(PHI_MLE) - 3)
+  # upper <- min(3, log(PHI_MLE) + 3)
   # lower <- max(0, PHI_MLE - SEARCH_RANGE)
   # upper <- min(20, PHI_MLE + SEARCH_RANGE)
+  lower <- 1e-2
+  upper <- min(1 - 1e-2, prec2agr(PHI_MLE) + .1)
 
   opt_result <- optimize(
     f = objective_phi,
@@ -316,7 +331,7 @@ get_phi_modified_profile_nested_gamma <- function(
     tol = brent_tol
   )
 
-  raw_phi_opt <- opt_result$minimum
+  raw_phi_opt <- log(agr2prec(opt_result$minimum))
   # phi_opt <- opt_result$minimum
 
   final_profile <- modified_profile_loglik_nested_gamma(

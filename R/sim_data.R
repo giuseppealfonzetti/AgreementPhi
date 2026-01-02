@@ -74,13 +74,13 @@ sim_data <- function(
   obs_a <- obs_mu * precision
   obs_b <- (1 - obs_mu) * precision
 
-  # obs_beta <- apply(cbind(obs_a, obs_b), 1, function(par) {
-  #   rbeta(1, par[1], par[2])
-  # })
-
-  obs_beta <- sapply(obs_mu, function(x) {
-    betareg::rxbetax(1, mu = x, phi = precision, nu = NU)
+  obs_beta <- apply(cbind(obs_a, obs_b), 1, function(par) {
+    rbeta(1, par[1], par[2])
   })
+
+  # obs_beta <- sapply(obs_mu, function(x) {
+  #   betareg::rxbetax(1, mu = x, phi = precision, nu = NU)
+  # })
 
   if (DATA_TYPE == "ordinal") {
     obs_y <- cont2ord(obs_beta, K)
