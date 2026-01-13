@@ -83,6 +83,26 @@ cont2ord <- function(X, K, TRESHOLDS = NULL) {
   return(out)
 }
 
+#' Squeeze [0,100] data
+#'
+#' @param Y Vector of continuous data in [0,1].
+#' @param U Squeezing parameter
+#'
+#' @return Squeezed vector
+#'
+#' @export
+lemon <- function(X, U = NULL) {
+  stopifnot(all(X <= 1))
+  stopifnot(all(X >= 0))
+  n <- length(X)
+  if (is.null(U)) {
+    U <- 1 / (2 * (n - 1))
+  }
+
+  x <- (X + U) / (1 + 2 * U)
+  return(x)
+}
+
 #' Get relative log-likelihood
 #'
 #' @param X Object fitted with [agreement()] function.
