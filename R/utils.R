@@ -313,52 +313,46 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
 #' @importFrom stats qnorm
 #' @export
 get_ci <- function(X, CONFIDENCE = 0.95) {
-  stopifnot(is.numeric(CONFIDENCE))
-  stopifnot(CONFIDENCE < 1)
-  stopifnot(CONFIDENCE > 0)
+  stopifnot(is.numeric(CONFIDENCE), CONFIDENCE < 1, CONFIDENCE > 0)
 
-  mle <- X$profile$precision
+  args <- X$cpp_args
 
-  agr_se <- NA
-  est <- NA
+  # MLE values from fitted object
+  alpha_mle <- X$alpha
+  beta_mle <- X$beta
+  tau_mle <- if (!is.null(X$tau)) X$tau else args$TAU_START
+  phi_mle <- X$profile$precision
+
+  # Determine evaluation point
   if (X$method == "modified") {
-    agr_se <- cpp_get_se(
-      Y = X$cpp_args$Y,
-      ITEM_INDS = X$cpp_args$ITEM_INDS,
-      ALPHA_START = X$cpp_args$ALPHA_START,
-      PHI_MLE = mle,
-      PHI_EVAL = X$modified$precision,
-      K = X$cpp_args$K,
-      J = X$cpp_args$J,
-      SEARCH_RANGE = X$cpp_args$SEARCH_RANGE,
-      MAX_ITER = X$cpp_args$MAX_ITER,
-      PROF_SEARCH_RANGE = X$cpp_args$PROF_SEARCH_RANGE,
-      PROF_MAX_ITER = X$cpp_args$PROF_MAX_ITER,
-      PROF_METHOD = X$cpp_args$PROF_METHOD,
-      CONTINUOUS = X$cpp_args$CONTINUOUS,
-      MODIFIED = TRUE
-    )
+    phi_eval <- X$modified$precision
     est <- X$modified$agreement
   } else {
-    agr_se <- cpp_get_se(
-      Y = X$cpp_args$Y,
-      ITEM_INDS = X$cpp_args$ITEM_INDS,
-      ALPHA_START = X$cpp_args$ALPHA_START,
-      PHI_MLE = mle,
-      PHI_EVAL = mle,
-      K = X$cpp_args$K,
-      J = X$cpp_args$J,
-      SEARCH_RANGE = X$cpp_args$SEARCH_RANGE,
-      MAX_ITER = X$cpp_args$MAX_ITER,
-      PROF_SEARCH_RANGE = X$cpp_args$PROF_SEARCH_RANGE,
-      PROF_MAX_ITER = X$cpp_args$PROF_MAX_ITER,
-      PROF_METHOD = X$cpp_args$PROF_METHOD,
-      CONTINUOUS = X$cpp_args$CONTINUOUS,
-      MODIFIED = FALSE
-    )
-
+    phi_eval <- phi_mle
     est <- X$profile$agreement
   }
+
+  agr_se <- cpp_get_se(
+    Y = args$Y,
+    ITEM_INDS = as.integer(args$ITEM_INDS),
+    WORKER_INDS = if (!is.null(args$WORKER_INDS)) as.integer(args$WORKER_INDS) else integer(0),
+    ALPHA_MLE = alpha_mle,
+    BETA_MLE = beta_mle,
+    TAU_MLE = tau_mle,
+    PHI_EVAL = phi_eval,
+    PHI_MLE = phi_mle,
+    J = args$J,
+    W = if (!is.null(args$W)) args$W else 1L,
+    K = args$K,
+    METHOD = args$METHOD,
+    DATA_TYPE = args$DATA_TYPE,
+    ITEMS_NUISANCE = args$ITEMS_NUISANCE,
+    WORKER_NUISANCE = args$WORKER_NUISANCE,
+    PROF_SEARCH_RANGE = as.integer(args$PROF_SEARCH_RANGE),
+    PROF_MAX_ITER = as.integer(args$PROF_MAX_ITER),
+    ALT_MAX_ITER = as.integer(args$ALT_MAX_ITER),
+    ALT_TOL = args$ALT_TOL
+  )
 
   alpha <- 1 - CONFIDENCE
   z <- qnorm(1 - alpha / 2)
@@ -366,6 +360,6 @@ get_ci <- function(X, CONFIDENCE = 0.95) {
   return(list(
     agreement_est = est,
     agreement_se = agr_se,
-    agreement_ci = c(est - z * agr_se, est + z * agr_se)
+    agreement_ci = c(max(0, est - z * agr_se), min(1, est + z * agr_se))
   ))
 }

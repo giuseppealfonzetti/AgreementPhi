@@ -257,26 +257,31 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_get_se
-double cpp_get_se(const std::vector<double> Y, const std::vector<double> ITEM_INDS, const std::vector<double> ALPHA_START, const double PHI_EVAL, const double PHI_MLE, const int K, const int J, const int SEARCH_RANGE, const int MAX_ITER, const int PROF_SEARCH_RANGE, const int PROF_MAX_ITER, const int PROF_METHOD, const bool MODIFIED, const bool CONTINUOUS);
-RcppExport SEXP _AgreementPhi_cpp_get_se(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP PHI_EVALSEXP, SEXP PHI_MLESEXP, SEXP KSEXP, SEXP JSEXP, SEXP SEARCH_RANGESEXP, SEXP MAX_ITERSEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_METHODSEXP, SEXP MODIFIEDSEXP, SEXP CONTINUOUSSEXP) {
+double cpp_get_se(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA_MLE, const std::vector<double> BETA_MLE, const std::vector<double> TAU_MLE, const double PHI_EVAL, const double PHI_MLE, const int J, const int W, const int K, const std::string METHOD, const std::string DATA_TYPE, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const int PROF_SEARCH_RANGE, const int PROF_MAX_ITER, const int ALT_MAX_ITER, const double ALT_TOL);
+RcppExport SEXP _AgreementPhi_cpp_get_se(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHA_MLESEXP, SEXP BETA_MLESEXP, SEXP TAU_MLESEXP, SEXP PHI_EVALSEXP, SEXP PHI_MLESEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP METHODSEXP, SEXP DATA_TYPESEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_MAX_ITERSEXP, SEXP ALT_MAX_ITERSEXP, SEXP ALT_TOLSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type ITEM_INDS(ITEM_INDSSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA_START(ALPHA_STARTSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA_MLE(ALPHA_MLESEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type BETA_MLE(BETA_MLESEXP);
+    Rcpp::traits::input_parameter< const std::vector<double> >::type TAU_MLE(TAU_MLESEXP);
     Rcpp::traits::input_parameter< const double >::type PHI_EVAL(PHI_EVALSEXP);
     Rcpp::traits::input_parameter< const double >::type PHI_MLE(PHI_MLESEXP);
-    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
     Rcpp::traits::input_parameter< const int >::type J(JSEXP);
-    Rcpp::traits::input_parameter< const int >::type SEARCH_RANGE(SEARCH_RANGESEXP);
-    Rcpp::traits::input_parameter< const int >::type MAX_ITER(MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const int >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const std::string >::type METHOD(METHODSEXP);
+    Rcpp::traits::input_parameter< const std::string >::type DATA_TYPE(DATA_TYPESEXP);
+    Rcpp::traits::input_parameter< const bool >::type ITEMS_NUISANCE(ITEMS_NUISANCESEXP);
+    Rcpp::traits::input_parameter< const bool >::type WORKER_NUISANCE(WORKER_NUISANCESEXP);
     Rcpp::traits::input_parameter< const int >::type PROF_SEARCH_RANGE(PROF_SEARCH_RANGESEXP);
     Rcpp::traits::input_parameter< const int >::type PROF_MAX_ITER(PROF_MAX_ITERSEXP);
-    Rcpp::traits::input_parameter< const int >::type PROF_METHOD(PROF_METHODSEXP);
-    Rcpp::traits::input_parameter< const bool >::type MODIFIED(MODIFIEDSEXP);
-    Rcpp::traits::input_parameter< const bool >::type CONTINUOUS(CONTINUOUSSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_get_se(Y, ITEM_INDS, ALPHA_START, PHI_EVAL, PHI_MLE, K, J, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD, MODIFIED, CONTINUOUS));
+    Rcpp::traits::input_parameter< const int >::type ALT_MAX_ITER(ALT_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const double >::type ALT_TOL(ALT_TOLSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_get_se(Y, ITEM_INDS, WORKER_INDS, ALPHA_MLE, BETA_MLE, TAU_MLE, PHI_EVAL, PHI_MLE, J, W, K, METHOD, DATA_TYPE, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -685,7 +690,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_AgreementPhi_cpp_profile_extended_grad_gamma_phi", (DL_FUNC) &_AgreementPhi_cpp_profile_extended_grad_gamma_phi, 16},
     {"_AgreementPhi_cpp_gamma2tau", (DL_FUNC) &_AgreementPhi_cpp_gamma2tau, 2},
     {"_AgreementPhi_cpp_tau2gamma", (DL_FUNC) &_AgreementPhi_cpp_tau2gamma, 1},
-    {"_AgreementPhi_cpp_get_se", (DL_FUNC) &_AgreementPhi_cpp_get_se, 14},
+    {"_AgreementPhi_cpp_get_se", (DL_FUNC) &_AgreementPhi_cpp_get_se, 19},
     {"_AgreementPhi_cpp_beta_funs", (DL_FUNC) &_AgreementPhi_cpp_beta_funs, 2},
     {"_AgreementPhi_cpp_ibeta_funs", (DL_FUNC) &_AgreementPhi_cpp_ibeta_funs, 3},
     {"_AgreementPhi_cpp_cdfbeta_funs", (DL_FUNC) &_AgreementPhi_cpp_cdfbeta_funs, 3},

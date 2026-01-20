@@ -714,65 +714,172 @@ std::vector<double> cpp_tau2gamma(const std::vector<double> TAU) {
 // [[Rcpp::export]]
 double cpp_get_se(
     const std::vector<double> Y,
-    const std::vector<double> ITEM_INDS,
-    const std::vector<double> ALPHA_START,
+    const std::vector<int> ITEM_INDS,
+    const std::vector<int> WORKER_INDS,
+    const std::vector<double> ALPHA_MLE,
+    const std::vector<double> BETA_MLE,
+    const std::vector<double> TAU_MLE,
     const double PHI_EVAL,
     const double PHI_MLE,
-    const int K,
     const int J,
-    const int SEARCH_RANGE,
-    const int MAX_ITER,
+    const int W,
+    const int K,
+    const std::string METHOD,
+    const std::string DATA_TYPE,
+    const bool ITEMS_NUISANCE,
+    const bool WORKER_NUISANCE,
     const int PROF_SEARCH_RANGE,
     const int PROF_MAX_ITER,
-    const int PROF_METHOD,
-    const bool MODIFIED =true,
-    const bool CONTINUOUS = true
+    const int ALT_MAX_ITER,
+    const double ALT_TOL
 ) {
-        
-    double agr = AgreementPhi::utils::prec2agr(PHI_EVAL);
-    
+    // Build dictionaries (same as cpp_get_phi)
+    std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+    std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
+
+    // Convert evaluation point to agreement scale
+    double agr_eval = AgreementPhi::utils::prec2agr(PHI_EVAL);
+
     std::function<double(double)> f;
-    
-    // if(MODIFIED){
-    //     f = [&](double agr){
-    //         double phi = AgreementPhi::utils::agr2prec(agr);
-            
-    //         double out = cpp_modified_profile_likelihood(
-    //             Y, ITEM_INDS, ALPHA_START, 
-    //             PHI_MLE, phi, K, J,  // Fixed: PHI is phi_mle, phi is test value
-    //             SEARCH_RANGE, MAX_ITER, 
-    //             PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD,
-    //             CONTINUOUS
-    //         );
-    //         return out;
-    //     };
-    // }else{
-    //     f = [&](double agr){
-    //         double phi = AgreementPhi::utils::agr2prec(agr);
-            
-    //         double out = cpp_profile_likelihood(
-    //             Y, ITEM_INDS, ALPHA_START, 
-    //             phi, K, J,
-    //             PROF_SEARCH_RANGE, PROF_MAX_ITER, PROF_METHOD,
-    //             CONTINUOUS
-    //         );
-    //         return out;
-    //     };
-    // }
-    
-    // double d2 = boost::math::differentiation::finite_difference_derivative(
-    //     [&](double x){ 
-    //         return boost::math::differentiation::finite_difference_derivative(f, x); 
-    //     },
-    //     agr
-    // );
-    
-    // if(-d2 > 0){
-    //     return 1.0 / sqrt(-d2);
-    // }else{
-    //     return std::numeric_limits<double>::quiet_NaN();
-    // }
 
-    return agr;
+    if(DATA_TYPE == "continuous") {
+        if(METHOD == "modified") {
+            // Modified profile likelihood for continuous data
+            // (same as precision.cpp lines 87-91)
+            f = [&](double agr) -> double {
+                double phi = AgreementPhi::utils::agr2prec(agr);
+                return AgreementPhi::continuous::ll::modified_profile(
+                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict,
+                    ALPHA_MLE, BETA_MLE, phi, PHI_MLE, J, W,
+                    ITEMS_NUISANCE, WORKER_NUISANCE,
+                    PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL
+                );
+            };
+        } else {
+            // Profile likelihood for continuous data
+            // (same as precision.cpp lines 28-32)
+            f = [&](double agr) -> double {
+                double phi = AgreementPhi::utils::agr2prec(agr);
+                return AgreementPhi::continuous::ll::profile(
+                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict,
+                    ALPHA_MLE, BETA_MLE, phi, J, W,
+                    ITEMS_NUISANCE, WORKER_NUISANCE,
+                    PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL
+                );
+            };
+        }
+    } else if(DATA_TYPE == "ordinal") {
+        std::vector<std::vector<int>> cat_dict = AgreementPhi::utils::categories_dict(Y, K);
 
+        // Build MLE lambda vector (alpha + beta[1:])
+        std::vector<double> mle_vec;
+        mle_vec.reserve(J + W - 1);
+        mle_vec.insert(mle_vec.end(), ALPHA_MLE.begin(), ALPHA_MLE.end());
+        mle_vec.insert(mle_vec.end(), BETA_MLE.begin() + 1, BETA_MLE.end());
+
+        if(METHOD == "modified") {
+            // Modified profile likelihood for ordinal data
+            // (same as precision.cpp lines 350-402)
+            f = [&, cat_dict, mle_vec](double agr) -> double {
+                double phi = AgreementPhi::utils::agr2prec(agr);
+
+                // Profile nuisance at this phi (warm start from MLE)
+                std::vector<double> alpha_start = ALPHA_MLE;
+                std::vector<double> beta_start = BETA_MLE;
+                std::vector<double> tau_start = TAU_MLE;
+
+                std::vector<std::vector<double>> profiled = AgreementPhi::ordinal::nuisance::get_lambda2(
+                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, cat_dict,
+                    alpha_start, beta_start, tau_start, phi, J, W, K,
+                    ITEMS_NUISANCE, WORKER_NUISANCE, false,
+                    PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL
+                );
+
+                // Build profiled lambda vector
+                std::vector<double> profiled_vec;
+                profiled_vec.reserve(J + W - 1);
+                profiled_vec.insert(profiled_vec.end(), profiled.at(0).begin(), profiled.at(0).end());
+                profiled_vec.insert(profiled_vec.end(), profiled.at(1).begin() + 1, profiled.at(1).end());
+
+                // Compute joint loglik
+                Eigen::VectorXd dlambda = Eigen::VectorXd::Zero(J + W - 1);
+                Eigen::VectorXd jalphaalpha = Eigen::VectorXd::Zero(J);
+                Eigen::VectorXd jbetabeta = Eigen::VectorXd::Zero(W - 1);
+                Eigen::MatrixXd jalphabeta = Eigen::MatrixXd::Zero(J, W - 1);
+
+                double ll = AgreementPhi::ordinal::joint_loglik(
+                    Y, ITEM_INDS, WORKER_INDS, profiled_vec, TAU_MLE, phi,
+                    J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE,
+                    dlambda, jalphaalpha, jbetabeta, jalphabeta, 0
+                );
+
+                // Add Barndorff-Nielsen correction
+                ll += 0.5 * AgreementPhi::ordinal::log_det_obs_info(
+                    Y, ITEM_INDS, WORKER_INDS, profiled_vec, TAU_MLE, phi,
+                    J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE
+                );
+
+                // Subtract cross information term
+                ll -= AgreementPhi::ordinal::log_det_E0d0d1(
+                    ITEM_INDS, WORKER_INDS, mle_vec, profiled_vec, PHI_MLE, phi, TAU_MLE,
+                    J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE
+                );
+
+                return ll;
+            };
+        } else {
+            // Profile likelihood for ordinal data
+            // (same as precision.cpp lines 152-190)
+            f = [&, cat_dict](double agr) -> double {
+                double phi = AgreementPhi::utils::agr2prec(agr);
+
+                // Profile nuisance at this phi (warm start from MLE)
+                std::vector<double> alpha_start = ALPHA_MLE;
+                std::vector<double> beta_start = BETA_MLE;
+                std::vector<double> tau_start = TAU_MLE;
+
+                std::vector<std::vector<double>> profiled = AgreementPhi::ordinal::nuisance::get_lambda2(
+                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, cat_dict,
+                    alpha_start, beta_start, tau_start, phi, J, W, K,
+                    ITEMS_NUISANCE, WORKER_NUISANCE, false,
+                    PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL
+                );
+
+                // Build profiled lambda vector
+                std::vector<double> lambda;
+                lambda.reserve(J + W - 1);
+                lambda.insert(lambda.end(), profiled.at(0).begin(), profiled.at(0).end());
+                lambda.insert(lambda.end(), profiled.at(1).begin() + 1, profiled.at(1).end());
+
+                // Compute joint loglik
+                Eigen::VectorXd dlambda = Eigen::VectorXd::Zero(J + W - 1);
+                Eigen::VectorXd jalphaalpha = Eigen::VectorXd::Zero(J);
+                Eigen::VectorXd jbetabeta = Eigen::VectorXd::Zero(W - 1);
+                Eigen::MatrixXd jalphabeta = Eigen::MatrixXd::Zero(J, W - 1);
+
+                return AgreementPhi::ordinal::joint_loglik(
+                    Y, ITEM_INDS, WORKER_INDS, lambda, profiled.at(2), phi,
+                    J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE,
+                    dlambda, jalphaalpha, jbetabeta, jalphabeta, 0
+                );
+            };
+        }
+    } else {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    // Compute second derivative via nested finite differences
+    double d2 = boost::math::differentiation::finite_difference_derivative(
+        [&](double x){
+            return boost::math::differentiation::finite_difference_derivative(f, x);
+        },
+        agr_eval
+    );
+
+    // SE from observed Fisher information: SE = 1/sqrt(-d2)
+    if(-d2 > 0){
+        return 1.0 / std::sqrt(-d2);
+    } else {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
 }

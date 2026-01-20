@@ -56,7 +56,7 @@ agreement <- function(
   TAU_START = NULL,
   PHI_START = NULL,
   NUISANCE = c("items", "workers"),
-  TARGET = c("phi", "thresholds"),
+  TARGET = c("phi"),
   CONTROL = list(),
   VERBOSE = FALSE,
   NCORES = 1
