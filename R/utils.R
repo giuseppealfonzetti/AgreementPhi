@@ -134,82 +134,35 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
   phi_range <- sapply(agreement_range, agr2prec)
 
   # Extract parameters from cpp_args
-  data_type <- if (!is.null(args$DATA_TYPE)) args$DATA_TYPE else X$data_type
-  K <- if (!is.null(args$K)) args$K else 1L
+  data_type <- args$DATA_TYPE
+  K <- args$K
 
   # Compute profile likelihood over grid
-  # Use gamma parameterization for ordinal data with threshold nuisance
-  if (data_type == "ordinal" && "thresholds" %in% X$params_type$nuisance) {
-    # Build cpp_args for nested gamma optimization
-    cpp_args <- list(
+  pl_range <- sapply(phi_range, function(phi) {
+    cpp_profile_likelihood(
       Y = args$Y,
-      ITEM_INDS = args$ITEM_INDS,
-      WORKER_INDS = args$WORKER_INDS,
-      ALPHA = args$ALPHA_START,
-      BETA = args$BETA_START,
+      ITEM_INDS = as.integer(args$ITEM_INDS),
+      WORKER_INDS = if (!is.null(args$WORKER_INDS)) {
+        as.integer(args$WORKER_INDS)
+      } else {
+        integer(0)
+      },
+      ALPHA_START = args$ALPHA_START,
+      BETA_START = args$BETA_START,
+      TAU_START = X$tau,
+      PHI = phi,
       J = args$J,
-      W = args$W,
+      W = if (!is.null(args$W)) args$W else 1L,
       K = K,
+      DATA_TYPE = data_type,
       ITEMS_NUISANCE = args$ITEMS_NUISANCE,
       WORKER_NUISANCE = args$WORKER_NUISANCE,
-      PROF_UNI_RANGE = as.integer(args$PROF_SEARCH_RANGE),
+      PROF_SEARCH_RANGE = args$PROF_SEARCH_RANGE,
       PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
-      PROF_MAX_ITER = as.integer(args$ALT_MAX_ITER),
-      PROF_TOL = args$ALT_TOL
+      ALT_MAX_ITER = as.integer(args$ALT_MAX_ITER),
+      ALT_TOL = args$ALT_TOL
     )
-
-    # Build lbfgs_control from args
-    lbfgs_control <- list()
-    if (!is.null(args$LBFGS_MAX_LINESEARCH)) {
-      lbfgs_control$max_linesearch <- args$LBFGS_MAX_LINESEARCH
-    }
-    if (!is.null(args$LBFGS_MAX_ITERATIONS)) {
-      lbfgs_control$max_iterations <- args$LBFGS_MAX_ITERATIONS
-    }
-    if (!is.null(args$LBFGS_INVISIBLE)) {
-      lbfgs_control$invisible <- args$LBFGS_INVISIBLE
-    }
-
-    gamma_start <- tau2gamma(args$TAU_START)
-
-    # Compute profile likelihood with warm-starting
-    pl_range <- numeric(length(phi_range))
-    for (i in seq_along(phi_range)) {
-      result <- profile_loglik_nested_gamma(
-        RAW_PHI = log(phi_range[i]),
-        GAMMA_START = gamma_start,
-        cpp_args = cpp_args,
-        lbfgs_control = lbfgs_control
-      )
-      pl_range[i] <- result$loglik
-      # Warm-start next iteration
-      gamma_start <- result$gamma_opt
-    }
-  } else {
-    # For continuous data or ordinal with fixed thresholds
-    pl_range <- sapply(phi_range, function(phi) {
-      cpp_profile_likelihood(
-        Y = args$Y,
-        ITEM_INDS = args$ITEM_INDS,
-        WORKER_INDS = args$WORKER_INDS,
-        ALPHA_START = args$ALPHA_START,
-        BETA_START = args$BETA_START,
-        TAU_START = X$tau,
-        PHI = phi,
-        J = args$J,
-        W = args$W,
-        K = K,
-        DATA_TYPE = data_type,
-        ITEMS_NUISANCE = args$ITEMS_NUISANCE,
-        WORKER_NUISANCE = args$WORKER_NUISANCE,
-        THRESHOLDS_NUISANCE = FALSE,
-        PROF_SEARCH_RANGE = args$PROF_SEARCH_RANGE,
-        PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
-        ALT_MAX_ITER = as.integer(args$ALT_MAX_ITER),
-        ALT_TOL = args$ALT_TOL
-      )
-    })
-  }
+  })
 
   if (PLOT) {
     plot(
@@ -227,58 +180,33 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
   mpl_range <- rep(NA, length(phi_range))
   if (X$method == "modified") {
     # Compute modified profile likelihood over grid
-    if (data_type == "ordinal" && "thresholds" %in% X$params_type$nuisance) {
-      # Initialize gamma from fitted tau
-      gamma_start <- tau2gamma(args$TAU_START)
-
-      # Extract MLE values
-      alpha_mle <- X$alpha
-      beta_mle <- X$beta
-      tau_mle <- X$tau
-      phi_mle <- X$profile$precision
-
-      # Compute modified profile likelihood with warm-starting
-      for (i in seq_along(phi_range)) {
-        result <- modified_profile_loglik_nested_gamma(
-          RAW_PHI = log(phi_range[i]),
-          GAMMA_START = gamma_start,
-          ALPHA_MLE = alpha_mle,
-          BETA_MLE = beta_mle,
-          TAU_MLE = tau_mle,
-          PHI_MLE = phi_mle,
-          cpp_args = cpp_args,
-          lbfgs_control = lbfgs_control
-        )
-        mpl_range[i] <- result$loglik
-        # Warm-start next iteration
-        # gamma_start <- result$gamma_opt
-      }
-    } else {
-      # For continuous data or ordinal with fixed thresholds
-      mpl_range <- sapply(phi_range, function(phi) {
-        cpp_modified_profile_likelihood_extended(
-          Y = args$Y,
-          ITEM_INDS = args$ITEM_INDS,
-          WORKER_INDS = args$WORKER_INDS,
-          ALPHA_MLE = X$alpha,
-          BETA_MLE = X$beta,
-          TAU = X$tau,
-          TAU_MLE = X$tau,
-          PHI = phi,
-          PHI_MLE = X$profile$precision,
-          J = args$J,
-          W = args$W,
-          K = K,
-          DATA_TYPE = data_type,
-          ITEMS_NUISANCE = args$ITEMS_NUISANCE,
-          WORKER_NUISANCE = args$WORKER_NUISANCE,
-          PROF_SEARCH_RANGE = args$PROF_SEARCH_RANGE,
-          PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
-          ALT_MAX_ITER = as.integer(args$ALT_MAX_ITER),
-          ALT_TOL = args$ALT_TOL
-        )
-      })
-    }
+    mpl_range <- sapply(phi_range, function(phi) {
+      cpp_modified_profile_likelihood_extended(
+        Y = args$Y,
+        ITEM_INDS = as.integer(args$ITEM_INDS),
+        WORKER_INDS = if (!is.null(args$WORKER_INDS)) {
+          as.integer(args$WORKER_INDS)
+        } else {
+          integer(0)
+        },
+        ALPHA_MLE = X$alpha,
+        BETA_MLE = X$beta,
+        TAU = X$tau,
+        TAU_MLE = X$tau,
+        PHI = phi,
+        PHI_MLE = X$profile$precision,
+        J = args$J,
+        W = if (!is.null(args$W)) args$W else 1L,
+        K = K,
+        DATA_TYPE = data_type,
+        ITEMS_NUISANCE = args$ITEMS_NUISANCE,
+        WORKER_NUISANCE = args$WORKER_NUISANCE,
+        PROF_SEARCH_RANGE = args$PROF_SEARCH_RANGE,
+        PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
+        ALT_MAX_ITER = as.integer(args$ALT_MAX_ITER),
+        ALT_TOL = args$ALT_TOL
+      )
+    })
 
     if (PLOT && !all(is.na(mpl_range))) {
       lines(agreement_range, mpl_range - max(mpl_range, na.rm = TRUE), col = 2)
@@ -335,7 +263,11 @@ get_ci <- function(X, CONFIDENCE = 0.95) {
   agr_se <- cpp_get_se(
     Y = args$Y,
     ITEM_INDS = as.integer(args$ITEM_INDS),
-    WORKER_INDS = if (!is.null(args$WORKER_INDS)) as.integer(args$WORKER_INDS) else integer(0),
+    WORKER_INDS = if (!is.null(args$WORKER_INDS)) {
+      as.integer(args$WORKER_INDS)
+    } else {
+      integer(0)
+    },
     ALPHA_MLE = alpha_mle,
     BETA_MLE = beta_mle,
     TAU_MLE = tau_mle,

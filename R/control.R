@@ -160,28 +160,22 @@ validate_data <- function(
 
 validate_nuisance <- function(NUISANCE) {
   stopifnot(is.vector(NUISANCE))
-  stopifnot(all(NUISANCE %in% c("items", "workers", "thresholds")))
+  stopifnot(all(NUISANCE %in% c("items", "workers", )))
   return(NUISANCE)
 }
 
-
 validate_params_type <- function(NUISANCE, TARGET, DATA_TYPE) {
   stopifnot(is.vector(NUISANCE))
-  stopifnot(all(NUISANCE %in% c("items", "workers", "thresholds")))
+  stopifnot(all(NUISANCE %in% c("items", "workers")))
   stopifnot(is.vector(TARGET))
-  stopifnot(all(TARGET %in% c("phi", "thresholds")))
+  stopifnot(all(TARGET %in% c("phi")))
 
-  params <- c("items", "workers", "thresholds")
+  params <- c("items", "workers")
   if (DATA_TYPE == "continuous") {
     params <- c("items", "workers")
-    NUISANCE <- NUISANCE[NUISANCE != "thresholds"]
-    TARGET <- TARGET[TARGET != "thresholds"]
   }
 
   constant <- params[!(params %in% NUISANCE) & !(params %in% TARGET)]
-  if (("thresholds" %in% NUISANCE) | ("thresholds" %in% constant)) {
-    TARGET <- TARGET[TARGET != "thresholds"]
-  }
 
   out <- list(
     constant = constant,
@@ -191,103 +185,15 @@ validate_params_type <- function(NUISANCE, TARGET, DATA_TYPE) {
 
   return(out)
 }
-# validate_cpp_control <- function(LIST = NULL, MODEL, DATA_TYPE) {
-#   out <- list()
 
-#   # search range for precision
-#   if (is.null(LIST$SEARCH_RANGE)) {
-#     LIST$SEARCH_RANGE <- 10
-#   }
-#   stopifnot(is.numeric(LIST$SEARCH_RANGE))
-#   stopifnot(LIST$SEARCH_RANGE > 0)
-#   out$SEARCH_RANGE <- LIST$SEARCH_RANGE
-
-#   # max iter for precision
-#   if (is.null(LIST$MAX_ITER)) {
-#     LIST$MAX_ITER <- 100
-#   }
-#   stopifnot(is.numeric(LIST$MAX_ITER))
-#   stopifnot(LIST$MAX_ITER > 0)
-#   out$MAX_ITER <- LIST$MAX_ITER
-
-#   # search range for profiling
-#   if (is.null(LIST$PROF_SEARCH_RANGE)) {
-#     LIST$PROF_SEARCH_RANGE <- 5
-#   }
-#   stopifnot(is.numeric(LIST$PROF_SEARCH_RANGE))
-#   stopifnot(LIST$PROF_SEARCH_RANGE > 0)
-#   out$PROF_SEARCH_RANGE <- LIST$PROF_SEARCH_RANGE
-
-#   # max iter for profiling
-#   if (MODEL == "oneway") {
-#     # profiling method
-#     if (is.null(LIST$PROF_METHOD)) {
-#       LIST$PROF_METHOD <- "brent"
-#     }
-#     stopifnot(LIST$PROF_METHOD %in% c("brent", "newton_raphson"))
-#     if (LIST$PROF_METHOD == "newton_raphson") {
-#       out$PROF_METHOD <- 1
-#     } else {
-#       out$PROF_METHOD <- 0
-#     }
-
-#     # max iter for profiling
-#     if (is.null(LIST$PROF_MAX_ITER)) {
-#       LIST$PROF_MAX_ITER <- 100
-#     }
-#   } else {
-#     if (DATA_TYPE == "continuous") {
-#       if (is.null(LIST$PROF_METHOD)) {
-#         LIST$PROF_METHOD <- "bfgs"
-#       }
-#       # max iter for profiling
-#       if (is.null(LIST$PROF_MAX_ITER)) {
-#         LIST$PROF_MAX_ITER <- 10
-#       }
-#       out$PROF_METHOD <- LIST$PROF_METHOD
-#       out$PROF_MAX_ITER <- LIST$PROF_MAX_ITER
-#     } else {
-#       if (is.null(LIST$PROF_METHOD)) {
-#         LIST$PROF_METHOD <- "alt_brent"
-#       }
-#       # max iter for univariate profiling
-#       if (is.null(LIST$PROF_MAX_ITER)) {
-#         LIST$PROF_MAX_ITER <- 100
-#       }
-#       out$PROF_METHOD <- LIST$PROF_METHOD
-#       out$PROF_MAX_ITER <- LIST$PROF_MAX_ITER
-#     }
-#     if (out$PROF_METHOD == "alt_brent") {
-#       # max iter alterning algorithm
-#       if (is.null(LIST$ALT_MAX_ITER)) {
-#         LIST$ALT_MAX_ITER <- 10
-#       }
-#       stopifnot(is.numeric(LIST$ALT_MAX_ITER))
-#       stopifnot(LIST$ALT_MAX_ITER > 0)
-#       out$ALT_MAX_ITER <- LIST$ALT_MAX_ITER
-#       if (is.null(LIST$ALT_TOL)) {
-#         LIST$ALT_TOL <- 1e-2
-#       }
-#       stopifnot(is.numeric(LIST$ALT_TOL))
-#       stopifnot(LIST$ALT_TOL > 0)
-#       out$ALT_TOL <- LIST$ALT_TOL
-#     }
-#     stopifnot(LIST$PROF_METHOD %in% c("alt_brent", "bfgs"))
-#   }
-#   stopifnot(is.numeric(LIST$PROF_MAX_ITER))
-#   stopifnot(LIST$PROF_MAX_ITER > 0)
-#   out$PROF_MAX_ITER <- LIST$PROF_MAX_ITER
-
-#   return(out)
-# }
-
-validate_cpp_control2 <- function(LIST = NULL) {
+validate_cpp_control <- function(LIST = NULL) {
   out <- list()
 
   # search range for precision
   if (is.null(LIST$SEARCH_RANGE)) {
     LIST$SEARCH_RANGE <- 8
   }
+
   stopifnot(is.numeric(LIST$SEARCH_RANGE))
   stopifnot(LIST$SEARCH_RANGE > 0)
   out$SEARCH_RANGE <- LIST$SEARCH_RANGE
@@ -302,7 +208,7 @@ validate_cpp_control2 <- function(LIST = NULL) {
 
   # search range for profiling
   if (is.null(LIST$PROF_SEARCH_RANGE)) {
-    LIST$PROF_SEARCH_RANGE <- 3
+    LIST$PROF_SEARCH_RANGE <- 4
   }
   stopifnot(is.numeric(LIST$PROF_SEARCH_RANGE))
   stopifnot(LIST$PROF_SEARCH_RANGE > 0)
