@@ -43,8 +43,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_profile_likelihood
-double cpp_profile_likelihood(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA_START, const std::vector<double> BETA_START, const std::vector<double> TAU_START, const double PHI, const int J, const int W, const int K, const std::string DATA_TYPE, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const bool THRESHOLDS_NUISANCE, const double PROF_SEARCH_RANGE, const int PROF_UNI_MAX_ITER, const int ALT_MAX_ITER, const double ALT_TOL);
-RcppExport SEXP _AgreementPhi_cpp_profile_likelihood(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP BETA_STARTSEXP, SEXP TAU_STARTSEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP DATA_TYPESEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP THRESHOLDS_NUISANCESEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP ALT_MAX_ITERSEXP, SEXP ALT_TOLSEXP) {
+double cpp_profile_likelihood(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA_START, const std::vector<double> BETA_START, const std::vector<double> TAU_START, const double PHI, const int J, const int W, const int K, const std::string DATA_TYPE, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const double PROF_SEARCH_RANGE, const int PROF_UNI_MAX_ITER, const int ALT_MAX_ITER, const double ALT_TOL);
+RcppExport SEXP _AgreementPhi_cpp_profile_likelihood(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP BETA_STARTSEXP, SEXP TAU_STARTSEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP DATA_TYPESEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP ALT_MAX_ITERSEXP, SEXP ALT_TOLSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -61,12 +61,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::string >::type DATA_TYPE(DATA_TYPESEXP);
     Rcpp::traits::input_parameter< const bool >::type ITEMS_NUISANCE(ITEMS_NUISANCESEXP);
     Rcpp::traits::input_parameter< const bool >::type WORKER_NUISANCE(WORKER_NUISANCESEXP);
-    Rcpp::traits::input_parameter< const bool >::type THRESHOLDS_NUISANCE(THRESHOLDS_NUISANCESEXP);
     Rcpp::traits::input_parameter< const double >::type PROF_SEARCH_RANGE(PROF_SEARCH_RANGESEXP);
     Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
     Rcpp::traits::input_parameter< const int >::type ALT_MAX_ITER(ALT_MAX_ITERSEXP);
     Rcpp::traits::input_parameter< const double >::type ALT_TOL(ALT_TOLSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_profile_likelihood(Y, ITEM_INDS, WORKER_INDS, ALPHA_START, BETA_START, TAU_START, PHI, J, W, K, DATA_TYPE, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_SEARCH_RANGE, PROF_UNI_MAX_ITER, ALT_MAX_ITER, ALT_TOL));
+    rcpp_result_gen = Rcpp::wrap(cpp_profile_likelihood(Y, ITEM_INDS, WORKER_INDS, ALPHA_START, BETA_START, TAU_START, PHI, J, W, K, DATA_TYPE, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_SEARCH_RANGE, PROF_UNI_MAX_ITER, ALT_MAX_ITER, ALT_TOL));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -96,163 +95,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type ALT_MAX_ITER(ALT_MAX_ITERSEXP);
     Rcpp::traits::input_parameter< const double >::type ALT_TOL(ALT_TOLSEXP);
     rcpp_result_gen = Rcpp::wrap(cpp_modified_profile_likelihood_extended(Y, ITEM_INDS, WORKER_INDS, ALPHA_MLE, BETA_MLE, TAU, TAU_MLE, PHI, PHI_MLE, J, W, K, DATA_TYPE, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_SEARCH_RANGE, PROF_UNI_MAX_ITER, ALT_MAX_ITER, ALT_TOL));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_modified_profile_likelihood_tau_profiled
-double cpp_modified_profile_likelihood_tau_profiled(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA_MLE, const std::vector<double> BETA_MLE, const std::vector<double> TAU_START, const std::vector<double> TAU_MLE, const double PHI, const double PHI_MLE, const int J, const int W, const int K, const std::string DATA_TYPE, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const double PROF_SEARCH_RANGE, const int PROF_UNI_MAX_ITER, const int ALT_MAX_ITER, const double ALT_TOL);
-RcppExport SEXP _AgreementPhi_cpp_modified_profile_likelihood_tau_profiled(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHA_MLESEXP, SEXP BETA_MLESEXP, SEXP TAU_STARTSEXP, SEXP TAU_MLESEXP, SEXP PHISEXP, SEXP PHI_MLESEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP DATA_TYPESEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP ALT_MAX_ITERSEXP, SEXP ALT_TOLSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA_MLE(ALPHA_MLESEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type BETA_MLE(BETA_MLESEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type TAU_START(TAU_STARTSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type TAU_MLE(TAU_MLESEXP);
-    Rcpp::traits::input_parameter< const double >::type PHI(PHISEXP);
-    Rcpp::traits::input_parameter< const double >::type PHI_MLE(PHI_MLESEXP);
-    Rcpp::traits::input_parameter< const int >::type J(JSEXP);
-    Rcpp::traits::input_parameter< const int >::type W(WSEXP);
-    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const std::string >::type DATA_TYPE(DATA_TYPESEXP);
-    Rcpp::traits::input_parameter< const bool >::type ITEMS_NUISANCE(ITEMS_NUISANCESEXP);
-    Rcpp::traits::input_parameter< const bool >::type WORKER_NUISANCE(WORKER_NUISANCESEXP);
-    Rcpp::traits::input_parameter< const double >::type PROF_SEARCH_RANGE(PROF_SEARCH_RANGESEXP);
-    Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
-    Rcpp::traits::input_parameter< const int >::type ALT_MAX_ITER(ALT_MAX_ITERSEXP);
-    Rcpp::traits::input_parameter< const double >::type ALT_TOL(ALT_TOLSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_modified_profile_likelihood_tau_profiled(Y, ITEM_INDS, WORKER_INDS, ALPHA_MLE, BETA_MLE, TAU_START, TAU_MLE, PHI, PHI_MLE, J, W, K, DATA_TYPE, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_SEARCH_RANGE, PROF_UNI_MAX_ITER, ALT_MAX_ITER, ALT_TOL));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_profile_grad_tau
-std::vector<double> cpp_profile_grad_tau(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA_START, const std::vector<double> BETA_START, const std::vector<double> TAU, const double PHI, const int J, const int W, const int K, const std::string DATA_TYPE, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const double PROF_SEARCH_RANGE, const int PROF_UNI_MAX_ITER, const int ALT_MAX_ITER, const double ALT_TOL);
-RcppExport SEXP _AgreementPhi_cpp_profile_grad_tau(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP BETA_STARTSEXP, SEXP TAUSEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP DATA_TYPESEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP ALT_MAX_ITERSEXP, SEXP ALT_TOLSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA_START(ALPHA_STARTSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type BETA_START(BETA_STARTSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type TAU(TAUSEXP);
-    Rcpp::traits::input_parameter< const double >::type PHI(PHISEXP);
-    Rcpp::traits::input_parameter< const int >::type J(JSEXP);
-    Rcpp::traits::input_parameter< const int >::type W(WSEXP);
-    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const std::string >::type DATA_TYPE(DATA_TYPESEXP);
-    Rcpp::traits::input_parameter< const bool >::type ITEMS_NUISANCE(ITEMS_NUISANCESEXP);
-    Rcpp::traits::input_parameter< const bool >::type WORKER_NUISANCE(WORKER_NUISANCESEXP);
-    Rcpp::traits::input_parameter< const double >::type PROF_SEARCH_RANGE(PROF_SEARCH_RANGESEXP);
-    Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
-    Rcpp::traits::input_parameter< const int >::type ALT_MAX_ITER(ALT_MAX_ITERSEXP);
-    Rcpp::traits::input_parameter< const double >::type ALT_TOL(ALT_TOLSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_profile_grad_tau(Y, ITEM_INDS, WORKER_INDS, ALPHA_START, BETA_START, TAU, PHI, J, W, K, DATA_TYPE, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_SEARCH_RANGE, PROF_UNI_MAX_ITER, ALT_MAX_ITER, ALT_TOL));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_profile_extended_gamma
-double cpp_profile_extended_gamma(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA, const std::vector<double> BETA, const std::vector<double> GAMMA, const double RAW_PHI, const int J, const int W, const int K, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const int PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double PROF_TOL);
-RcppExport SEXP _AgreementPhi_cpp_profile_extended_gamma(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHASEXP, SEXP BETASEXP, SEXP GAMMASEXP, SEXP RAW_PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_TOLSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA(ALPHASEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type BETA(BETASEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type GAMMA(GAMMASEXP);
-    Rcpp::traits::input_parameter< const double >::type RAW_PHI(RAW_PHISEXP);
-    Rcpp::traits::input_parameter< const int >::type J(JSEXP);
-    Rcpp::traits::input_parameter< const int >::type W(WSEXP);
-    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const bool >::type ITEMS_NUISANCE(ITEMS_NUISANCESEXP);
-    Rcpp::traits::input_parameter< const bool >::type WORKER_NUISANCE(WORKER_NUISANCESEXP);
-    Rcpp::traits::input_parameter< const int >::type PROF_UNI_RANGE(PROF_UNI_RANGESEXP);
-    Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
-    Rcpp::traits::input_parameter< const int >::type PROF_MAX_ITER(PROF_MAX_ITERSEXP);
-    Rcpp::traits::input_parameter< const double >::type PROF_TOL(PROF_TOLSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_profile_extended_gamma(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, GAMMA, RAW_PHI, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_profile_extended_grad_gamma
-Eigen::VectorXd cpp_profile_extended_grad_gamma(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA, const std::vector<double> BETA, const std::vector<double> GAMMA, const double RAW_PHI, const int J, const int W, const int K, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const int PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double PROF_TOL);
-RcppExport SEXP _AgreementPhi_cpp_profile_extended_grad_gamma(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHASEXP, SEXP BETASEXP, SEXP GAMMASEXP, SEXP RAW_PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_TOLSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA(ALPHASEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type BETA(BETASEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type GAMMA(GAMMASEXP);
-    Rcpp::traits::input_parameter< const double >::type RAW_PHI(RAW_PHISEXP);
-    Rcpp::traits::input_parameter< const int >::type J(JSEXP);
-    Rcpp::traits::input_parameter< const int >::type W(WSEXP);
-    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const bool >::type ITEMS_NUISANCE(ITEMS_NUISANCESEXP);
-    Rcpp::traits::input_parameter< const bool >::type WORKER_NUISANCE(WORKER_NUISANCESEXP);
-    Rcpp::traits::input_parameter< const int >::type PROF_UNI_RANGE(PROF_UNI_RANGESEXP);
-    Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
-    Rcpp::traits::input_parameter< const int >::type PROF_MAX_ITER(PROF_MAX_ITERSEXP);
-    Rcpp::traits::input_parameter< const double >::type PROF_TOL(PROF_TOLSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_profile_extended_grad_gamma(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, GAMMA, RAW_PHI, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_profile_extended_grad_gamma_phi
-Eigen::VectorXd cpp_profile_extended_grad_gamma_phi(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA, const std::vector<double> BETA, const std::vector<double> GAMMA, const double RAW_PHI, const int J, const int W, const int K, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const int PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double PROF_TOL);
-RcppExport SEXP _AgreementPhi_cpp_profile_extended_grad_gamma_phi(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHASEXP, SEXP BETASEXP, SEXP GAMMASEXP, SEXP RAW_PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_TOLSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const std::vector<double> >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type ITEM_INDS(ITEM_INDSSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type WORKER_INDS(WORKER_INDSSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA(ALPHASEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type BETA(BETASEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type GAMMA(GAMMASEXP);
-    Rcpp::traits::input_parameter< const double >::type RAW_PHI(RAW_PHISEXP);
-    Rcpp::traits::input_parameter< const int >::type J(JSEXP);
-    Rcpp::traits::input_parameter< const int >::type W(WSEXP);
-    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const bool >::type ITEMS_NUISANCE(ITEMS_NUISANCESEXP);
-    Rcpp::traits::input_parameter< const bool >::type WORKER_NUISANCE(WORKER_NUISANCESEXP);
-    Rcpp::traits::input_parameter< const int >::type PROF_UNI_RANGE(PROF_UNI_RANGESEXP);
-    Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
-    Rcpp::traits::input_parameter< const int >::type PROF_MAX_ITER(PROF_MAX_ITERSEXP);
-    Rcpp::traits::input_parameter< const double >::type PROF_TOL(PROF_TOLSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_profile_extended_grad_gamma_phi(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, GAMMA, RAW_PHI, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_gamma2tau
-std::vector<double> cpp_gamma2tau(const std::vector<double> GAMMA, const int K);
-RcppExport SEXP _AgreementPhi_cpp_gamma2tau(SEXP GAMMASEXP, SEXP KSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const std::vector<double> >::type GAMMA(GAMMASEXP);
-    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_gamma2tau(GAMMA, K));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_tau2gamma
-std::vector<double> cpp_tau2gamma(const std::vector<double> TAU);
-RcppExport SEXP _AgreementPhi_cpp_tau2gamma(SEXP TAUSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const std::vector<double> >::type TAU(TAUSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_tau2gamma(TAU));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -681,15 +523,8 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_AgreementPhi_cpp_get_phi", (DL_FUNC) &_AgreementPhi_cpp_get_phi, 21},
-    {"_AgreementPhi_cpp_profile_likelihood", (DL_FUNC) &_AgreementPhi_cpp_profile_likelihood, 18},
+    {"_AgreementPhi_cpp_profile_likelihood", (DL_FUNC) &_AgreementPhi_cpp_profile_likelihood, 17},
     {"_AgreementPhi_cpp_modified_profile_likelihood_extended", (DL_FUNC) &_AgreementPhi_cpp_modified_profile_likelihood_extended, 19},
-    {"_AgreementPhi_cpp_modified_profile_likelihood_tau_profiled", (DL_FUNC) &_AgreementPhi_cpp_modified_profile_likelihood_tau_profiled, 19},
-    {"_AgreementPhi_cpp_profile_grad_tau", (DL_FUNC) &_AgreementPhi_cpp_profile_grad_tau, 17},
-    {"_AgreementPhi_cpp_profile_extended_gamma", (DL_FUNC) &_AgreementPhi_cpp_profile_extended_gamma, 16},
-    {"_AgreementPhi_cpp_profile_extended_grad_gamma", (DL_FUNC) &_AgreementPhi_cpp_profile_extended_grad_gamma, 16},
-    {"_AgreementPhi_cpp_profile_extended_grad_gamma_phi", (DL_FUNC) &_AgreementPhi_cpp_profile_extended_grad_gamma_phi, 16},
-    {"_AgreementPhi_cpp_gamma2tau", (DL_FUNC) &_AgreementPhi_cpp_gamma2tau, 2},
-    {"_AgreementPhi_cpp_tau2gamma", (DL_FUNC) &_AgreementPhi_cpp_tau2gamma, 1},
     {"_AgreementPhi_cpp_get_se", (DL_FUNC) &_AgreementPhi_cpp_get_se, 19},
     {"_AgreementPhi_cpp_beta_funs", (DL_FUNC) &_AgreementPhi_cpp_beta_funs, 2},
     {"_AgreementPhi_cpp_ibeta_funs", (DL_FUNC) &_AgreementPhi_cpp_ibeta_funs, 3},

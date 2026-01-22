@@ -14,7 +14,6 @@ agreement(
   TAU_START = NULL,
   PHI_START = NULL,
   NUISANCE = c("items", "workers"),
-  TARGET = c("phi", "thresholds"),
   CONTROL = list(),
   VERBOSE = FALSE,
   NCORES = 1

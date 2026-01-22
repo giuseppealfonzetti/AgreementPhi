@@ -164,7 +164,6 @@ double cpp_profile_likelihood(
     const std::string DATA_TYPE,
     const bool ITEMS_NUISANCE,
     const bool WORKER_NUISANCE,
-    const bool THRESHOLDS_NUISANCE,
     const double PROF_SEARCH_RANGE,
     const int PROF_UNI_MAX_ITER,
     const int ALT_MAX_ITER,
@@ -201,7 +200,7 @@ double cpp_profile_likelihood(
         return AgreementPhi::ordinal::ll::profile(
             Y, ITEM_INDS, worker_inds, item_dict, worker_dict, cat_dict,
             ALPHA_START, beta, tau, PHI, J, W_eff, K,
-            ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE,
+            ITEMS_NUISANCE, WORKER_NUISANCE, false,
             PROF_SEARCH_RANGE, PROF_UNI_MAX_ITER, ALT_MAX_ITER, ALT_TOL
         );
     }else{
@@ -265,106 +264,104 @@ double cpp_modified_profile_likelihood_extended(
     }
 }
 
-// [[Rcpp::export]]
-double cpp_modified_profile_likelihood_tau_profiled(
-    const std::vector<double> Y,
-    const std::vector<int> ITEM_INDS,
-    const std::vector<int> WORKER_INDS,
-    const std::vector<double> ALPHA_MLE,
-    const std::vector<double> BETA_MLE,
-    const std::vector<double> TAU_START,
-    const std::vector<double> TAU_MLE,
-    const double PHI,
-    const double PHI_MLE,
-    const int J,
-    const int W,
-    const int K,
-    const std::string DATA_TYPE,
-    const bool ITEMS_NUISANCE,
-    const bool WORKER_NUISANCE,
-    const double PROF_SEARCH_RANGE,
-    const int PROF_UNI_MAX_ITER,
-    const int ALT_MAX_ITER,
-    const double ALT_TOL
-){
-    std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
-    std::vector<int> worker_inds = WORKER_INDS;
-    if(worker_inds.empty()){
-        worker_inds.assign(Y.size(), 1);
-    }
-    int W_eff = W > 0 ? W : static_cast<int>(*std::max_element(worker_inds.begin(), worker_inds.end()));
-    std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W_eff, worker_inds);
+// double cpp_modified_profile_likelihood_tau_profiled(
+//     const std::vector<double> Y,
+//     const std::vector<int> ITEM_INDS,
+//     const std::vector<int> WORKER_INDS,
+//     const std::vector<double> ALPHA_MLE,
+//     const std::vector<double> BETA_MLE,
+//     const std::vector<double> TAU_START,
+//     const std::vector<double> TAU_MLE,
+//     const double PHI,
+//     const double PHI_MLE,
+//     const int J,
+//     const int W,
+//     const int K,
+//     const std::string DATA_TYPE,
+//     const bool ITEMS_NUISANCE,
+//     const bool WORKER_NUISANCE,
+//     const double PROF_SEARCH_RANGE,
+//     const int PROF_UNI_MAX_ITER,
+//     const int ALT_MAX_ITER,
+//     const double ALT_TOL
+// ){
+//     std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+//     std::vector<int> worker_inds = WORKER_INDS;
+//     if(worker_inds.empty()){
+//         worker_inds.assign(Y.size(), 1);
+//     }
+//     int W_eff = W > 0 ? W : static_cast<int>(*std::max_element(worker_inds.begin(), worker_inds.end()));
+//     std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W_eff, worker_inds);
 
-    std::vector<double> beta_mle = BETA_MLE;
-    if(static_cast<int>(beta_mle.size()) < W_eff){
-        beta_mle.resize(W_eff, 0.0);
-    }
+//     std::vector<double> beta_mle = BETA_MLE;
+//     if(static_cast<int>(beta_mle.size()) < W_eff){
+//         beta_mle.resize(W_eff, 0.0);
+//     }
 
-    if(DATA_TYPE == "ordinal"){
-        std::vector<std::vector<int>> cat_dict = AgreementPhi::utils::categories_dict(Y, K);
+//     if(DATA_TYPE == "ordinal"){
+//         std::vector<std::vector<int>> cat_dict = AgreementPhi::utils::categories_dict(Y, K);
 
-        return AgreementPhi::ordinal::ll::modified_profile_tau_profiled(
-            Y, ITEM_INDS, worker_inds, item_dict, worker_dict, cat_dict,
-            ALPHA_MLE, beta_mle, TAU_START, TAU_MLE, PHI, PHI_MLE, J, W_eff, K,
-            ITEMS_NUISANCE, WORKER_NUISANCE,
-            PROF_SEARCH_RANGE, PROF_UNI_MAX_ITER, ALT_MAX_ITER, ALT_TOL
-        );
-    }else{
-        throw std::invalid_argument("This function is only implemented for ordinal data");
-    }
-}
+//         return AgreementPhi::ordinal::ll::modified_profile_tau_profiled(
+//             Y, ITEM_INDS, worker_inds, item_dict, worker_dict, cat_dict,
+//             ALPHA_MLE, beta_mle, TAU_START, TAU_MLE, PHI, PHI_MLE, J, W_eff, K,
+//             ITEMS_NUISANCE, WORKER_NUISANCE,
+//             PROF_SEARCH_RANGE, PROF_UNI_MAX_ITER, ALT_MAX_ITER, ALT_TOL
+//         );
+//     }else{
+//         throw std::invalid_argument("This function is only implemented for ordinal data");
+//     }
+// }
 
-// [[Rcpp::export]]
-std::vector<double> cpp_profile_grad_tau(
-    const std::vector<double> Y,
-    const std::vector<int> ITEM_INDS,
-    const std::vector<int> WORKER_INDS,
-    const std::vector<double> ALPHA_START,
-    const std::vector<double> BETA_START,
-    const std::vector<double> TAU,
-    const double PHI,
-    const int J,
-    const int W,
-    const int K,
-    const std::string DATA_TYPE,
-    const bool ITEMS_NUISANCE,
-    const bool WORKER_NUISANCE,
-    const double PROF_SEARCH_RANGE,
-    const int PROF_UNI_MAX_ITER,
-    const int ALT_MAX_ITER,
-    const double ALT_TOL
-){
-    std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
-    std::vector<int> worker_inds = WORKER_INDS;
-    if(worker_inds.empty()){
-        worker_inds.assign(Y.size(), 1);
-    }
-    int W_eff = W > 0 ? W : static_cast<int>(*std::max_element(worker_inds.begin(), worker_inds.end()));
-    std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W_eff, worker_inds);
+// std::vector<double> cpp_profile_grad_tau(
+//     const std::vector<double> Y,
+//     const std::vector<int> ITEM_INDS,
+//     const std::vector<int> WORKER_INDS,
+//     const std::vector<double> ALPHA_START,
+//     const std::vector<double> BETA_START,
+//     const std::vector<double> TAU,
+//     const double PHI,
+//     const int J,
+//     const int W,
+//     const int K,
+//     const std::string DATA_TYPE,
+//     const bool ITEMS_NUISANCE,
+//     const bool WORKER_NUISANCE,
+//     const double PROF_SEARCH_RANGE,
+//     const int PROF_UNI_MAX_ITER,
+//     const int ALT_MAX_ITER,
+//     const double ALT_TOL
+// ){
+//     std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+//     std::vector<int> worker_inds = WORKER_INDS;
+//     if(worker_inds.empty()){
+//         worker_inds.assign(Y.size(), 1);
+//     }
+//     int W_eff = W > 0 ? W : static_cast<int>(*std::max_element(worker_inds.begin(), worker_inds.end()));
+//     std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W_eff, worker_inds);
 
-    std::vector<double> beta_start = BETA_START;
-    if(static_cast<int>(beta_start.size()) < W_eff){
-        beta_start.resize(W_eff, 0.0);
-    }
+//     std::vector<double> beta_start = BETA_START;
+//     if(static_cast<int>(beta_start.size()) < W_eff){
+//         beta_start.resize(W_eff, 0.0);
+//     }
 
-    std::vector<double> grad_tau;
+//     std::vector<double> grad_tau;
 
-    if(DATA_TYPE == "ordinal"){
-        std::vector<std::vector<int>> cat_dict = AgreementPhi::utils::categories_dict(Y, K);
+//     if(DATA_TYPE == "ordinal"){
+//         std::vector<std::vector<int>> cat_dict = AgreementPhi::utils::categories_dict(Y, K);
 
-        AgreementPhi::ordinal::ll::profile_grad_tau(
-            Y, ITEM_INDS, worker_inds, item_dict, worker_dict, cat_dict,
-            ALPHA_START, beta_start, TAU, PHI, J, W_eff, K,
-            ITEMS_NUISANCE, WORKER_NUISANCE,
-            PROF_SEARCH_RANGE, PROF_UNI_MAX_ITER, ALT_MAX_ITER, ALT_TOL,
-            grad_tau
-        );
-    }else{
-        throw std::invalid_argument("This function is only implemented for ordinal data");
-    }
+//         AgreementPhi::ordinal::ll::profile_grad_tau(
+//             Y, ITEM_INDS, worker_inds, item_dict, worker_dict, cat_dict,
+//             ALPHA_START, beta_start, TAU, PHI, J, W_eff, K,
+//             ITEMS_NUISANCE, WORKER_NUISANCE,
+//             PROF_SEARCH_RANGE, PROF_UNI_MAX_ITER, ALT_MAX_ITER, ALT_TOL,
+//             grad_tau
+//         );
+//     }else{
+//         throw std::invalid_argument("This function is only implemented for ordinal data");
+//     }
 
-    return grad_tau;
-}
+//     return grad_tau;
+// }
 /* COMMENTED OUT 2025-12-26: Old Rcpp exports for raw_tau parameterization
  * Replaced by cpp_profile_extended_gamma and related exports.
  * Exports: cpp_profile_extended, cpp_profile_extended_grad_raw_tau,
@@ -537,138 +534,133 @@ Eigen::VectorXd cpp_profile_extended_grad(
 */
 /* END COMMENTED OUT Rcpp exports for raw_tau */
 
-// [[Rcpp::export]]
-double cpp_profile_extended_gamma(
-    const std::vector<double> Y,
-    const std::vector<int> ITEM_INDS,
-    const std::vector<int> WORKER_INDS,
-    const std::vector<double> ALPHA,
-    const std::vector<double> BETA,
-    const std::vector<double> GAMMA,  // 2 parameters
-    const double RAW_PHI,
-    const int J,
-    const int W,
-    const int K,
-    const bool ITEMS_NUISANCE,
-    const bool WORKER_NUISANCE,
-    const int PROF_UNI_RANGE,
-    const int PROF_UNI_MAX_ITER,
-    const int PROF_MAX_ITER,
-    const double PROF_TOL
-){
-    std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
-    std::vector<int> worker_inds = WORKER_INDS;
-    if(worker_inds.empty()){
-        worker_inds.assign(Y.size(), 1);
-    }
-    int W_eff = W > 0 ? W : static_cast<int>(*std::max_element(worker_inds.begin(), worker_inds.end()));
-    std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W_eff, worker_inds);
-    std::vector<std::vector<int>> cat_dict = AgreementPhi::utils::categories_dict(Y, K);
+// double cpp_profile_extended_gamma(
+//     const std::vector<double> Y,
+//     const std::vector<int> ITEM_INDS,
+//     const std::vector<int> WORKER_INDS,
+//     const std::vector<double> ALPHA,
+//     const std::vector<double> BETA,
+//     const std::vector<double> GAMMA,  // 2 parameters
+//     const double RAW_PHI,
+//     const int J,
+//     const int W,
+//     const int K,
+//     const bool ITEMS_NUISANCE,
+//     const bool WORKER_NUISANCE,
+//     const int PROF_UNI_RANGE,
+//     const int PROF_UNI_MAX_ITER,
+//     const int PROF_MAX_ITER,
+//     const double PROF_TOL
+// ){
+//     std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+//     std::vector<int> worker_inds = WORKER_INDS;
+//     if(worker_inds.empty()){
+//         worker_inds.assign(Y.size(), 1);
+//     }
+//     int W_eff = W > 0 ? W : static_cast<int>(*std::max_element(worker_inds.begin(), worker_inds.end()));
+//     std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W_eff, worker_inds);
+//     std::vector<std::vector<int>> cat_dict = AgreementPhi::utils::categories_dict(Y, K);
 
-    std::vector<double> beta = BETA;
-    if(static_cast<int>(beta.size()) < W_eff){
-        beta.resize(W_eff, 0.0);
-    }
+//     std::vector<double> beta = BETA;
+//     if(static_cast<int>(beta.size()) < W_eff){
+//         beta.resize(W_eff, 0.0);
+//     }
 
-    return AgreementPhi::ordinal::ll::profile_extended_gamma(
-        Y, ITEM_INDS, worker_inds, item_dict, worker_dict, cat_dict,
-        ALPHA, beta, GAMMA, RAW_PHI, J, W_eff, K,
-        ITEMS_NUISANCE, WORKER_NUISANCE,
-        PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL
-    );
-}
+//     return AgreementPhi::ordinal::ll::profile_extended_gamma(
+//         Y, ITEM_INDS, worker_inds, item_dict, worker_dict, cat_dict,
+//         ALPHA, beta, GAMMA, RAW_PHI, J, W_eff, K,
+//         ITEMS_NUISANCE, WORKER_NUISANCE,
+//         PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL
+//     );
+// }
 
-// [[Rcpp::export]]
-Eigen::VectorXd cpp_profile_extended_grad_gamma(
-    const std::vector<double> Y,
-    const std::vector<int> ITEM_INDS,
-    const std::vector<int> WORKER_INDS,
-    const std::vector<double> ALPHA,
-    const std::vector<double> BETA,
-    const std::vector<double> GAMMA,
-    const double RAW_PHI,
-    const int J,
-    const int W,
-    const int K,
-    const bool ITEMS_NUISANCE,
-    const bool WORKER_NUISANCE,
-    const int PROF_UNI_RANGE,
-    const int PROF_UNI_MAX_ITER,
-    const int PROF_MAX_ITER,
-    const double PROF_TOL
-){
-    std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
-    std::vector<int> worker_inds = WORKER_INDS;
-    if(worker_inds.empty()){
-        worker_inds.assign(Y.size(), 1);
-    }
-    int W_eff = W > 0 ? W : static_cast<int>(*std::max_element(worker_inds.begin(), worker_inds.end()));
-    std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W_eff, worker_inds);
-    std::vector<std::vector<int>> cat_dict = AgreementPhi::utils::categories_dict(Y, K);
+// Eigen::VectorXd cpp_profile_extended_grad_gamma(
+//     const std::vector<double> Y,
+//     const std::vector<int> ITEM_INDS,
+//     const std::vector<int> WORKER_INDS,
+//     const std::vector<double> ALPHA,
+//     const std::vector<double> BETA,
+//     const std::vector<double> GAMMA,
+//     const double RAW_PHI,
+//     const int J,
+//     const int W,
+//     const int K,
+//     const bool ITEMS_NUISANCE,
+//     const bool WORKER_NUISANCE,
+//     const int PROF_UNI_RANGE,
+//     const int PROF_UNI_MAX_ITER,
+//     const int PROF_MAX_ITER,
+//     const double PROF_TOL
+// ){
+//     std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+//     std::vector<int> worker_inds = WORKER_INDS;
+//     if(worker_inds.empty()){
+//         worker_inds.assign(Y.size(), 1);
+//     }
+//     int W_eff = W > 0 ? W : static_cast<int>(*std::max_element(worker_inds.begin(), worker_inds.end()));
+//     std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W_eff, worker_inds);
+//     std::vector<std::vector<int>> cat_dict = AgreementPhi::utils::categories_dict(Y, K);
 
-    std::vector<double> beta = BETA;
-    if(static_cast<int>(beta.size()) < W_eff){
-        beta.resize(W_eff, 0.0);
-    }
+//     std::vector<double> beta = BETA;
+//     if(static_cast<int>(beta.size()) < W_eff){
+//         beta.resize(W_eff, 0.0);
+//     }
 
-    return AgreementPhi::ordinal::ll::profile_extended_grad_gamma(
-        Y, ITEM_INDS, worker_inds, item_dict, worker_dict, cat_dict,
-        ALPHA, beta, GAMMA, RAW_PHI, J, W_eff, K,
-        ITEMS_NUISANCE, WORKER_NUISANCE,
-        PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL
-    );
-}
+//     return AgreementPhi::ordinal::ll::profile_extended_grad_gamma(
+//         Y, ITEM_INDS, worker_inds, item_dict, worker_dict, cat_dict,
+//         ALPHA, beta, GAMMA, RAW_PHI, J, W_eff, K,
+//         ITEMS_NUISANCE, WORKER_NUISANCE,
+//         PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL
+//     );
+// }
 
-// [[Rcpp::export]]
-Eigen::VectorXd cpp_profile_extended_grad_gamma_phi(
-    const std::vector<double> Y,
-    const std::vector<int> ITEM_INDS,
-    const std::vector<int> WORKER_INDS,
-    const std::vector<double> ALPHA,
-    const std::vector<double> BETA,
-    const std::vector<double> GAMMA,
-    const double RAW_PHI,
-    const int J,
-    const int W,
-    const int K,
-    const bool ITEMS_NUISANCE,
-    const bool WORKER_NUISANCE,
-    const int PROF_UNI_RANGE,
-    const int PROF_UNI_MAX_ITER,
-    const int PROF_MAX_ITER,
-    const double PROF_TOL
-){
-    std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
-    std::vector<int> worker_inds = WORKER_INDS;
-    if(worker_inds.empty()){
-        worker_inds.assign(Y.size(), 1);
-    }
-    int W_eff = W > 0 ? W : static_cast<int>(*std::max_element(worker_inds.begin(), worker_inds.end()));
-    std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W_eff, worker_inds);
-    std::vector<std::vector<int>> cat_dict = AgreementPhi::utils::categories_dict(Y, K);
+// Eigen::VectorXd cpp_profile_extended_grad_gamma_phi(
+//     const std::vector<double> Y,
+//     const std::vector<int> ITEM_INDS,
+//     const std::vector<int> WORKER_INDS,
+//     const std::vector<double> ALPHA,
+//     const std::vector<double> BETA,
+//     const std::vector<double> GAMMA,
+//     const double RAW_PHI,
+//     const int J,
+//     const int W,
+//     const int K,
+//     const bool ITEMS_NUISANCE,
+//     const bool WORKER_NUISANCE,
+//     const int PROF_UNI_RANGE,
+//     const int PROF_UNI_MAX_ITER,
+//     const int PROF_MAX_ITER,
+//     const double PROF_TOL
+// ){
+//     std::vector<std::vector<int>> item_dict = AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+//     std::vector<int> worker_inds = WORKER_INDS;
+//     if(worker_inds.empty()){
+//         worker_inds.assign(Y.size(), 1);
+//     }
+//     int W_eff = W > 0 ? W : static_cast<int>(*std::max_element(worker_inds.begin(), worker_inds.end()));
+//     std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W_eff, worker_inds);
+//     std::vector<std::vector<int>> cat_dict = AgreementPhi::utils::categories_dict(Y, K);
 
-    std::vector<double> beta = BETA;
-    if(static_cast<int>(beta.size()) < W_eff){
-        beta.resize(W_eff, 0.0);
-    }
+//     std::vector<double> beta = BETA;
+//     if(static_cast<int>(beta.size()) < W_eff){
+//         beta.resize(W_eff, 0.0);
+//     }
 
-    return AgreementPhi::ordinal::ll::profile_extended_grad_gamma_phi(
-        Y, ITEM_INDS, worker_inds, item_dict, worker_dict, cat_dict,
-        ALPHA, beta, GAMMA, RAW_PHI, J, W_eff, K,
-        ITEMS_NUISANCE, WORKER_NUISANCE,
-        PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL
-    );
-}
+//     return AgreementPhi::ordinal::ll::profile_extended_grad_gamma_phi(
+//         Y, ITEM_INDS, worker_inds, item_dict, worker_dict, cat_dict,
+//         ALPHA, beta, GAMMA, RAW_PHI, J, W_eff, K,
+//         ITEMS_NUISANCE, WORKER_NUISANCE,
+//         PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL
+//     );
+// }
 
-// [[Rcpp::export]]
-std::vector<double> cpp_gamma2tau(const std::vector<double> GAMMA, const int K) {
-    return AgreementPhi::utils::gamma2tau_parsimonious(GAMMA, K);
-}
+// std::vector<double> cpp_gamma2tau(const std::vector<double> GAMMA, const int K) {
+//     return AgreementPhi::utils::gamma2tau_parsimonious(GAMMA, K);
+// }
 
-// [[Rcpp::export]]
-std::vector<double> cpp_tau2gamma(const std::vector<double> TAU) {
-    return AgreementPhi::utils::tau2gamma_parsimonious(TAU);
-}
+// std::vector<double> cpp_tau2gamma(const std::vector<double> TAU) {
+//     return AgreementPhi::utils::tau2gamma_parsimonious(TAU);
+// }
 
 // // [[Rcpp::export]]
 // Eigen::MatrixXd cpp_profile_extended_hess_raw_tau(
