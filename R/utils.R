@@ -179,9 +179,8 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
 
   mpl_range <- rep(NA, length(phi_range))
   if (X$method == "modified") {
-    # Compute modified profile likelihood over grid
     mpl_range <- sapply(phi_range, function(phi) {
-      cpp_modified_profile_likelihood_extended(
+      cpp_modified_profile_likelihood(
         Y = args$Y,
         ITEM_INDS = as.integer(args$ITEM_INDS),
         WORKER_INDS = if (!is.null(args$WORKER_INDS)) {
@@ -192,7 +191,6 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
         ALPHA_MLE = X$alpha,
         BETA_MLE = X$beta,
         TAU = X$tau,
-        TAU_MLE = X$tau,
         PHI = phi,
         PHI_MLE = X$profile$precision,
         J = args$J,

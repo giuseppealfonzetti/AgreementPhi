@@ -69,9 +69,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// cpp_modified_profile_likelihood_extended
-double cpp_modified_profile_likelihood_extended(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA_MLE, const std::vector<double> BETA_MLE, const std::vector<double> TAU, const std::vector<double> TAU_MLE, const double PHI, const double PHI_MLE, const int J, const int W, const int K, const std::string DATA_TYPE, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const double PROF_SEARCH_RANGE, const int PROF_UNI_MAX_ITER, const int ALT_MAX_ITER, const double ALT_TOL);
-RcppExport SEXP _AgreementPhi_cpp_modified_profile_likelihood_extended(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHA_MLESEXP, SEXP BETA_MLESEXP, SEXP TAUSEXP, SEXP TAU_MLESEXP, SEXP PHISEXP, SEXP PHI_MLESEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP DATA_TYPESEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP ALT_MAX_ITERSEXP, SEXP ALT_TOLSEXP) {
+// cpp_modified_profile_likelihood
+double cpp_modified_profile_likelihood(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA_MLE, const std::vector<double> BETA_MLE, const std::vector<double> TAU, const double PHI, const double PHI_MLE, const int J, const int W, const int K, const std::string DATA_TYPE, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const double PROF_SEARCH_RANGE, const int PROF_UNI_MAX_ITER, const int ALT_MAX_ITER, const double ALT_TOL);
+RcppExport SEXP _AgreementPhi_cpp_modified_profile_likelihood(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHA_MLESEXP, SEXP BETA_MLESEXP, SEXP TAUSEXP, SEXP PHISEXP, SEXP PHI_MLESEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP DATA_TYPESEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP ALT_MAX_ITERSEXP, SEXP ALT_TOLSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -81,7 +81,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::vector<double> >::type ALPHA_MLE(ALPHA_MLESEXP);
     Rcpp::traits::input_parameter< const std::vector<double> >::type BETA_MLE(BETA_MLESEXP);
     Rcpp::traits::input_parameter< const std::vector<double> >::type TAU(TAUSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double> >::type TAU_MLE(TAU_MLESEXP);
     Rcpp::traits::input_parameter< const double >::type PHI(PHISEXP);
     Rcpp::traits::input_parameter< const double >::type PHI_MLE(PHI_MLESEXP);
     Rcpp::traits::input_parameter< const int >::type J(JSEXP);
@@ -94,7 +93,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
     Rcpp::traits::input_parameter< const int >::type ALT_MAX_ITER(ALT_MAX_ITERSEXP);
     Rcpp::traits::input_parameter< const double >::type ALT_TOL(ALT_TOLSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_modified_profile_likelihood_extended(Y, ITEM_INDS, WORKER_INDS, ALPHA_MLE, BETA_MLE, TAU, TAU_MLE, PHI, PHI_MLE, J, W, K, DATA_TYPE, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_SEARCH_RANGE, PROF_UNI_MAX_ITER, ALT_MAX_ITER, ALT_TOL));
+    rcpp_result_gen = Rcpp::wrap(cpp_modified_profile_likelihood(Y, ITEM_INDS, WORKER_INDS, ALPHA_MLE, BETA_MLE, TAU, PHI, PHI_MLE, J, W, K, DATA_TYPE, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_SEARCH_RANGE, PROF_UNI_MAX_ITER, ALT_MAX_ITER, ALT_TOL));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -437,8 +436,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_ordinal_get_lambda2
-Rcpp::List cpp_ordinal_get_lambda2(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA, const std::vector<double> BETA, const std::vector<double> TAU, const double PHI, const int J, const int W, const int K, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const bool THRESHOLDS_NUISANCE, const double PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double TOL);
-RcppExport SEXP _AgreementPhi_cpp_ordinal_get_lambda2(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHASEXP, SEXP BETASEXP, SEXP TAUSEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP THRESHOLDS_NUISANCESEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP TOLSEXP) {
+Rcpp::List cpp_ordinal_get_lambda2(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA, const std::vector<double> BETA, const std::vector<double> TAU, const double PHI, const int J, const int W, const int K, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const double PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double TOL);
+RcppExport SEXP _AgreementPhi_cpp_ordinal_get_lambda2(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHASEXP, SEXP BETASEXP, SEXP TAUSEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP TOLSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -454,18 +453,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type K(KSEXP);
     Rcpp::traits::input_parameter< const bool >::type ITEMS_NUISANCE(ITEMS_NUISANCESEXP);
     Rcpp::traits::input_parameter< const bool >::type WORKER_NUISANCE(WORKER_NUISANCESEXP);
-    Rcpp::traits::input_parameter< const bool >::type THRESHOLDS_NUISANCE(THRESHOLDS_NUISANCESEXP);
     Rcpp::traits::input_parameter< const double >::type PROF_UNI_RANGE(PROF_UNI_RANGESEXP);
     Rcpp::traits::input_parameter< const int >::type PROF_UNI_MAX_ITER(PROF_UNI_MAX_ITERSEXP);
     Rcpp::traits::input_parameter< const int >::type PROF_MAX_ITER(PROF_MAX_ITERSEXP);
     Rcpp::traits::input_parameter< const double >::type TOL(TOLSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_ordinal_get_lambda2(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, TAU, PHI, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL));
+    rcpp_result_gen = Rcpp::wrap(cpp_ordinal_get_lambda2(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, TAU, PHI, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL));
     return rcpp_result_gen;
 END_RCPP
 }
 // cpp_twoway_profile_likelihood
-double cpp_twoway_profile_likelihood(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA, const std::vector<double> BETA, const std::vector<double> TAU, const double PHI, const int J, const int W, const int K, const int PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double PROF_TOL, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const bool THRESHOLDS_NUISANCE, const bool CONTINUOUS);
-RcppExport SEXP _AgreementPhi_cpp_twoway_profile_likelihood(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHASEXP, SEXP BETASEXP, SEXP TAUSEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_TOLSEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP THRESHOLDS_NUISANCESEXP, SEXP CONTINUOUSSEXP) {
+double cpp_twoway_profile_likelihood(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA, const std::vector<double> BETA, const std::vector<double> TAU, const double PHI, const int J, const int W, const int K, const int PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double PROF_TOL, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const bool CONTINUOUS);
+RcppExport SEXP _AgreementPhi_cpp_twoway_profile_likelihood(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHASEXP, SEXP BETASEXP, SEXP TAUSEXP, SEXP PHISEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_TOLSEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP CONTINUOUSSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -485,15 +483,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type PROF_TOL(PROF_TOLSEXP);
     Rcpp::traits::input_parameter< const bool >::type ITEMS_NUISANCE(ITEMS_NUISANCESEXP);
     Rcpp::traits::input_parameter< const bool >::type WORKER_NUISANCE(WORKER_NUISANCESEXP);
-    Rcpp::traits::input_parameter< const bool >::type THRESHOLDS_NUISANCE(THRESHOLDS_NUISANCESEXP);
     Rcpp::traits::input_parameter< const bool >::type CONTINUOUS(CONTINUOUSSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_twoway_profile_likelihood(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, TAU, PHI, J, W, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, CONTINUOUS));
+    rcpp_result_gen = Rcpp::wrap(cpp_twoway_profile_likelihood(Y, ITEM_INDS, WORKER_INDS, ALPHA, BETA, TAU, PHI, J, W, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, ITEMS_NUISANCE, WORKER_NUISANCE, CONTINUOUS));
     return rcpp_result_gen;
 END_RCPP
 }
 // cpp_twoway_modified_profile_likelihood
-double cpp_twoway_modified_profile_likelihood(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA_MLE, const std::vector<double> BETA_MLE, const std::vector<double> TAU_MLE, const double PHI, const double PHI_MLE, const int J, const int W, const int K, const int PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double PROF_TOL, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const bool THRESHOLDS_NUISANCE, const bool CONTINUOUS);
-RcppExport SEXP _AgreementPhi_cpp_twoway_modified_profile_likelihood(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHA_MLESEXP, SEXP BETA_MLESEXP, SEXP TAU_MLESEXP, SEXP PHISEXP, SEXP PHI_MLESEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_TOLSEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP THRESHOLDS_NUISANCESEXP, SEXP CONTINUOUSSEXP) {
+double cpp_twoway_modified_profile_likelihood(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<int> WORKER_INDS, const std::vector<double> ALPHA_MLE, const std::vector<double> BETA_MLE, const std::vector<double> TAU_MLE, const double PHI, const double PHI_MLE, const int J, const int W, const int K, const int PROF_UNI_RANGE, const int PROF_UNI_MAX_ITER, const int PROF_MAX_ITER, const double PROF_TOL, const bool ITEMS_NUISANCE, const bool WORKER_NUISANCE, const bool CONTINUOUS);
+RcppExport SEXP _AgreementPhi_cpp_twoway_modified_profile_likelihood(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP WORKER_INDSSEXP, SEXP ALPHA_MLESEXP, SEXP BETA_MLESEXP, SEXP TAU_MLESEXP, SEXP PHISEXP, SEXP PHI_MLESEXP, SEXP JSEXP, SEXP WSEXP, SEXP KSEXP, SEXP PROF_UNI_RANGESEXP, SEXP PROF_UNI_MAX_ITERSEXP, SEXP PROF_MAX_ITERSEXP, SEXP PROF_TOLSEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKER_NUISANCESEXP, SEXP CONTINUOUSSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -514,9 +511,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type PROF_TOL(PROF_TOLSEXP);
     Rcpp::traits::input_parameter< const bool >::type ITEMS_NUISANCE(ITEMS_NUISANCESEXP);
     Rcpp::traits::input_parameter< const bool >::type WORKER_NUISANCE(WORKER_NUISANCESEXP);
-    Rcpp::traits::input_parameter< const bool >::type THRESHOLDS_NUISANCE(THRESHOLDS_NUISANCESEXP);
     Rcpp::traits::input_parameter< const bool >::type CONTINUOUS(CONTINUOUSSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_twoway_modified_profile_likelihood(Y, ITEM_INDS, WORKER_INDS, ALPHA_MLE, BETA_MLE, TAU_MLE, PHI, PHI_MLE, J, W, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, CONTINUOUS));
+    rcpp_result_gen = Rcpp::wrap(cpp_twoway_modified_profile_likelihood(Y, ITEM_INDS, WORKER_INDS, ALPHA_MLE, BETA_MLE, TAU_MLE, PHI, PHI_MLE, J, W, K, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, ITEMS_NUISANCE, WORKER_NUISANCE, CONTINUOUS));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -524,7 +520,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_AgreementPhi_cpp_get_phi", (DL_FUNC) &_AgreementPhi_cpp_get_phi, 21},
     {"_AgreementPhi_cpp_profile_likelihood", (DL_FUNC) &_AgreementPhi_cpp_profile_likelihood, 17},
-    {"_AgreementPhi_cpp_modified_profile_likelihood_extended", (DL_FUNC) &_AgreementPhi_cpp_modified_profile_likelihood_extended, 19},
+    {"_AgreementPhi_cpp_modified_profile_likelihood", (DL_FUNC) &_AgreementPhi_cpp_modified_profile_likelihood, 18},
     {"_AgreementPhi_cpp_get_se", (DL_FUNC) &_AgreementPhi_cpp_get_se, 19},
     {"_AgreementPhi_cpp_beta_funs", (DL_FUNC) &_AgreementPhi_cpp_beta_funs, 2},
     {"_AgreementPhi_cpp_ibeta_funs", (DL_FUNC) &_AgreementPhi_cpp_ibeta_funs, 3},
@@ -543,9 +539,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_AgreementPhi_cpp_ordinal_twoway_log_det_E0d0d1_extended", (DL_FUNC) &_AgreementPhi_cpp_ordinal_twoway_log_det_E0d0d1_extended, 13},
     {"_AgreementPhi_cpp_continuous_profiling", (DL_FUNC) &_AgreementPhi_cpp_continuous_profiling, 12},
     {"_AgreementPhi_cpp_ordinal_profiling", (DL_FUNC) &_AgreementPhi_cpp_ordinal_profiling, 15},
-    {"_AgreementPhi_cpp_ordinal_get_lambda2", (DL_FUNC) &_AgreementPhi_cpp_ordinal_get_lambda2, 17},
-    {"_AgreementPhi_cpp_twoway_profile_likelihood", (DL_FUNC) &_AgreementPhi_cpp_twoway_profile_likelihood, 18},
-    {"_AgreementPhi_cpp_twoway_modified_profile_likelihood", (DL_FUNC) &_AgreementPhi_cpp_twoway_modified_profile_likelihood, 19},
+    {"_AgreementPhi_cpp_ordinal_get_lambda2", (DL_FUNC) &_AgreementPhi_cpp_ordinal_get_lambda2, 16},
+    {"_AgreementPhi_cpp_twoway_profile_likelihood", (DL_FUNC) &_AgreementPhi_cpp_twoway_profile_likelihood, 17},
+    {"_AgreementPhi_cpp_twoway_modified_profile_likelihood", (DL_FUNC) &_AgreementPhi_cpp_twoway_modified_profile_likelihood, 18},
     {NULL, NULL, 0}
 };
 
