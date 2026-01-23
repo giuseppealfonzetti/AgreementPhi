@@ -209,8 +209,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_log_det_obs_info
-double cpp_log_det_obs_info(const std::vector<double> Y, const std::vector<double> ITEM_INDS, const std::vector<double> ALPHA, const double PHI, const int K, const int J);
-RcppExport SEXP _AgreementPhi_cpp_log_det_obs_info(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHASEXP, SEXP PHISEXP, SEXP KSEXP, SEXP JSEXP) {
+double cpp_log_det_obs_info(const std::vector<double> Y, const std::vector<double> ITEM_INDS, const std::vector<double> ALPHA, const double PHI, const int K, const int J, const bool ITEMS_NUISANCE, const bool WORKERS_NUISANCE);
+RcppExport SEXP _AgreementPhi_cpp_log_det_obs_info(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHASEXP, SEXP PHISEXP, SEXP KSEXP, SEXP JSEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKERS_NUISANCESEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -220,13 +220,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type PHI(PHISEXP);
     Rcpp::traits::input_parameter< const int >::type K(KSEXP);
     Rcpp::traits::input_parameter< const int >::type J(JSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_log_det_obs_info(Y, ITEM_INDS, ALPHA, PHI, K, J));
+    Rcpp::traits::input_parameter< const bool >::type ITEMS_NUISANCE(ITEMS_NUISANCESEXP);
+    Rcpp::traits::input_parameter< const bool >::type WORKERS_NUISANCE(WORKERS_NUISANCESEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_log_det_obs_info(Y, ITEM_INDS, ALPHA, PHI, K, J, ITEMS_NUISANCE, WORKERS_NUISANCE));
     return rcpp_result_gen;
 END_RCPP
 }
 // cpp_log_det_E0d0d1
-double cpp_log_det_E0d0d1(const std::vector<double> ITEM_INDS, const std::vector<double> ALPHA0, const std::vector<double> ALPHA1, const double PHI0, const double PHI1, const int K, const int J);
-RcppExport SEXP _AgreementPhi_cpp_log_det_E0d0d1(SEXP ITEM_INDSSEXP, SEXP ALPHA0SEXP, SEXP ALPHA1SEXP, SEXP PHI0SEXP, SEXP PHI1SEXP, SEXP KSEXP, SEXP JSEXP) {
+double cpp_log_det_E0d0d1(const std::vector<double> ITEM_INDS, const std::vector<double> ALPHA0, const std::vector<double> ALPHA1, const double PHI0, const double PHI1, const int K, const int J, const bool ITEMS_NUISANCE, const bool WORKERS_NUISANCE);
+RcppExport SEXP _AgreementPhi_cpp_log_det_E0d0d1(SEXP ITEM_INDSSEXP, SEXP ALPHA0SEXP, SEXP ALPHA1SEXP, SEXP PHI0SEXP, SEXP PHI1SEXP, SEXP KSEXP, SEXP JSEXP, SEXP ITEMS_NUISANCESEXP, SEXP WORKERS_NUISANCESEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -237,7 +239,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type PHI1(PHI1SEXP);
     Rcpp::traits::input_parameter< const int >::type K(KSEXP);
     Rcpp::traits::input_parameter< const int >::type J(JSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_log_det_E0d0d1(ITEM_INDS, ALPHA0, ALPHA1, PHI0, PHI1, K, J));
+    Rcpp::traits::input_parameter< const bool >::type ITEMS_NUISANCE(ITEMS_NUISANCESEXP);
+    Rcpp::traits::input_parameter< const bool >::type WORKERS_NUISANCE(WORKERS_NUISANCESEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_log_det_E0d0d1(ITEM_INDS, ALPHA0, ALPHA1, PHI0, PHI1, K, J, ITEMS_NUISANCE, WORKERS_NUISANCE));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -528,8 +532,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_AgreementPhi_cpp_cdfbeta_muphi_funs", (DL_FUNC) &_AgreementPhi_cpp_cdfbeta_muphi_funs, 3},
     {"_AgreementPhi_cpp_ordinal_loglik", (DL_FUNC) &_AgreementPhi_cpp_ordinal_loglik, 4},
     {"_AgreementPhi_cpp_ordinal_item_loglik", (DL_FUNC) &_AgreementPhi_cpp_ordinal_item_loglik, 7},
-    {"_AgreementPhi_cpp_log_det_obs_info", (DL_FUNC) &_AgreementPhi_cpp_log_det_obs_info, 6},
-    {"_AgreementPhi_cpp_log_det_E0d0d1", (DL_FUNC) &_AgreementPhi_cpp_log_det_E0d0d1, 7},
+    {"_AgreementPhi_cpp_log_det_obs_info", (DL_FUNC) &_AgreementPhi_cpp_log_det_obs_info, 8},
+    {"_AgreementPhi_cpp_log_det_E0d0d1", (DL_FUNC) &_AgreementPhi_cpp_log_det_E0d0d1, 9},
     {"_AgreementPhi_cpp_continuous_twoway_joint_loglik", (DL_FUNC) &_AgreementPhi_cpp_continuous_twoway_joint_loglik, 10},
     {"_AgreementPhi_cpp_ordinal_twoway_joint_loglik", (DL_FUNC) &_AgreementPhi_cpp_ordinal_twoway_joint_loglik, 12},
     {"_AgreementPhi_cpp_continuous_twoway_log_det_obs_info", (DL_FUNC) &_AgreementPhi_cpp_continuous_twoway_log_det_obs_info, 9},

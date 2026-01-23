@@ -149,4 +149,4 @@ test_that("validate_data requires numeric worker indices", {
 })
 
 
-validate_cpp_control(list(), MODEL = "twoway", DATA_TYPE = "ordinal")
+validate_cpp_control(list())

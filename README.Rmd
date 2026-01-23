@@ -43,7 +43,7 @@ budget_per_item <- 5
 n_obs <- items * budget_per_item
 workers <- 100
 # item-specific intercepts to generate the data
-alphas <- runif(items, -2, 2)
+alphas <- runif(items, -1, 1)
 betas <- rep(0, workers)
 
 # true agreement (between 0 and 1)
