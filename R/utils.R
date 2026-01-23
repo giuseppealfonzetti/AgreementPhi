@@ -25,38 +25,6 @@ agr2prec <- function(X) {
 }
 
 
-#' @export
-raw2tau <- function(X) {
-  tau <- cumsum(exp(X)) / (sum(exp(X)) + 1)
-  out <- c(0, tau, 1)
-  return(out)
-}
-
-#' @export
-tau2raw <- function(X) {
-  n <- length(X) - 2
-  gaps <- diff(X)
-  last_gap <- gaps[n + 1]
-  z <- n * gaps[seq_len(n)] / last_gap
-  log(z)
-}
-
-#' @export
-set_tau <- function(X, K) {
-  stopifnot(length(X) == 2)
-  stopifnot(all(X < 1) & all(X > 0))
-  stopifnot(X[1] < X[2])
-  out <- c(0, seq(X[1], X[2], length.out = K - 1), 1)
-  return(out)
-}
-
-#' @export
-init_tau <- function(Y, K) {
-  counts <- tabulate(factor(Y, levels = seq_len(K)), nbins = K)
-  cum_p <- cumsum(counts) / sum(counts)
-  c(0, cum_p[-K], 1)
-}
-
 #' Discretise continuous data
 #'
 #' @param X Vector of continuous data in (0,1).

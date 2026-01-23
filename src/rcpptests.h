@@ -219,7 +219,9 @@ double cpp_log_det_obs_info(
     const std::vector<double> ALPHA,
     const double PHI,
     const int K,
-    const int J)
+    const int J,
+    const bool ITEMS_NUISANCE = false,
+    const bool WORKERS_NUISANCE = false)
 {
     const int n = Y.size();
     std::vector<int> worker_inds(n, 1);
@@ -232,7 +234,7 @@ double cpp_log_det_obs_info(
         tau.at(i) = static_cast<double>(i) / static_cast<double>(K);
     }
     return AgreementPhi::ordinal::log_det_obs_info(
-        Y, item_inds_int, worker_inds, ALPHA, tau, PHI, J, 1, K, false, false
+        Y, item_inds_int, worker_inds, ALPHA, tau, PHI, J, 1, K, ITEMS_NUISANCE, WORKERS_NUISANCE
     );
 
 }
@@ -245,7 +247,9 @@ double cpp_log_det_E0d0d1(
     const double PHI0,
     const double PHI1,
     const int K,
-    const int J)
+    const int J,
+    const bool ITEMS_NUISANCE = false,
+    const bool WORKERS_NUISANCE = false)
 {
     const int n = ITEM_INDS.size();
     std::vector<int> worker_inds(n, 1);
@@ -259,7 +263,7 @@ double cpp_log_det_E0d0d1(
     }
 
     return AgreementPhi::ordinal::log_det_E0d0d1(
-        item_inds_int, worker_inds, ALPHA0, ALPHA1, PHI0, PHI1, tau, J, 1, K, false, false
+        item_inds_int, worker_inds, ALPHA0, ALPHA1, PHI0, PHI1, tau, J, 1, K, ITEMS_NUISANCE, WORKERS_NUISANCE
     );
 }
 

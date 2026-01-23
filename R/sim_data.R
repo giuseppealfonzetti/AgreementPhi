@@ -53,7 +53,6 @@ sim_data <- function(
   )$design
 
   assignment_df <- design$design
-  # assignment_df
 
   if (is.null(BETA)) {
     BETA <- rep(0, W)
