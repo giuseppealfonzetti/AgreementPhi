@@ -41,13 +41,11 @@ sim_data <- function(
   n_obs <- J * B
   precision <- agr2prec(AGREEMENT)
 
-  # Step 1: create candidate set of all possible item–worker pairs
   candidates <- expand.grid(
     item_id = factor(1:J),
     worker_id = factor(1:W)
   )
 
-  # Step 2: run Federov algorithm to pick N pairs (approx. balanced)
   design <- optFederov(
     ~1,
     data = candidates,
@@ -55,17 +53,8 @@ sim_data <- function(
   )$design
 
   assignment_df <- design$design
-  assignment_df
-  # obs_item_ind <- rep(1:J, each = B)
-  # obs_worker_ind <- rep(1:W, each = floor(n_obs / W))
-  # diff_len <- length(obs_item_ind) - length(obs_worker_ind)
-  # if (diff_len > 0) {
-  #   obs_worker_ind <- c(
-  #     obs_worker_ind,
-  #     sample(unique(obs_worker_ind), diff_len)
-  #   )
-  # }
-  # obs_worker_ind <- sample(obs_worker_ind, n_obs)
+  # assignment_df
+
   if (is.null(BETA)) {
     BETA <- rep(0, W)
   }
@@ -77,10 +66,6 @@ sim_data <- function(
   obs_beta <- apply(cbind(obs_a, obs_b), 1, function(par) {
     rbeta(1, par[1], par[2])
   })
-
-  # obs_beta <- sapply(obs_mu, function(x) {
-  #   betareg::rxbetax(1, mu = x, phi = precision, nu = NU)
-  # })
 
   if (DATA_TYPE == "ordinal") {
     obs_y <- cont2ord(obs_beta, K)

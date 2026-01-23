@@ -517,10 +517,10 @@ std::vector<std::vector<double>> cpp_ordinal_profiling(
         tau.at(i) = static_cast<double>(i) / static_cast<double>(K);
     }
 
-    std::vector<std::vector<double>> estimates = AgreementPhi::ordinal::nuisance::get_lambda2(
+    std::vector<std::vector<double>> estimates = AgreementPhi::ordinal::nuisance::get_lambda(
         Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, cat_dict,
         ALPHA, BETA, tau, PHI, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE,
-        false, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL
+        PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, TOL
     );
 
     std::vector<std::vector<double>> out(2);
@@ -543,7 +543,6 @@ Rcpp::List cpp_ordinal_get_lambda2(
     const int K,
     const bool ITEMS_NUISANCE,
     const bool WORKER_NUISANCE,
-    const bool THRESHOLDS_NUISANCE,
     const double PROF_UNI_RANGE,
     const int PROF_UNI_MAX_ITER,
     const int PROF_MAX_ITER,
@@ -553,10 +552,10 @@ Rcpp::List cpp_ordinal_get_lambda2(
     std::vector<std::vector<int>> worker_dict = AgreementPhi::utils::oneway_dict(W, WORKER_INDS);
     std::vector<std::vector<int>> cat_dict = AgreementPhi::utils::categories_dict(Y, K);
 
-    std::vector<std::vector<double>> estimates = AgreementPhi::ordinal::nuisance::get_lambda2(
+    std::vector<std::vector<double>> estimates = AgreementPhi::ordinal::nuisance::get_lambda(
         Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, cat_dict,
         ALPHA, BETA, TAU, PHI, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE,
-        THRESHOLDS_NUISANCE, PROF_UNI_RANGE, PROF_UNI_MAX_ITER,
+        PROF_UNI_RANGE, PROF_UNI_MAX_ITER,
         PROF_MAX_ITER, TOL
     );
 
@@ -588,7 +587,6 @@ double cpp_twoway_profile_likelihood(
     const double PROF_TOL,
     const bool ITEMS_NUISANCE,
     const bool WORKER_NUISANCE,
-    const bool THRESHOLDS_NUISANCE,
     const bool CONTINUOUS
 ){
 
@@ -604,7 +602,7 @@ double cpp_twoway_profile_likelihood(
     }else{
         out = AgreementPhi::ordinal::ll::profile(
                 Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, cat_dict, ALPHA, BETA, TAU, PHI, J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE,
-                THRESHOLDS_NUISANCE, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+                PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
     }
 
     return out;
@@ -671,7 +669,6 @@ double cpp_twoway_modified_profile_likelihood(
     const double PROF_TOL,
     const bool ITEMS_NUISANCE,
     const bool WORKER_NUISANCE,
-    const bool THRESHOLDS_NUISANCE,
     const bool CONTINUOUS
 ){
 
@@ -687,7 +684,7 @@ double cpp_twoway_modified_profile_likelihood(
     }else{
         out = AgreementPhi::ordinal::ll::modified_profile(
                 Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, cat_dict, ALPHA_MLE, BETA_MLE, TAU_MLE, PHI, PHI_MLE, J, W, K,
-                ITEMS_NUISANCE, WORKER_NUISANCE, THRESHOLDS_NUISANCE, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+                ITEMS_NUISANCE, WORKER_NUISANCE, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
     }
 
     return out;

@@ -241,60 +241,60 @@ double AgreementPhi::ordinal::nuisance::brent_profiling(
 }
 
 
-double AgreementPhi::ordinal::nuisance::brent_profiling_thresholds(
-                const std::vector<double>& Y, 
-                const std::vector<double>& MU, 
-                const std::vector<std::vector<int>> CAT_DICT,
-                const int IDX,
-                const std::vector<double>& TAU,
-                const double PHI,
-                const int MAX_ITER)
-{
+// double AgreementPhi::ordinal::nuisance::brent_profiling_thresholds(
+//                 const std::vector<double>& Y, 
+//                 const std::vector<double>& MU, 
+//                 const std::vector<std::vector<int>> CAT_DICT,
+//                 const int IDX,
+//                 const std::vector<double>& TAU,
+//                 const double PHI,
+//                 const int MAX_ITER)
+// {
     
-    const std::vector<int>& cat_t = CAT_DICT.at(IDX - 1);
-    const std::vector<int>& cat_tp1 = CAT_DICT.at(IDX);
+//     const std::vector<int>& cat_t = CAT_DICT.at(IDX - 1);
+//     const std::vector<int>& cat_tp1 = CAT_DICT.at(IDX);
 
-    auto neg_ll = [&](double thr){
-        std::vector<double> tau_candidate = TAU;
-        tau_candidate.at(IDX) = thr;
-        double ll = 0;
+//     auto neg_ll = [&](double thr){
+//         std::vector<double> tau_candidate = TAU;
+//         tau_candidate.at(IDX) = thr;
+//         double ll = 0;
 
-        for(const int idx : cat_t){
-            double d1 = 0.0, d2 = 0.0;
-            ll += AgreementPhi::ordinal::loglik(
-                Y.at(idx), MU.at(idx), PHI, tau_candidate, d1, d2, 0
-            );
-        }
+//         for(const int idx : cat_t){
+//             double d1 = 0.0, d2 = 0.0;
+//             ll += AgreementPhi::ordinal::loglik(
+//                 Y.at(idx), MU.at(idx), PHI, tau_candidate, d1, d2, 0
+//             );
+//         }
 
-        for(const int idx : cat_tp1){
-            double d1 = 0.0, d2 = 0.0;
-            ll += AgreementPhi::ordinal::loglik(
-                Y.at(idx), MU.at(idx), PHI, tau_candidate, d1, d2, 0
-            );
-        }
+//         for(const int idx : cat_tp1){
+//             double d1 = 0.0, d2 = 0.0;
+//             ll += AgreementPhi::ordinal::loglik(
+//                 Y.at(idx), MU.at(idx), PHI, tau_candidate, d1, d2, 0
+//             );
+//         }
 
-        return -ll;
-    };
+//         return -ll;
+//     };
 
-    double lower = std::max(TAU.at(IDX) - 0.1, TAU.at(IDX - 1) + 1e-8);
-    double upper = std::min(TAU.at(IDX) + 0.1, TAU.at(IDX + 1) - 1e-8);
-    // double lower = TAU.at(IDX - 1) + 1e-8;
-    // double upper = TAU.at(IDX + 1) - 1e-8;
-    const int digits = std::numeric_limits<double>::digits;
-    boost::uintmax_t max_iter = MAX_ITER;
-    auto result = boost::math::tools::brent_find_minima(
-        neg_ll, lower, upper, digits, max_iter
-    );
+//     double lower = std::max(TAU.at(IDX) - 0.1, TAU.at(IDX - 1) + 1e-8);
+//     double upper = std::min(TAU.at(IDX) + 0.1, TAU.at(IDX + 1) - 1e-8);
+//     // double lower = TAU.at(IDX - 1) + 1e-8;
+//     // double upper = TAU.at(IDX + 1) - 1e-8;
+//     const int digits = std::numeric_limits<double>::digits;
+//     boost::uintmax_t max_iter = MAX_ITER;
+//     auto result = boost::math::tools::brent_find_minima(
+//         neg_ll, lower, upper, digits, max_iter
+//     );
 
-    double opt = result.first; 
-    return opt;
-}
-
-
+//     double opt = result.first; 
+//     return opt;
+// }
 
 
 
-std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda2(
+
+
+std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda(
     const std::vector<double> Y,
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
@@ -310,13 +310,11 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda2(
     const int K,
     const bool ITEMS_NUISANCE,
     const bool WORKER_NUISANCE,
-    const bool THRESHOLDS_NUISANCE,
     const double PROF_UNI_RANGE,
     const int PROF_UNI_MAX_ITER,
     const int PROF_MAX_ITER,
     const double TOL
 ){
-    const int max_iter_thr = 3;
     const int n = Y.size();
     std::vector<double> alphas_best = ALPHA;
     std::vector<double> betas_best = BETA;
@@ -324,7 +322,7 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda2(
     betas_best.at(0) = 0;
 
     int prof_max_iter = 1;
-    if(WORKER_NUISANCE + ITEMS_NUISANCE > 1 | THRESHOLDS_NUISANCE ){
+    if(WORKER_NUISANCE + ITEMS_NUISANCE > 1){
         prof_max_iter = PROF_MAX_ITER;
     }
     
@@ -394,37 +392,6 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda2(
             }
         }
 
-        // Profile thresholds after alpha update
-        // if(THRESHOLDS_NUISANCE){
-        //     std::vector<double> mu_vec(n);
-        //     for(int i = 0; i < n; ++i){
-        //         int item_idx = ITEM_INDS.at(i) - 1;
-        //         int worker_idx = WORKER_INDS.at(i) - 1;
-        //         double eta = alphas_best.at(item_idx);
-        //         if(worker_idx > 0){
-        //             eta += betas_best.at(worker_idx);
-        //         }
-        //         mu_vec.at(i) = link::mu(eta);
-        //     }
-
-                            
-        //     for(int iter_t = 0; iter_t < max_iter_thr; iter_t++){
-        //         std::vector<double> working_taus = taus_best;
-        //         // Optimize all thresholds
-        //         for(int t = K-1; t > 0; t--){
-        //             working_taus.at(t) = AgreementPhi::ordinal::nuisance::brent_profiling_thresholds(
-        //                 Y, mu_vec, CAT_DICT, t, working_taus, PHI, PROF_UNI_MAX_ITER);
-        //             max_change = std::max(max_change, std::abs(working_taus.at(t) - taus_best.at(t)));
-        //         }
-        //         // Check likelihood after ALL thresholds have been updated
-        //         double ll_after = compute_loglik(alphas_best, betas_best, working_taus);
-        //         if(ll_after > ll_best){
-        //             ll_best = ll_after;
-        //             taus_best = working_taus;
-        //         }
-        //     }
-            
-        // }
         
         // Profile workers
         if(WORKER_NUISANCE){
@@ -456,40 +423,6 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda2(
                 }
             }
         }
-
-        // Profile thresholds after alpha update
-        // if(THRESHOLDS_NUISANCE){
-        //     std::vector<double> mu_vec(n);
-        //     for(int i = 0; i < n; ++i){
-        //         int item_idx = ITEM_INDS.at(i) - 1;
-        //         int worker_idx = WORKER_INDS.at(i) - 1;
-        //         double eta = alphas_best.at(item_idx);
-        //         if(worker_idx > 0){
-        //             eta += betas_best.at(worker_idx);
-        //         }
-        //         mu_vec.at(i) = link::mu(eta);
-        //     }
-
-                            
-        //     for(int iter_t = 0; iter_t < max_iter_thr; iter_t++){
-        //         std::vector<double> working_taus = taus_best;
-        //         // Optimize all thresholds
-        //         for(int t = K-1; t > 0; t--){
-        //             working_taus.at(t) = AgreementPhi::ordinal::nuisance::brent_profiling_thresholds(
-        //                 Y, mu_vec, CAT_DICT, t, working_taus, PHI, PROF_UNI_MAX_ITER);
-        //             max_change = std::max(max_change, std::abs(working_taus.at(t) - taus_best.at(t)));
-        //         }
-        //         // Check likelihood after ALL thresholds have been updated
-        //         double ll_after = compute_loglik(alphas_best, betas_best, working_taus);
-        //         if(ll_after > ll_best){
-        //             ll_best = ll_after;
-        //             taus_best = working_taus;
-        //         }
-        //     }
-            
-        // }
-
-
         
         // Check convergence
         if(max_change < TOL) break;
@@ -512,7 +445,7 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda2(
     return out;
 }
 
-// std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda2(
+// std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda(
 //     const std::vector<double> Y,  
 //     const std::vector<int> ITEM_INDS,
 //     const std::vector<int> WORKER_INDS,
@@ -528,12 +461,10 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda2(
 //     const int K,
 //     const bool ITEMS_NUISANCE,
 //     const bool WORKER_NUISANCE,
-//     const bool THRESHOLDS_NUISANCE,
 //     const double PROF_UNI_RANGE,
 //     const int PROF_UNI_MAX_ITER,
 //     const int PROF_MAX_ITER,
-//     const double TOL,
-//     const int NCORES
+//     const double TOL
 // ){
 //     const int max_iter_thr = 3;
 //     const int n = Y.size();
@@ -543,7 +474,7 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda2(
 //     betas_best.at(0) = 0;
 
 //     int prof_max_iter = 1;
-//     if(WORKER_NUISANCE + ITEMS_NUISANCE > 1 | THRESHOLDS_NUISANCE ){
+//     if(WORKER_NUISANCE + ITEMS_NUISANCE > 1  ){
 //         prof_max_iter = PROF_MAX_ITER;
 //     }
     
