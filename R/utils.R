@@ -139,10 +139,10 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
       type = "l",
       xlab = "Agreement",
       ylab = "Relative log-likelihood",
-      col = 1
+      col = "#56B4E9"
     )
 
-    abline(v = X$profile$agreement, col = 1, lty = 2)
+    abline(v = X$profile$agreement, col = "#56B4E9", lty = 2)
   }
 
   mpl_range <- rep(NA, length(phi_range))
@@ -180,7 +180,7 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
       legend(
         "bottomleft",
         legend = c("Profile likelihood", "Modified profile likelihood"),
-        col = c(1, 2),
+        col = c("#56B4E9", "#D55E00"),
         lty = c(1, 1),
         bty = "n"
       )

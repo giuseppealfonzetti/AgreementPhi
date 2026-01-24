@@ -18,10 +18,11 @@ LinkingTo:
     BH,
     RcppEigen,
     RcppParallel
-Imports: 
+Imports:
     Rcpp (>= 1.1.0),
     AlgDesign,
-    RcppParallel
+    RcppParallel,
+    tinyplot
 URL: https://github.com/giuseppealfonzetti/AgreementPhi
 BugReports: https://github.com/giuseppealfonzetti/AgreementPhi/issues
 VignetteBuilder: knitr
