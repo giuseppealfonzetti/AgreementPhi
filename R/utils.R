@@ -25,22 +25,6 @@ agr2prec <- function(X) {
 }
 
 
-#' @export
-raw2tau <- function(X) {
-  tau <- cumsum(exp(X)) / (sum(exp(X)) + 1)
-  out <- c(0, tau, 1)
-  return(out)
-}
-
-#' @export
-tau2raw <- function(X) {
-  n <- length(X) - 2
-  gaps <- diff(X)
-  last_gap <- gaps[n + 1]
-  z <- n * gaps[seq_len(n)] / last_gap
-  log(z)
-}
-
 #' Discretise continuous data
 #'
 #' @param X Vector of continuous data in (0,1).
@@ -48,6 +32,12 @@ tau2raw <- function(X) {
 #' @param TRESHOLDS Threshold vector of length K-1. If null, thresholds are assumed to be equispaced.
 #'
 #' @return Discretised vector
+#'
+#' @examples
+#' x <- c(0,runif(5,0,1),1)
+#' x
+#' cont2ord(x, K=3)
+#'
 #'
 #' @export
 cont2ord <- function(X, K, TRESHOLDS = NULL) {
@@ -67,151 +57,128 @@ cont2ord <- function(X, K, TRESHOLDS = NULL) {
   return(out)
 }
 
-#' Get relative log-likelihood
+#' Squeeze \[0,1\] data
+#'
+#' @param X Vector of continuous data in \[0,1\].
+#' @param U Squeezing parameter. If NULL, default chosen as per Smithson et al. (2006).
+#'
+#' @return Squeezed vector
+#'
+#' @references
+#'
+#' - Smithson, Michael, and Jay Verkuilen. 2006. “A Better Lemon Squeezer? Maximum-Likelihood Regression with Beta-Distributed Dependent Variables.” *Psychological Methods* **11(1)**: 54–71. [doi](https://psycnet.apa.org/doi/10.1037/1082-989X.11.1.54)
+#'
+#' @examples
+#' x <- c(0,runif(5,0,1),1)
+#' x
+#' lemon(x)
+#'
+#' @export
+lemon <- function(X, U = NULL) {
+  stopifnot(all(X <= 1))
+  stopifnot(all(X >= 0))
+  n <- length(X)
+  if (is.null(U)) {
+    U <- 1 / (2 * (n - 1))
+  }
+
+  x <- (X + U) / (1 + 2 * U)
+  return(x)
+}
+
+#' Get log-likelihood range
 #'
 #' @param X Object fitted with [agreement()] function.
 #' @param RANGE Range around agreement mle.
 #' @param GRID_LENGTH Number of points to be evaluated within RANGE.
-#' @param PLOT Plot relative log-likelihood.
 #'
 #' @return Return a data.frame with GRID_LENGTH rows and columns
-#' `precision`, `agreement`, `profile_rll` and `modified_rll`.
+#' `precision`, `agreement`, `profile` and `modified`.
 #'
-#' @importFrom graphics abline legend lines plot
 #' @importFrom stats plogis rbeta
 #' @export
-get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
+get_range_ll <- function(X, RANGE = .2, GRID_LENGTH = 15) {
   stopifnot(is.numeric(RANGE))
   stopifnot(RANGE > 0)
   stopifnot(RANGE <= 1)
-  stopifnot(is.logical(PLOT))
   stopifnot(GRID_LENGTH > 0)
 
   args <- X$cpp_args
 
+  # Create grid around profile likelihood estimate
   agreement_range <- seq(
-    max(X$pl_agreement - RANGE, 1e-2),
-    min(X$pl_agreement + RANGE, 1 - 1e-2),
+    max(X$profile$agreement - RANGE, 1e-2),
+    min(X$profile$agreement + RANGE, 1 - 1e-2),
     length.out = GRID_LENGTH
   )
   phi_range <- sapply(agreement_range, agr2prec)
 
-  J <- if (!is.null(args$J)) args$J else length(unique(args$ITEM_INDS))
-  worker_inds <- args$WORKER_INDS
-  if (is.null(worker_inds)) {
-    worker_inds <- rep(1L, length(args$Y))
-  } else {
-    worker_inds <- as.integer(worker_inds)
-  }
-  W <- args$W
-  if (is.null(W) || W <= 0) {
-    W <- max(worker_inds)
-  }
-  beta_start <- args$BETA_START
-  if (is.null(beta_start) || length(beta_start) == 0) {
-    beta_start <- rep(0, W)
-  }
-  tau_start <- args$TAU_START
-  if (is.null(tau_start) || length(tau_start) != args$K + 1) {
-    tau_start <- seq(0, 1, length.out = args$K + 1)
-  }
-  data_type <- if (!is.null(args$DATA_TYPE)) args$DATA_TYPE else X$data_type
-  items_nuis <- if (!is.null(args$ITEMS_NUISANCE)) args$ITEMS_NUISANCE else TRUE
-  worker_nuis <- if (!is.null(args$WORKER_NUISANCE)) {
-    args$WORKER_NUISANCE
-  } else {
-    TRUE
-  }
-  thresholds_nuis <- if (!is.null(args$THRESHOLDS_NUISANCE)) {
-    args$THRESHOLDS_NUISANCE
-  } else {
-    FALSE
-  }
-  K <- if (!is.null(args$K)) args$K else 1L
-  alpha_start <- args$ALPHA_START
-  if (is.null(alpha_start) || length(alpha_start) != J) {
-    alpha_start <- rep(0, J)
-  }
-  pl_range <- sapply(phi_range, function(x) {
+  # Extract parameters from cpp_args
+  data_type <- args$DATA_TYPE
+  K <- args$K
+
+  # Compute profile likelihood over grid
+  pl_range <- sapply(phi_range, function(phi) {
     cpp_profile_likelihood(
       Y = args$Y,
       ITEM_INDS = as.integer(args$ITEM_INDS),
-      WORKER_INDS = worker_inds,
-      ALPHA_START = alpha_start,
-      BETA_START = beta_start,
-      TAU_START = tau_start,
-      PHI = x,
-      J = J,
-      W = W,
+      WORKER_INDS = if (!is.null(args$WORKER_INDS)) {
+        as.integer(args$WORKER_INDS)
+      } else {
+        integer(0)
+      },
+      ALPHA_START = args$ALPHA_START,
+      BETA_START = args$BETA_START,
+      TAU_START = X$tau,
+      PHI = phi,
+      J = args$J,
+      W = if (!is.null(args$W)) args$W else 1L,
       K = K,
       DATA_TYPE = data_type,
-      ITEMS_NUISANCE = items_nuis,
-      WORKER_NUISANCE = worker_nuis,
-      THRESHOLDS_NUISANCE = thresholds_nuis,
+      ITEMS_NUISANCE = args$ITEMS_NUISANCE,
+      WORKER_NUISANCE = args$WORKER_NUISANCE,
       PROF_SEARCH_RANGE = args$PROF_SEARCH_RANGE,
-      PROF_UNI_MAX_ITER = args$PROF_MAX_ITER,
-      ALT_MAX_ITER = args$ALT_MAX_ITER,
+      PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
+      ALT_MAX_ITER = as.integer(args$ALT_MAX_ITER),
       ALT_TOL = args$ALT_TOL
     )
   })
 
-  if (PLOT) {
-    plot(
-      agreement_range,
-      pl_range - max(pl_range),
-      type = "l",
-      xlab = "Agreement",
-      ylab = "Relative log-likelihood",
-      col = 1
-    )
-
-    abline(v = X$pl_agreement, col = 1, lty = 2)
-  }
-
-  mpl_range <- NA
+  mpl_range <- rep(NA, length(phi_range))
   if (X$method == "modified") {
-    mpl_range <- sapply(phi_range, function(x) {
-      cpp_modified_profile_likelihood_extended(
+    mpl_range <- sapply(phi_range, function(phi) {
+      cpp_modified_profile_likelihood(
         Y = args$Y,
         ITEM_INDS = as.integer(args$ITEM_INDS),
-        WORKER_INDS = worker_inds,
+        WORKER_INDS = if (!is.null(args$WORKER_INDS)) {
+          as.integer(args$WORKER_INDS)
+        } else {
+          integer(0)
+        },
         ALPHA_MLE = X$alpha,
         BETA_MLE = X$beta,
-        TAU_MLE = if (data_type == "ordinal") X$tau else c(0, 1),
-        PHI = x,
-        PHI_MLE = X$pl_precision,
-        J = J,
-        W = W,
+        TAU = X$tau,
+        PHI = phi,
+        PHI_MLE = X$profile$precision,
+        J = args$J,
+        W = if (!is.null(args$W)) args$W else 1L,
         K = K,
         DATA_TYPE = data_type,
-        ITEMS_NUISANCE = items_nuis,
-        WORKER_NUISANCE = worker_nuis,
-        THRESHOLDS_NUISANCE = thresholds_nuis,
+        ITEMS_NUISANCE = args$ITEMS_NUISANCE,
+        WORKER_NUISANCE = args$WORKER_NUISANCE,
         PROF_SEARCH_RANGE = args$PROF_SEARCH_RANGE,
-        PROF_UNI_MAX_ITER = args$PROF_MAX_ITER,
-        ALT_MAX_ITER = args$ALT_MAX_ITER,
+        PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
+        ALT_MAX_ITER = as.integer(args$ALT_MAX_ITER),
         ALT_TOL = args$ALT_TOL
       )
     })
-
-    if (PLOT) {
-      lines(agreement_range, mpl_range - max(mpl_range), col = 2)
-      abline(v = X$mpl_agreement, col = 2, lty = 2)
-      legend(
-        "bottomleft",
-        legend = c("Profile likelihood", "Modified profile likelihood"),
-        col = c(1, 2),
-        lty = c(1, 1),
-        bty = "n"
-      )
-    }
   }
 
   out <- data.frame(
     precision = phi_range,
     agreement = agreement_range,
-    profile_rll = pl_range,
-    modified_rll = mpl_range
+    profile = pl_range,
+    modified = mpl_range
   )
 
   return(out)
@@ -227,52 +194,50 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
 #' @importFrom stats qnorm
 #' @export
 get_ci <- function(X, CONFIDENCE = 0.95) {
-  stopifnot(is.numeric(CONFIDENCE))
-  stopifnot(CONFIDENCE < 1)
-  stopifnot(CONFIDENCE > 0)
+  stopifnot(is.numeric(CONFIDENCE), CONFIDENCE < 1, CONFIDENCE > 0)
 
-  mle <- X$pl_precision
+  args <- X$cpp_args
 
-  agr_se <- NA
-  est <- NA
+  # MLE values from fitted object
+  alpha_mle <- X$alpha
+  beta_mle <- X$beta
+  tau_mle <- if (!is.null(X$tau)) X$tau else args$TAU_START
+  phi_mle <- X$profile$precision
+
+  # Determine evaluation point
   if (X$method == "modified") {
-    agr_se <- cpp_get_se(
-      Y = X$cpp_args$Y,
-      ITEM_INDS = X$cpp_args$ITEM_INDS,
-      ALPHA_START = X$cpp_args$ALPHA_START,
-      PHI_MLE = mle,
-      PHI_EVAL = X$mpl_precision,
-      K = X$cpp_args$K,
-      J = X$cpp_args$J,
-      SEARCH_RANGE = X$cpp_args$SEARCH_RANGE,
-      MAX_ITER = X$cpp_args$MAX_ITER,
-      PROF_SEARCH_RANGE = X$cpp_args$PROF_SEARCH_RANGE,
-      PROF_MAX_ITER = X$cpp_args$PROF_MAX_ITER,
-      PROF_METHOD = X$cpp_args$PROF_METHOD,
-      CONTINUOUS = X$cpp_args$CONTINUOUS,
-      MODIFIED = TRUE
-    )
-    est <- X$mpl_agreement
+    phi_eval <- X$modified$precision
+    est <- X$modified$agreement
   } else {
-    agr_se <- cpp_get_se(
-      Y = X$cpp_args$Y,
-      ITEM_INDS = X$cpp_args$ITEM_INDS,
-      ALPHA_START = X$cpp_args$ALPHA_START,
-      PHI_MLE = mle,
-      PHI_EVAL = mle,
-      K = X$cpp_args$K,
-      J = X$cpp_args$J,
-      SEARCH_RANGE = X$cpp_args$SEARCH_RANGE,
-      MAX_ITER = X$cpp_args$MAX_ITER,
-      PROF_SEARCH_RANGE = X$cpp_args$PROF_SEARCH_RANGE,
-      PROF_MAX_ITER = X$cpp_args$PROF_MAX_ITER,
-      PROF_METHOD = X$cpp_args$PROF_METHOD,
-      CONTINUOUS = X$cpp_args$CONTINUOUS,
-      MODIFIED = FALSE
-    )
-
-    est <- X$pl_agreement
+    phi_eval <- phi_mle
+    est <- X$profile$agreement
   }
+
+  agr_se <- cpp_get_se(
+    Y = args$Y,
+    ITEM_INDS = as.integer(args$ITEM_INDS),
+    WORKER_INDS = if (!is.null(args$WORKER_INDS)) {
+      as.integer(args$WORKER_INDS)
+    } else {
+      integer(0)
+    },
+    ALPHA_MLE = alpha_mle,
+    BETA_MLE = beta_mle,
+    TAU_MLE = tau_mle,
+    PHI_EVAL = phi_eval,
+    PHI_MLE = phi_mle,
+    J = args$J,
+    W = if (!is.null(args$W)) args$W else 1L,
+    K = args$K,
+    METHOD = args$METHOD,
+    DATA_TYPE = args$DATA_TYPE,
+    ITEMS_NUISANCE = args$ITEMS_NUISANCE,
+    WORKER_NUISANCE = args$WORKER_NUISANCE,
+    PROF_SEARCH_RANGE = as.integer(args$PROF_SEARCH_RANGE),
+    PROF_MAX_ITER = as.integer(args$PROF_MAX_ITER),
+    ALT_MAX_ITER = as.integer(args$ALT_MAX_ITER),
+    ALT_TOL = args$ALT_TOL
+  )
 
   alpha <- 1 - CONFIDENCE
   z <- qnorm(1 - alpha / 2)
@@ -280,6 +245,6 @@ get_ci <- function(X, CONFIDENCE = 0.95) {
   return(list(
     agreement_est = est,
     agreement_se = agr_se,
-    agreement_ci = c(est - z * agr_se, est + z * agr_se)
+    agreement_ci = c(max(0, est - z * agr_se), min(1, est + z * agr_se))
   ))
 }

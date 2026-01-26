@@ -7,5 +7,3 @@ NULL
 #' @useDynLib AgreementPhi, .registration = TRUE
 ## usethis namespace: end
 NULL
-
-

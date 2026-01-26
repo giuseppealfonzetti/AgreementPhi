@@ -213,7 +213,8 @@ cpp_res <- cpp_log_det_obs_info(
   ALPHA = alphas,
   PHI = phi,
   K = k,
-  J = items
+  J = items,
+  ITEMS_NUISANCE = TRUE
 )
 test_that("log det obs info", {
   expect_equal(cpp_res, numlogdet)
@@ -226,7 +227,8 @@ cpp_res_E <- cpp_log_det_E0d0d1(
   ALPHA1 = alphas,
   PHI1 = phi,
   K = k,
-  J = items
+  J = items,
+  ITEMS_NUISANCE = TRUE
 )
 
 test_that("log det obs info equivalent to E0d0d0", {
