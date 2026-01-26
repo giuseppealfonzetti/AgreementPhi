@@ -11,6 +11,33 @@
 #' @param SEED RNG seed.
 #'
 #' @return Returns a dataframe with columns id_items, id_worker and rating
+#'
+#' @examples
+#' set.seed(123)
+#'
+#' # generate from one-way model
+#' # (varying item effects, worker effects fixed to zero)
+#' dt1way <- sim_data(
+#'  J = 50,
+#'  B = 5,
+#'  AGREEMENT = .8,
+#'  ALPHA = runif(50, 0, 1),
+#'  DATA_TYPE = "continuous",
+#'  SEED = 123
+#' )
+#' # generate from two-way model
+#' # (varying item effects, varying worker effects)
+#' dt1way <- sim_data(
+#'  J = 50,
+#'  W = 40,
+#'  B = 5,
+#'  AGREEMENT = .8,
+#'  ALPHA = runif(50, 0, 1),
+#'  BETA = runif(40, 0, 1),
+#'  DATA_TYPE = "continuous",
+#'  SEED = 123
+#' )
+#'
 #' @importFrom AlgDesign optFederov
 #' @export
 sim_data <- function(
@@ -20,7 +47,6 @@ sim_data <- function(
   AGREEMENT,
   ALPHA,
   BETA = NULL,
-  NU = 0,
   DATA_TYPE = c("ordinal", "continuous"),
   K = 6,
   SEED = 123

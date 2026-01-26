@@ -1,7 +1,15 @@
-#' Compute agreement via profile likelihood methods
+#' Compute Agreement
+#'
+#' @description
+#'
+#' Compute the \eqn{\Phi} agreement proposed in Checco et al. (2017) via profile likelihood methods.
+#'
+#' @references
+#'
+#' - Checco, Alessandro, Kevin Roitero, Eddy Maddalena, Stefano Mizzaro, and Gianluca Demartini. 2017. “Let’s Agree to Disagree: Fixing Agreement Measures for Crowdsourcing.” *Proceedings of the AAAI Conference on Human Computation and Crowdsourcing* **5**: 11–20. [doi](https://doi.org/10.1609/hcomp.v5i1.13306)
 #'
 #' @param RATINGS Ratings vector of dimension n. Ordinal data must be coded in \{1, 2, ..., K\}.
-#'   Continuous data can take values in (0, 1).
+#'   Continuous data can take values in `(0, 1)`.
 #' @param ITEM_INDS Index vector with items allocations. Same dimension as `RATINGS`.
 #' @param WORKER_INDS Index vector with worker allocations. Same dimension as `RATINGS`. Ignored when MODEL == "oneway".
 #'   Must be integers in \{1, 2, ..., J\}.
@@ -10,41 +18,82 @@
 #'     \item `"modified"`: Uses modified profile likelihood with Barndorff-Nielsen correction
 #'     \item `"profile"`: Uses standard profile likelihood
 #'   }
-#' @param MODEL Choose between `"oneway"` or `"twoway"`. Default is `"oneway"`.
-#'   \itemize{
-#'     \item `"oneway"`: Item-specific intercepts. Indistiguishable workers.
-#'     \item `"twoway"`: Item-specific and worker-specific intercepts.
-#'   }
 #' @param ALPHA_START Starting values for item-specific intercepts. Vector of length J. Default is `rep(0, J)` where J is the number of items.
 #' @param BETA_START Starting values for worker-specific intercepts. Vector of length W-1. Default is `rep(0, W-1)` where W is the number of workers
+#' @param TAU Thresholds to use for the discretisation of the underlying beta distribution.
 #' @param PHI_START Starting value for beta precision parameter. Must be positive. Default is `agr2prec(0.5)` (precision corresponding to 50% agreement).
+#' @param NUISANCE Vector containg either `"items"` or `"workers"` or both. Defines which fixed effects to profile out during estimation.
 #' @param CONTROL Control options for the optimization:
 #' \describe{
 #'     \item{`SEARCH_RANGE`}{Search range for precision parameter optimization.
-#'       The algorithm searches in `[1e-8, PHI_START + SEARCH_RANGE]`.
-#'       Must be positive. Default: `10`.}
+#'       The algorithm searches in \[1e-8, PHI_START + SEARCH_RANGE\].
+#'       Must be positive. Default: `8`.}
 #'     \item{`MAX_ITER`}{Maximum number of iterations for precision parameter optimization.
 #'       Must be a positive integer. Default: `100`.}
 #'     \item{`PROF_SEARCH_RANGE`}{Search range for profiling out nuisance parameters (item intercepts).
-#'       The algorithm searches in `[ALPHA_START[j] - PROF_SEARCH_RANGE, ALPHA_START[j] + PROF_SEARCH_RANGE]`
-#'       for each item j. Must be positive. Default: `10`.}
+#'       The algorithm searches in \[ALPHA_START\[j\] - PROF_SEARCH_RANGE, ALPHA_START\[j\] + PROF_SEARCH_RANGE\]
+#'       for each item j. Must be positive. Default: `4`.}
 #'     \item{`PROF_MAX_ITER`}{Maximum number of iterations for profiling optimization.
-#'       Must be a positive integer. Default: `100`.}
-#'     \item{`PROF_METHOD`}{Method for profiling optimization. A character string among:
-#'       \itemize{
-#'         \item `"brent"`: Brent's method (one-way only). Default for one-way.
-#'         \item `"newton_raphson"`: Newton-Raphson method (one-way only).
-#'         \item `"bfgs"`: L-BFGS method (two-way only). Default for two-way continuous data.
-#'         \item `"alt_brent"`: Alternated profiling via univariate Brent's method (two-way only). Default for two-way ordinal data
-#'       }}
-#'     \item{`ALT_MAX_ITER`}{Maximum iterations for `alt_brent`.
 #'       Must be a positive integer. Default: `10`.}
-#'     \item{`ALT_TOL`}{Relative convergence tolerance for `alt_brent`.
-#'       Must be positive. Default: `1e-2`}
+#'     \item{`ALT_MAX_ITER`}{Maximum iterations for alternating profiling.
+#'       Must be a positive integer. Default: `10`.}
+#'     \item{`ALT_TOL`}{Relative convergence tolerance for alternating profiling.
+#'       Must be positive. Default: `1e-2`.}
 #'  }
 #' @param VERBOSE Verbose output.
 #'
 #' @return Returns a list with maximum likelihood estimates and corresponding negative log-likelihood.
+#'
+#' @examples
+#' set.seed(321)
+#'
+#' # setting dimension
+#' items <- 50
+#' budget_per_item <- 5
+#' n_obs <- items * budget_per_item
+#' workers <- 50
+#'
+#' # item-specific intercepts to generate the data
+#' alphas <- runif(items, -2, 2)
+#'
+#' # true agreement (between 0 and 1)
+#' agr <- .6
+#'
+#' # generate continuous rating in (0,1)
+#' dt_oneway <- sim_data(
+#'   J = items,
+#'   B = budget_per_item,
+#'   AGREEMENT = agr,
+#'   ALPHA = alphas,
+#'   DATA_TYPE = "continuous",
+#'   SEED = 123
+#' )
+#'
+#' # estimation via oneway specification
+#' fit <- agreement(
+#'   RATINGS = dt_oneway$rating,
+#'   ITEM_INDS = dt_oneway$id_item,
+#'   WORKER_INDS = dt_oneway$id_worker,
+#'   METHOD = "modified",
+#'   NUISANCE = c("items"),
+#'   VERBOSE = TRUE
+#' )
+#' # get standard error and confidence interval
+#' ci <- get_ci(fit)
+#' ci
+#'
+#' # compute log-likelihood over a grid
+#' range_ll <- get_range_ll(fit)
+#'
+#' # utility plot function for relative log-likelihood
+#' plot_rll(
+#'   D = range_ll,
+#'   M_EST = fit$modified$agreement,
+#'   P_EST = fit$profile$agreement,
+#'   M_SE = ci$agreement_se,
+#'   CONFIDENCE=.95
+#' )
+#'
 #' @export
 agreement <- function(
   RATINGS,
@@ -53,16 +102,13 @@ agreement <- function(
   METHOD = c("modified", "profile"),
   ALPHA_START = NULL,
   BETA_START = NULL,
-  TAU_START = NULL,
+  TAU = NULL,
   PHI_START = NULL,
   NUISANCE = c("items", "workers"),
   CONTROL = list(),
-  VERBOSE = FALSE,
-  NCORES = 1
+  VERBOSE = FALSE
 ) {
   METHOD <- match.arg(METHOD)
-
-  RcppParallel::setThreadOptions(numThreads = NCORES)
 
   if (VERBOSE) {
     message("\nDATA")
@@ -109,8 +155,8 @@ agreement <- function(
     PHI_START <- agr2prec(.5)
   }
 
-  if (is.null(TAU_START)) {
-    TAU_START <- seq(0, 1, by = 1 / val_data$K)
+  if (is.null(TAU)) {
+    TAU <- seq(0, 1, by = 1 / val_data$K)
   }
 
   CONTROL <- validate_cpp_control(CONTROL)
@@ -121,7 +167,7 @@ agreement <- function(
       WORKER_INDS = val_data$worker_ids,
       ALPHA_START = ALPHA_START,
       BETA_START = c(0, BETA_START),
-      TAU_START = TAU_START,
+      TAU_START = TAU,
       PHI_START = PHI_START,
       K = val_data$K,
       J = val_data$n_items,

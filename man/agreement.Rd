@@ -2,7 +2,7 @@
 % Please edit documentation in R/agreement.R
 \name{agreement}
 \alias{agreement}
-\title{Compute agreement via profile likelihood methods}
+\title{Compute Agreement}
 \usage{
 agreement(
   RATINGS,
@@ -11,17 +11,16 @@ agreement(
   METHOD = c("modified", "profile"),
   ALPHA_START = NULL,
   BETA_START = NULL,
-  TAU_START = NULL,
+  TAU = NULL,
   PHI_START = NULL,
   NUISANCE = c("items", "workers"),
   CONTROL = list(),
-  VERBOSE = FALSE,
-  NCORES = 1
+  VERBOSE = FALSE
 )
 }
 \arguments{
 \item{RATINGS}{Ratings vector of dimension n. Ordinal data must be coded in \{1, 2, ..., K\}.
-Continuous data can take values in (0, 1).}
+Continuous data can take values in \verb{(0, 1)}.}
 
 \item{ITEM_INDS}{Index vector with items allocations. Same dimension as \code{RATINGS}.}
 
@@ -38,44 +37,91 @@ Must be integers in \{1, 2, ..., J\}.}
 
 \item{BETA_START}{Starting values for worker-specific intercepts. Vector of length W-1. Default is \code{rep(0, W-1)} where W is the number of workers}
 
+\item{TAU}{Thresholds to use for the discretisation of the underlying beta distribution.}
+
 \item{PHI_START}{Starting value for beta precision parameter. Must be positive. Default is \code{agr2prec(0.5)} (precision corresponding to 50\% agreement).}
+
+\item{NUISANCE}{Vector containg either \code{"items"} or \code{"workers"} or both. Defines which fixed effects to profile out during estimation.}
 
 \item{CONTROL}{Control options for the optimization:
 \describe{
 \item{\code{SEARCH_RANGE}}{Search range for precision parameter optimization.
-The algorithm searches in \verb{[1e-8, PHI_START + SEARCH_RANGE]}.
-Must be positive. Default: \code{10}.}
+The algorithm searches in [1e-8, PHI_START + SEARCH_RANGE].
+Must be positive. Default: \code{8}.}
 \item{\code{MAX_ITER}}{Maximum number of iterations for precision parameter optimization.
 Must be a positive integer. Default: \code{100}.}
 \item{\code{PROF_SEARCH_RANGE}}{Search range for profiling out nuisance parameters (item intercepts).
-The algorithm searches in \verb{[ALPHA_START[j] - PROF_SEARCH_RANGE, ALPHA_START[j] + PROF_SEARCH_RANGE]}
-for each item j. Must be positive. Default: \code{10}.}
+The algorithm searches in [ALPHA_START[j] - PROF_SEARCH_RANGE, ALPHA_START[j] + PROF_SEARCH_RANGE]
+for each item j. Must be positive. Default: \code{4}.}
 \item{\code{PROF_MAX_ITER}}{Maximum number of iterations for profiling optimization.
-Must be a positive integer. Default: \code{100}.}
-\item{\code{PROF_METHOD}}{Method for profiling optimization. A character string among:
-\itemize{
-\item \code{"brent"}: Brent's method (one-way only). Default for one-way.
-\item \code{"newton_raphson"}: Newton-Raphson method (one-way only).
-\item \code{"bfgs"}: L-BFGS method (two-way only). Default for two-way continuous data.
-\item \code{"alt_brent"}: Alternated profiling via univariate Brent's method (two-way only). Default for two-way ordinal data
-}}
-\item{\code{ALT_MAX_ITER}}{Maximum iterations for \code{alt_brent}.
 Must be a positive integer. Default: \code{10}.}
-\item{\code{ALT_TOL}}{Relative convergence tolerance for \code{alt_brent}.
-Must be positive. Default: \code{1e-2}}
+\item{\code{ALT_MAX_ITER}}{Maximum iterations for alternating profiling.
+Must be a positive integer. Default: \code{10}.}
+\item{\code{ALT_TOL}}{Relative convergence tolerance for alternating profiling.
+Must be positive. Default: \code{1e-2}.}
 }}
 
 \item{VERBOSE}{Verbose output.}
-
-\item{MODEL}{Choose between \code{"oneway"} or \code{"twoway"}. Default is \code{"oneway"}.
-\itemize{
-\item \code{"oneway"}: Item-specific intercepts. Indistiguishable workers.
-\item \code{"twoway"}: Item-specific and worker-specific intercepts.
-}}
 }
 \value{
 Returns a list with maximum likelihood estimates and corresponding negative log-likelihood.
 }
 \description{
-Compute agreement via profile likelihood methods
+Compute the \eqn{\Phi} agreement proposed in Checco et al. (2017) via profile likelihood methods.
+}
+\examples{
+set.seed(321)
+
+# setting dimension
+items <- 50
+budget_per_item <- 5
+n_obs <- items * budget_per_item
+workers <- 50
+
+# item-specific intercepts to generate the data
+alphas <- runif(items, -2, 2)
+
+# true agreement (between 0 and 1)
+agr <- .6
+
+# generate continuous rating in (0,1)
+dt_oneway <- sim_data(
+  J = items,
+  B = budget_per_item,
+  AGREEMENT = agr,
+  ALPHA = alphas,
+  DATA_TYPE = "continuous",
+  SEED = 123
+)
+
+# estimation via oneway specification
+fit <- agreement(
+  RATINGS = dt_oneway$rating,
+  ITEM_INDS = dt_oneway$id_item,
+  WORKER_INDS = dt_oneway$id_worker,
+  METHOD = "modified",
+  NUISANCE = c("items"),
+  VERBOSE = TRUE
+)
+# get standard error and confidence interval
+ci <- get_ci(fit)
+ci
+
+# compute log-likelihood over a grid
+range_ll <- get_range_ll(fit)
+
+# utility plot function for relative log-likelihood
+plot_rll(
+  D = range_ll,
+  M_EST = fit$modified$agreement,
+  P_EST = fit$profile$agreement,
+  M_SE = ci$agreement_se,
+  CONFIDENCE=.95
+)
+
+}
+\references{
+\itemize{
+\item Checco, Alessandro, Kevin Roitero, Eddy Maddalena, Stefano Mizzaro, and Gianluca Demartini. 2017. “Let’s Agree to Disagree: Fixing Agreement Measures for Crowdsourcing.” \emph{Proceedings of the AAAI Conference on Human Computation and Crowdsourcing} \strong{5}: 11–20. \href{https://doi.org/10.1609/hcomp.v5i1.13306}{doi}
+}
 }

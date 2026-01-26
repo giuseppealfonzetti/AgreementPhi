@@ -16,13 +16,10 @@ RoxygenNote: 7.3.2
 LinkingTo:
     Rcpp,
     BH,
-    RcppEigen,
-    RcppParallel
+    RcppEigen
 Imports:
     Rcpp (>= 1.1.0),
-    AlgDesign,
-    RcppParallel,
-    tinyplot
+    AlgDesign
 URL: https://github.com/giuseppealfonzetti/AgreementPhi
 BugReports: https://github.com/giuseppealfonzetti/AgreementPhi/issues
 VignetteBuilder: knitr

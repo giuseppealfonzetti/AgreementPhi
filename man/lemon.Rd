@@ -2,18 +2,29 @@
 % Please edit documentation in R/utils.R
 \name{lemon}
 \alias{lemon}
-\title{Squeeze \link{0,100} data}
+\title{Squeeze [0,1] data}
 \usage{
 lemon(X, U = NULL)
 }
 \arguments{
-\item{U}{Squeezing parameter}
+\item{X}{Vector of continuous data in [0,1].}
 
-\item{Y}{Vector of continuous data in \link{0,1}.}
+\item{U}{Squeezing parameter. If NULL, default chosen as per Smithson et al. (2006).}
 }
 \value{
 Squeezed vector
 }
 \description{
-Squeeze \link{0,100} data
+Squeeze [0,1] data
+}
+\examples{
+x <- c(0,runif(5,0,1),1)
+x
+lemon(x)
+
+}
+\references{
+\itemize{
+\item Smithson, Michael, and Jay Verkuilen. 2006. “A Better Lemon Squeezer? Maximum-Likelihood Regression with Beta-Distributed Dependent Variables.” \emph{Psychological Methods} \strong{11(1)}: 54–71. \href{https://psycnet.apa.org/doi/10.1037/1082-989X.11.1.54}{doi}
+}
 }

@@ -36,58 +36,58 @@ devtools::install_github("giuseppealfonzetti/AgreementPhi")
 Generate a synthetic dataset with continuous ratings in (0,1)
 
 ```{r}
+library(AgreementPhi)
 set.seed(321)
 # setting dimension
-items <- 100
+items <- 200
 budget_per_item <- 5
 n_obs <- items * budget_per_item
-workers <- 100
+
 # item-specific intercepts to generate the data
-alphas <- runif(items, -1, 1)
-betas <- rep(0, workers)
+alphas <- runif(items, -2, 2)
 
 # true agreement (between 0 and 1)
-agr <- .6
+agr <- .7
 
 # generate continuous rating in (0,1)
-dt_oneway <- sim_data(
+dt <- sim_data(
   J = items,
   B = budget_per_item,
   AGREEMENT = agr,
-  ALPHA = alphas,
-  BETA = betas,
-  W=workers,
-  DATA_TYPE = "continuous",
-  SEED = 123
+  ALPHA = alphas
 )
 
-
 ```
 
-
+Fit the model using the `agreement()` function
 ```{r}
-# estimation via oneway specification
-fit_c_oneway <- agreement(
-  RATINGS = dt_oneway$rating,
-  ITEM_INDS = dt_oneway$id_item,
-  WORKER_INDS = dt_oneway$id_worker,
+# estimation via modified profile likelihood
+fit <- agreement(
+  RATINGS = dt$rating,
+  ITEM_INDS = dt$id_item,
+  WORKER_INDS = dt$id_worker,
   METHOD = "modified",
   NUISANCE = c("items"),
   VERBOSE = TRUE)
-get_ci(fit_c_oneway)
-get_rll(fit_c_oneway)
+
 ```
 
+Inference and plotting functions
+
 ```{r}
-tictoc::tic()
-fit_K10 <- agreement(
-  RATINGS = cont2ord(dt_oneway$rating, K=10),
-  ITEM_INDS = dt_oneway$id_item,
-  WORKER_INDS = dt_oneway$id_worker,
-  METHOD = "modified",
-  NUISANCE = c("items"),
-  VERBOSE = TRUE)
-tictoc::toc()
-get_ci(fit_K10)
-get_rll(fit_K10)
+# get standard error and confidence interval
+ci <- get_ci(fit)
+ci 
+
+# compute log-likelihood over a grid
+range_ll <- get_range_ll(fit)
+
+# utility plot function for relative log-likelihood
+plot_rll(
+  D=range_ll, 
+  M_EST = fit$modified$agreement,
+  P_EST = fit$profile$agreement,
+  M_SE = ci$agreement_se,
+  CONFIDENCE=.95
+)
 ```
