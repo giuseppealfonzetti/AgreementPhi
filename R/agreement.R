@@ -1,7 +1,15 @@
-#' Compute agreement via profile likelihood methods
+#' Compute Agreement
+#'
+#' @description
+#'
+#' Compute the \eqn{\Phi} agreement proposed in Checco et al. (2017) via profile likelihood methods.
+#'
+#' @references
+#'
+#' - Checco, Alessandro, Kevin Roitero, Eddy Maddalena, Stefano Mizzaro, and Gianluca Demartini. 2017. “Let’s Agree to Disagree: Fixing Agreement Measures for Crowdsourcing.” *Proceedings of the AAAI Conference on Human Computation and Crowdsourcing* **5**: 11–20. [doi](https://doi.org/10.1609/hcomp.v5i1.13306)
 #'
 #' @param RATINGS Ratings vector of dimension n. Ordinal data must be coded in \{1, 2, ..., K\}.
-#'   Continuous data can take values in (0, 1).
+#'   Continuous data can take values in `(0, 1)`.
 #' @param ITEM_INDS Index vector with items allocations. Same dimension as `RATINGS`.
 #' @param WORKER_INDS Index vector with worker allocations. Same dimension as `RATINGS`. Ignored when MODEL == "oneway".
 #'   Must be integers in \{1, 2, ..., J\}.
@@ -10,53 +18,93 @@
 #'     \item `"modified"`: Uses modified profile likelihood with Barndorff-Nielsen correction
 #'     \item `"profile"`: Uses standard profile likelihood
 #'   }
-#' @param MODEL Choose between `"oneway"` or `"twoway"`. Default is `"oneway"`.
-#'   \itemize{
-#'     \item `"oneway"`: Item-specific intercepts. Indistiguishable workers.
-#'     \item `"twoway"`: Item-specific and worker-specific intercepts.
-#'   }
 #' @param ALPHA_START Starting values for item-specific intercepts. Vector of length J. Default is `rep(0, J)` where J is the number of items.
 #' @param BETA_START Starting values for worker-specific intercepts. Vector of length W-1. Default is `rep(0, W-1)` where W is the number of workers
+#' @param TAU Thresholds to use for the discretisation of the underlying beta distribution.
 #' @param PHI_START Starting value for beta precision parameter. Must be positive. Default is `agr2prec(0.5)` (precision corresponding to 50% agreement).
+#' @param NUISANCE Vector containg either `"items"` or `"workers"` or both. Defines which fixed effects to profile out during estimation.
 #' @param CONTROL Control options for the optimization:
 #' \describe{
 #'     \item{`SEARCH_RANGE`}{Search range for precision parameter optimization.
-#'       The algorithm searches in `[1e-8, PHI_START + SEARCH_RANGE]`.
-#'       Must be positive. Default: `10`.}
+#'       The algorithm searches in \[1e-8, PHI_START + SEARCH_RANGE\].
+#'       Must be positive. Default: `8`.}
 #'     \item{`MAX_ITER`}{Maximum number of iterations for precision parameter optimization.
 #'       Must be a positive integer. Default: `100`.}
 #'     \item{`PROF_SEARCH_RANGE`}{Search range for profiling out nuisance parameters (item intercepts).
-#'       The algorithm searches in `[ALPHA_START[j] - PROF_SEARCH_RANGE, ALPHA_START[j] + PROF_SEARCH_RANGE]`
-#'       for each item j. Must be positive. Default: `10`.}
+#'       The algorithm searches in \[ALPHA_START\[j\] - PROF_SEARCH_RANGE, ALPHA_START\[j\] + PROF_SEARCH_RANGE\]
+#'       for each item j. Must be positive. Default: `4`.}
 #'     \item{`PROF_MAX_ITER`}{Maximum number of iterations for profiling optimization.
-#'       Must be a positive integer. Default: `100`.}
-#'     \item{`PROF_METHOD`}{Method for profiling optimization. A character string among:
-#'       \itemize{
-#'         \item `"brent"`: Brent's method (one-way only). Default for one-way.
-#'         \item `"newton_raphson"`: Newton-Raphson method (one-way only).
-#'         \item `"bfgs"`: L-BFGS method (two-way only). Default for two-way continuous data.
-#'         \item `"alt_brent"`: Alternated profiling via univariate Brent's method (two-way only). Default for two-way ordinal data
-#'       }}
-#'     \item{`ALT_MAX_ITER`}{Maximum iterations for `alt_brent`.
 #'       Must be a positive integer. Default: `10`.}
-#'     \item{`ALT_TOL`}{Relative convergence tolerance for `alt_brent`.
-#'       Must be positive. Default: `1e-2`}
+#'     \item{`ALT_MAX_ITER`}{Maximum iterations for alternating profiling.
+#'       Must be a positive integer. Default: `10`.}
+#'     \item{`ALT_TOL`}{Relative convergence tolerance for alternating profiling.
+#'       Must be positive. Default: `1e-2`.}
 #'  }
 #' @param VERBOSE Verbose output.
 #'
 #' @return Returns a list with maximum likelihood estimates and corresponding negative log-likelihood.
+#'
+#' @examples
+#' set.seed(321)
+#'
+#' # setting dimension
+#' items <- 50
+#' budget_per_item <- 5
+#' n_obs <- items * budget_per_item
+#' workers <- 50
+#'
+#' # item-specific intercepts to generate the data
+#' alphas <- runif(items, -2, 2)
+#'
+#' # true agreement (between 0 and 1)
+#' agr <- .6
+#'
+#' # generate continuous rating in (0,1)
+#' dt_oneway <- sim_data(
+#'   J = items,
+#'   B = budget_per_item,
+#'   AGREEMENT = agr,
+#'   ALPHA = alphas,
+#'   DATA_TYPE = "continuous",
+#'   SEED = 123
+#' )
+#'
+#' # estimation via oneway specification
+#' fit <- agreement(
+#'   RATINGS = dt_oneway$rating,
+#'   ITEM_INDS = dt_oneway$id_item,
+#'   WORKER_INDS = dt_oneway$id_worker,
+#'   METHOD = "modified",
+#'   NUISANCE = c("items"),
+#'   VERBOSE = TRUE
+#' )
+#' # get standard error and confidence interval
+#' ci <- get_ci(fit)
+#' ci
+#'
+#' # compute log-likelihood over a grid
+#' range_ll <- get_range_ll(fit)
+#'
+#' # utility plot function for relative log-likelihood
+#' plot_rll(
+#'   D = range_ll,
+#'   M_EST = fit$modified$agreement,
+#'   P_EST = fit$profile$agreement,
+#'   M_SE = ci$agreement_se,
+#'   CONFIDENCE=.95
+#' )
+#'
 #' @export
-agreement2 <- function(
+agreement <- function(
   RATINGS,
   ITEM_INDS,
   WORKER_INDS = NULL,
   METHOD = c("modified", "profile"),
   ALPHA_START = NULL,
   BETA_START = NULL,
-  TAU_START = NULL,
+  TAU = NULL,
   PHI_START = NULL,
   NUISANCE = c("items", "workers"),
-  TARGET = c("phi", "thresholds"),
   CONTROL = list(),
   VERBOSE = FALSE
 ) {
@@ -65,6 +113,7 @@ agreement2 <- function(
   if (VERBOSE) {
     message("\nDATA")
   }
+
   val_data <- validate_data(
     RATINGS = RATINGS,
     ITEM_INDS = ITEM_INDS,
@@ -72,8 +121,7 @@ agreement2 <- function(
     VERBOSE = VERBOSE
   )
 
-  params_type <- validate_params_type(NUISANCE, TARGET, val_data$n_items)
-  # NUISANCE <- validate_nuisance(NUISANCE)
+  params_type <- validate_params_type(NUISANCE, "phi", val_data$n_items)
 
   if (val_data$ave_ratings_per_item^3 < val_data$n_items) {
     if (VERBOSE) {
@@ -86,16 +134,12 @@ agreement2 <- function(
       "\nMODEL PARAMETERS"
     ))
     message(paste(
-      " - Constant:",
+      " - Constant effects:",
       paste0(paste0(params_type$constant, collapse = ", "))
     ))
     message(paste(
-      " - Nuisance:",
-      paste0(paste0(params_type$nuisance, collapse = ", "), ".")
-    ))
-    message(paste(
-      " - Target:",
-      paste0(paste0(params_type$target, collapse = ", "), ".")
+      " - Nuisance effects:",
+      paste0(paste0(params_type$nuisance, collapse = ", "))
     ))
   }
 
@@ -111,17 +155,11 @@ agreement2 <- function(
     PHI_START <- agr2prec(.5)
   }
 
-  if (is.null(TAU_START)) {
-    counts <- tabulate(
-      factor(val_data$ratings, levels = seq_len(val_data$K)),
-      nbins = val_data$K
-    )
-    cum_p <- cumsum(counts) / sum(counts)
-    TAU_START <- c(0, cum_p[-K], 1)
-    # TAU_START <- seq(0, 1, by = 1 / val_data$K)
+  if (is.null(TAU)) {
+    TAU <- seq(0, 1, by = 1 / val_data$K)
   }
 
-  CONTROL <- validate_cpp_control2(CONTROL)
+  CONTROL <- validate_cpp_control(CONTROL)
   args <- c(
     list(
       Y = val_data$ratings * 1.0,
@@ -129,7 +167,7 @@ agreement2 <- function(
       WORKER_INDS = val_data$worker_ids,
       ALPHA_START = ALPHA_START,
       BETA_START = c(0, BETA_START),
-      TAU_START = TAU_START,
+      TAU_START = TAU,
       PHI_START = PHI_START,
       K = val_data$K,
       J = val_data$n_items,
@@ -138,7 +176,6 @@ agreement2 <- function(
       DATA_TYPE = val_data$data_type,
       ITEMS_NUISANCE = "items" %in% params_type$nuisance,
       WORKER_NUISANCE = "workers" %in% params_type$nuisance,
-      THRESHOLDS_NUISANCE = "thresholds" %in% params_type$nuisance,
       VERBOSE = VERBOSE
     ),
     CONTROL
@@ -151,289 +188,20 @@ agreement2 <- function(
     "params_type" = params_type
   )
 
-  if ("thresholds" %in% TARGET) {
-    if (METHOD == "modified") {
-      stop("Modified profile likelihood not implemented for thresholds target")
-    } else {
-      # Profile likelihood optimization over both phi and tau
+  opt <- do.call(cpp_get_phi, args)
 
-      # Transform starting values to raw parameters
-      raw_phi_start <- log(args$PHI_START)
-      raw_tau_start <- tau2raw(args$TAU_START)
-      start_par <- c(raw_phi_start, raw_tau_start)
-
-      # Extract arguments for C++ functions
-      cpp_args <- list(
-        Y = args$Y,
-        ITEM_INDS = args$ITEM_INDS,
-        WORKER_INDS = args$WORKER_INDS,
-        ALPHA = args$ALPHA_START,
-        BETA = args$BETA_START,
-        J = args$J,
-        W = args$W,
-        K = args$K,
-        ITEMS_NUISANCE = args$ITEMS_NUISANCE,
-        WORKER_NUISANCE = args$WORKER_NUISANCE,
-        PROF_UNI_RANGE = as.integer(args$PROF_SEARCH_RANGE),
-        PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
-        PROF_MAX_ITER = as.integer(args$ALT_MAX_ITER),
-        PROF_TOL = args$ALT_TOL
-      )
-
-      # Extract lbfgs control options if provided in CONTROL
-      lbfgs_control <- list()
-      if (!is.null(args$LBFGS_MAX_LINESEARCH)) {
-        lbfgs_control$max_linesearch <- args$LBFGS_MAX_LINESEARCH
-      }
-      if (!is.null(args$LBFGS_MAX_ITERATIONS)) {
-        lbfgs_control$max_iterations <- args$LBFGS_MAX_ITERATIONS
-      }
-      if (!is.null(args$LBFGS_INVISIBLE)) {
-        lbfgs_control$invisible <- args$LBFGS_INVISIBLE
-      }
-
-      # Run optimization
-      opt_result <- get_phi_tau_profile(
-        START_PAR = start_par,
-        cpp_args = cpp_args,
-        lbfgs_control = lbfgs_control
-      )
-
-      # Extract optimal parameters
-      raw_phi_opt <- opt_result$par[1]
-      raw_tau_opt <- opt_result$par[-1]
-
-      # Transform back to natural scale
-      phi_opt <- exp(raw_phi_opt)
-      tau_opt <- raw2tau(raw_tau_opt)
-
-      # Profile nuisance parameters at optimum
-      profiled_final <- cpp_ordinal_get_lambda2(
-        Y = args$Y,
-        ITEM_INDS = args$ITEM_INDS,
-        WORKER_INDS = args$WORKER_INDS,
-        ALPHA = args$ALPHA_START,
-        BETA = args$BETA_START,
-        TAU = tau_opt,
-        PHI = phi_opt,
-        J = args$J,
-        W = args$W,
-        K = args$K,
-        ITEMS_NUISANCE = args$ITEMS_NUISANCE,
-        WORKER_NUISANCE = args$WORKER_NUISANCE,
-        THRESHOLDS_NUISANCE = FALSE,
-        PROF_UNI_RANGE = args$PROF_SEARCH_RANGE,
-        PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
-        PROF_MAX_ITER = as.integer(args$ALT_MAX_ITER),
-        TOL = args$ALT_TOL
-      )
-
-      # Store results
-      out$alpha <- profiled_final$alpha
-      out$beta <- profiled_final$beta
-      out$tau <- tau_opt
-      out$profile$precision <- phi_opt
-      out$profile$agreement <- prec2agr(phi_opt)
-      out$modified$precision <- NA
-      out$modified$agreement <- NaN
-      out$loglik <- -opt_result$value  # lbfgs minimizes, we want max loglik
-      out$convergence <- opt_result$convergence
-    }
+  out$alpha <- opt$alpha
+  out$beta <- opt$beta
+  out$tau <- opt$tau
+  out$profile$precision <- opt$profile_phi
+  out$profile$agreement <- prec2agr(opt$profile_phi)
+  out$modified$precision <- opt$modified_phi
+  out$modified$agreement <- if (!is.na(opt$modified_phi)) {
+    prec2agr(opt$modified_phi)
   } else {
-    # NEW PATH: Use nested optimization when thresholds are nuisance
-    if ("thresholds" %in% params_type$nuisance && val_data$data_type == "ordinal") {
-      # Transform TAU_START to raw parameters
-      raw_tau_start <- tau2raw(args$TAU_START)
-
-      # Build cpp_args for C++ profiling functions (common for both methods)
-      cpp_args <- list(
-        Y = args$Y,
-        ITEM_INDS = args$ITEM_INDS,
-        WORKER_INDS = args$WORKER_INDS,
-        ALPHA = args$ALPHA_START,
-        BETA = args$BETA_START,
-        J = args$J,
-        W = args$W,
-        K = args$K,
-        ITEMS_NUISANCE = args$ITEMS_NUISANCE,
-        WORKER_NUISANCE = args$WORKER_NUISANCE,
-        PROF_UNI_RANGE = as.integer(args$PROF_SEARCH_RANGE),
-        PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
-        PROF_MAX_ITER = as.integer(args$ALT_MAX_ITER),
-        PROF_TOL = args$ALT_TOL
-      )
-
-      # Extract lbfgs control options if provided (common for both methods)
-      lbfgs_control <- list()
-      if (!is.null(args$LBFGS_MAX_LINESEARCH)) {
-        lbfgs_control$max_linesearch <- args$LBFGS_MAX_LINESEARCH
-      }
-      if (!is.null(args$LBFGS_MAX_ITERATIONS)) {
-        lbfgs_control$max_iterations <- args$LBFGS_MAX_ITERATIONS
-      }
-      if (!is.null(args$LBFGS_INVISIBLE)) {
-        lbfgs_control$invisible <- args$LBFGS_INVISIBLE
-      }
-
-      if (METHOD == "profile") {
-        # PROFILE LIKELIHOOD: Use Brent over phi with nested L-BFGS over tau
-        opt_result <- get_phi_profile_nested(
-          PHI_START = args$PHI_START,
-          RAW_TAU_START = raw_tau_start,
-          cpp_args = cpp_args,
-          lbfgs_control = lbfgs_control,
-          SEARCH_RANGE = args$SEARCH_RANGE,
-          brent_tol = 1e-4
-        )
-
-        # Extract optimal parameters
-        phi_opt <- opt_result$phi
-        tau_opt <- opt_result$tau
-
-        # Profile nuisance parameters at optimum
-        profiled_final <- cpp_ordinal_get_lambda2(
-          Y = args$Y,
-          ITEM_INDS = args$ITEM_INDS,
-          WORKER_INDS = args$WORKER_INDS,
-          ALPHA = args$ALPHA_START,
-          BETA = args$BETA_START,
-          TAU = tau_opt,
-          PHI = phi_opt,
-          J = args$J,
-          W = args$W,
-          K = args$K,
-          ITEMS_NUISANCE = args$ITEMS_NUISANCE,
-          WORKER_NUISANCE = args$WORKER_NUISANCE,
-          THRESHOLDS_NUISANCE = FALSE,
-          PROF_UNI_RANGE = as.integer(args$PROF_SEARCH_RANGE),
-          PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
-          PROF_MAX_ITER = as.integer(args$ALT_MAX_ITER),
-          TOL = args$ALT_TOL
-        )
-
-        # Store results
-        out$alpha <- profiled_final$alpha
-        out$beta <- profiled_final$beta
-        out$tau <- tau_opt
-        out$profile$precision <- phi_opt
-        out$profile$agreement <- prec2agr(phi_opt)
-        out$modified$precision <- NA
-        out$modified$agreement <- NaN
-        out$loglik <- opt_result$loglik
-        out$convergence <- opt_result$convergence
-
-      } else if (METHOD == "modified") {
-        # MODIFIED PROFILE LIKELIHOOD: First compute MLE, then apply correction
-
-        # STEP 1: Compute MLE using joint optimization (as if TARGET=c("phi","thresholds"))
-        raw_phi_start <- log(args$PHI_START)
-        start_par <- c(raw_phi_start, raw_tau_start)
-
-        mle_result <- get_phi_tau_profile(
-          START_PAR = start_par,
-          cpp_args = cpp_args,
-          lbfgs_control = lbfgs_control
-        )
-
-        # Extract MLE values
-        raw_phi_mle <- mle_result$par[1]
-        raw_tau_mle <- mle_result$par[-1]
-        phi_mle <- exp(raw_phi_mle)
-        tau_mle <- raw2tau(raw_tau_mle)
-
-        # Profile alpha/beta at MLE
-        profiled_mle <- cpp_ordinal_get_lambda2(
-          Y = args$Y,
-          ITEM_INDS = args$ITEM_INDS,
-          WORKER_INDS = args$WORKER_INDS,
-          ALPHA = args$ALPHA_START,
-          BETA = args$BETA_START,
-          TAU = tau_mle,
-          PHI = phi_mle,
-          J = args$J,
-          W = args$W,
-          K = args$K,
-          ITEMS_NUISANCE = args$ITEMS_NUISANCE,
-          WORKER_NUISANCE = args$WORKER_NUISANCE,
-          THRESHOLDS_NUISANCE = FALSE,
-          PROF_UNI_RANGE = as.integer(args$PROF_SEARCH_RANGE),
-          PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
-          PROF_MAX_ITER = as.integer(args$ALT_MAX_ITER),
-          TOL = args$ALT_TOL
-        )
-
-        alpha_mle <- profiled_mle$alpha
-        beta_mle <- profiled_mle$beta
-
-        # STEP 2: Compute modified profile using Barndorff-Nielsen correction
-        mod_result <- get_phi_modified_profile_nested(
-          PHI_START = phi_mle,
-          RAW_TAU_START = raw_tau_mle,
-          ALPHA_MLE = alpha_mle,
-          BETA_MLE = beta_mle,
-          TAU_MLE = tau_mle,
-          PHI_MLE = phi_mle,
-          cpp_args = cpp_args,
-          lbfgs_control = lbfgs_control,
-          SEARCH_RANGE = args$SEARCH_RANGE,
-          brent_tol = 1e-4
-        )
-
-        # Extract modified profile optimal parameters
-        phi_mod <- mod_result$phi
-        tau_mod <- mod_result$tau
-
-        # Profile alpha/beta at modified optimum
-        profiled_final <- cpp_ordinal_get_lambda2(
-          Y = args$Y,
-          ITEM_INDS = args$ITEM_INDS,
-          WORKER_INDS = args$WORKER_INDS,
-          ALPHA = args$ALPHA_START,
-          BETA = args$BETA_START,
-          TAU = tau_mod,
-          PHI = phi_mod,
-          J = args$J,
-          W = args$W,
-          K = args$K,
-          ITEMS_NUISANCE = args$ITEMS_NUISANCE,
-          WORKER_NUISANCE = args$WORKER_NUISANCE,
-          THRESHOLDS_NUISANCE = FALSE,
-          PROF_UNI_RANGE = as.integer(args$PROF_SEARCH_RANGE),
-          PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
-          PROF_MAX_ITER = as.integer(args$ALT_MAX_ITER),
-          TOL = args$ALT_TOL
-        )
-
-        # Store results
-        out$alpha <- profiled_final$alpha
-        out$beta <- profiled_final$beta
-        out$tau <- tau_mod
-        out$profile$precision <- phi_mle
-        out$profile$agreement <- prec2agr(phi_mle)
-        out$modified$precision <- phi_mod
-        out$modified$agreement <- prec2agr(phi_mod)
-        out$loglik <- mod_result$loglik
-        out$convergence <- mod_result$convergence
-      }
-
-    } else {
-      # EXISTING PATH: Use current cpp_get_phi for all other cases
-      opt <- do.call(cpp_get_phi, args)
-
-      out$alpha <- opt$alpha
-      out$beta <- opt$beta
-      out$tau <- opt$tau
-      out$profile$precision <- opt$profile_phi
-      out$profile$agreement <- prec2agr(opt$profile_phi)
-      out$modified$precision <- opt$modified_phi
-      out$modified$agreement <- if (!is.na(opt$modified_phi)) {
-        prec2agr(opt$modified_phi)
-      } else {
-        NaN
-      }
-      out$loglik <- opt$loglik
-    }
+    NaN
   }
+  out$loglik <- opt$loglik
 
   if (VERBOSE) {
     message("Done!\n")

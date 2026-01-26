@@ -11,6 +11,33 @@
 #' @param SEED RNG seed.
 #'
 #' @return Returns a dataframe with columns id_items, id_worker and rating
+#'
+#' @examples
+#' set.seed(123)
+#'
+#' # generate from one-way model
+#' # (varying item effects, worker effects fixed to zero)
+#' dt1way <- sim_data(
+#'  J = 50,
+#'  B = 5,
+#'  AGREEMENT = .8,
+#'  ALPHA = runif(50, 0, 1),
+#'  DATA_TYPE = "continuous",
+#'  SEED = 123
+#' )
+#' # generate from two-way model
+#' # (varying item effects, varying worker effects)
+#' dt1way <- sim_data(
+#'  J = 50,
+#'  W = 40,
+#'  B = 5,
+#'  AGREEMENT = .8,
+#'  ALPHA = runif(50, 0, 1),
+#'  BETA = runif(40, 0, 1),
+#'  DATA_TYPE = "continuous",
+#'  SEED = 123
+#' )
+#'
 #' @importFrom AlgDesign optFederov
 #' @export
 sim_data <- function(
@@ -40,13 +67,11 @@ sim_data <- function(
   n_obs <- J * B
   precision <- agr2prec(AGREEMENT)
 
-  # Step 1: create candidate set of all possible item–worker pairs
   candidates <- expand.grid(
     item_id = factor(1:J),
     worker_id = factor(1:W)
   )
 
-  # Step 2: run Federov algorithm to pick N pairs (approx. balanced)
   design <- optFederov(
     ~1,
     data = candidates,
@@ -54,17 +79,7 @@ sim_data <- function(
   )$design
 
   assignment_df <- design$design
-  assignment_df
-  # obs_item_ind <- rep(1:J, each = B)
-  # obs_worker_ind <- rep(1:W, each = floor(n_obs / W))
-  # diff_len <- length(obs_item_ind) - length(obs_worker_ind)
-  # if (diff_len > 0) {
-  #   obs_worker_ind <- c(
-  #     obs_worker_ind,
-  #     sample(unique(obs_worker_ind), diff_len)
-  #   )
-  # }
-  # obs_worker_ind <- sample(obs_worker_ind, n_obs)
+
   if (is.null(BETA)) {
     BETA <- rep(0, W)
   }

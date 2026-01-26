@@ -1,4 +1,5 @@
 #include "ordinal.h"
+#include <cmath>
 
 double AgreementPhi::ordinal::loglik(
     const double Y, 
@@ -444,7 +445,36 @@ void AgreementPhi::ordinal::grad_tau(
         // Contribution to gradient for τ_{c-1} (lower threshold)
         if(c > 1){  // τ_0 = 0 is fixed
             // PDF at τ_{c-1} using ibeta_derivative
-            double pdf_cm1 = boost::math::ibeta_derivative(a, b, tau_cm1);
+            // Add safeguards to prevent numerical overflow
+            double pdf_cm1 = 0.0;
+
+            // Check for safe parameter ranges
+            // Skip computation if it would likely overflow
+            bool safe_cm1 = true;
+
+            // Check 1: Avoid overflow when tau is very close to 0 and a < 1
+            if(tau_cm1 < 1e-10 && a < 1.0) safe_cm1 = false;
+
+            // Check 2: Avoid overflow when tau is very close to 1 and b < 1
+            if(tau_cm1 > 1.0 - 1e-10 && b < 1.0) safe_cm1 = false;
+
+            // Check 3: Avoid computation with extreme parameter combinations
+            if(a > 1e6 || b > 1e6) safe_cm1 = false;
+
+            // Check 4: Avoid when tau is outside reasonable bounds for the beta distribution
+            double mode_approx = (a > 1 && b > 1) ? (a - 1) / (a + b - 2) : 0.5;
+            if(std::abs(tau_cm1 - mode_approx) > 0.45 && (a > 100 || b > 100)) safe_cm1 = false;
+
+            if(safe_cm1) {
+                try {
+                    pdf_cm1 = boost::math::ibeta_derivative(a, b, tau_cm1);
+                    // Check for inf/nan
+                    if(!std::isfinite(pdf_cm1)) pdf_cm1 = 0.0;
+                } catch(...) {
+                    pdf_cm1 = 0.0;
+                }
+            }
+
             // ∂log L/∂τ_{c-1} = -f(τ_{c-1}) / prob
             GRAD_TAU.at(c - 2) -= pdf_cm1 / std::max(prob, 1e-12);
         }
@@ -452,7 +482,35 @@ void AgreementPhi::ordinal::grad_tau(
         // Contribution to gradient for τ_c (upper threshold)
         if(c < K){  // τ_K = 1 is fixed
             // PDF at τ_c using ibeta_derivative
-            double pdf_c = boost::math::ibeta_derivative(a, b, tau_c);
+            // Add safeguards to prevent numerical overflow
+            double pdf_c = 0.0;
+
+            // Check for safe parameter ranges
+            bool safe_c = true;
+
+            // Check 1: Avoid overflow when tau is very close to 0 and a < 1
+            if(tau_c < 1e-10 && a < 1.0) safe_c = false;
+
+            // Check 2: Avoid overflow when tau is very close to 1 and b < 1
+            if(tau_c > 1.0 - 1e-10 && b < 1.0) safe_c = false;
+
+            // Check 3: Avoid computation with extreme parameter combinations
+            if(a > 1e6 || b > 1e6) safe_c = false;
+
+            // Check 4: Avoid when tau is outside reasonable bounds for the beta distribution
+            double mode_approx = (a > 1 && b > 1) ? (a - 1) / (a + b - 2) : 0.5;
+            if(std::abs(tau_c - mode_approx) > 0.45 && (a > 100 || b > 100)) safe_c = false;
+
+            if(safe_c) {
+                try {
+                    pdf_c = boost::math::ibeta_derivative(a, b, tau_c);
+                    // Check for inf/nan
+                    if(!std::isfinite(pdf_c)) pdf_c = 0.0;
+                } catch(...) {
+                    pdf_c = 0.0;
+                }
+            }
+
             // ∂log L/∂τ_c = +f(τ_c) / prob
             GRAD_TAU.at(c - 1) += pdf_c / std::max(prob, 1e-12);
         }

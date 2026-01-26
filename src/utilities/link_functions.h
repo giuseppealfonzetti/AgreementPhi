@@ -8,7 +8,7 @@ static const double INVEPS = 1/DOUBLE_EPS;
 namespace AgreementPhi{
     namespace link{
 
-        // Evaluate mu given linear predictor
+        // evaluate mu given linear predictor
         inline double mu(const double ETA){
                 double expmeta;
                 if(-ETA < MTHRESH){
@@ -23,7 +23,6 @@ namespace AgreementPhi{
 
                 double mu_raw = 1/(1+expmeta);
     
-                // Check if values are too close to 0 or 1
                 const double MU_MIN = 1e-5;
                 const double MU_MAX = 1.0 - 1e-5;
                 

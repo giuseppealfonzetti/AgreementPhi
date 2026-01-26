@@ -5,9 +5,10 @@ SOURCES = \
   inference/loglik.cpp \
   inference/precision.cpp \
   ratings/continuous.cpp \
-  ratings/ordinal.cpp 
+  ratings/ordinal.cpp
 
-OBJECTS = $(SOURCES:.cpp=.o) 
+OBJECTS = $(SOURCES:.cpp=.o)
 
 PKG_CPPFLAGS = -I../inst/include
+
 
