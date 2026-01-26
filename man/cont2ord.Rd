@@ -19,3 +19,10 @@ Discretised vector
 \description{
 Discretise continuous data
 }
+\examples{
+x <- c(0,runif(5,0,1),1)
+x
+cont2ord(x, K=3)
+
+
+}

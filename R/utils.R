@@ -33,6 +33,12 @@ agr2prec <- function(X) {
 #'
 #' @return Discretised vector
 #'
+#' @examples
+#' x <- c(0,runif(5,0,1),1)
+#' x
+#' cont2ord(x, K=3)
+#'
+#'
 #' @export
 cont2ord <- function(X, K, TRESHOLDS = NULL) {
   stopifnot(is.numeric(X))
@@ -51,12 +57,21 @@ cont2ord <- function(X, K, TRESHOLDS = NULL) {
   return(out)
 }
 
-#' Squeeze [0,100] data
+#' Squeeze \[0,1\] data
 #'
-#' @param Y Vector of continuous data in [0,1].
-#' @param U Squeezing parameter
+#' @param X Vector of continuous data in \[0,1\].
+#' @param U Squeezing parameter. If NULL, default chosen as per Smithson et al. (2006).
 #'
 #' @return Squeezed vector
+#'
+#' @references
+#'
+#' - Smithson, Michael, and Jay Verkuilen. 2006. “A Better Lemon Squeezer? Maximum-Likelihood Regression with Beta-Distributed Dependent Variables.” *Psychological Methods* **11(1)**: 54–71. [doi](https://psycnet.apa.org/doi/10.1037/1082-989X.11.1.54)
+#'
+#' @examples
+#' x <- c(0,runif(5,0,1),1)
+#' x
+#' lemon(x)
 #'
 #' @export
 lemon <- function(X, U = NULL) {
@@ -71,24 +86,21 @@ lemon <- function(X, U = NULL) {
   return(x)
 }
 
-#' Get relative log-likelihood
+#' Get log-likelihood range
 #'
 #' @param X Object fitted with [agreement()] function.
 #' @param RANGE Range around agreement mle.
 #' @param GRID_LENGTH Number of points to be evaluated within RANGE.
-#' @param PLOT Plot relative log-likelihood.
 #'
 #' @return Return a data.frame with GRID_LENGTH rows and columns
-#' `precision`, `agreement`, `profile_rll` and `modified_rll`.
+#' `precision`, `agreement`, `profile` and `modified`.
 #'
-#' @importFrom graphics abline legend lines plot
 #' @importFrom stats plogis rbeta
 #' @export
-get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
+get_range_ll <- function(X, RANGE = .2, GRID_LENGTH = 15) {
   stopifnot(is.numeric(RANGE))
   stopifnot(RANGE > 0)
   stopifnot(RANGE <= 1)
-  stopifnot(is.logical(PLOT))
   stopifnot(GRID_LENGTH > 0)
 
   args <- X$cpp_args
@@ -132,19 +144,6 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
     )
   })
 
-  if (PLOT) {
-    plot(
-      agreement_range,
-      pl_range - max(pl_range),
-      type = "l",
-      xlab = "Agreement",
-      ylab = "Relative log-likelihood",
-      col = "#56B4E9"
-    )
-
-    abline(v = X$profile$agreement, col = "#56B4E9", lty = 2)
-  }
-
   mpl_range <- rep(NA, length(phi_range))
   if (X$method == "modified") {
     mpl_range <- sapply(phi_range, function(phi) {
@@ -173,25 +172,13 @@ get_rll <- function(X, RANGE = .2, PLOT = TRUE, GRID_LENGTH = 15) {
         ALT_TOL = args$ALT_TOL
       )
     })
-
-    if (PLOT && !all(is.na(mpl_range))) {
-      lines(agreement_range, mpl_range - max(mpl_range, na.rm = TRUE), col = 2)
-      abline(v = X$modified$agreement, col = 2, lty = 2)
-      legend(
-        "bottomleft",
-        legend = c("Profile likelihood", "Modified profile likelihood"),
-        col = c("#56B4E9", "#D55E00"),
-        lty = c(1, 1),
-        bty = "n"
-      )
-    }
   }
 
   out <- data.frame(
     precision = phi_range,
     agreement = agreement_range,
-    profile_ll = pl_range,
-    modified_ll = mpl_range
+    profile = pl_range,
+    modified = mpl_range
   )
 
   return(out)

@@ -4,7 +4,6 @@
 #include <functional>
 #include <algorithm>
 #include <Eigen/Dense>
-#include <RcppParallel.h>
 #define EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
 #define EIGEN_DONT_PARALLELIZE
 #include "rcpptests.h"

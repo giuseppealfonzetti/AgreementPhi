@@ -160,7 +160,7 @@ validate_data <- function(
 
 validate_nuisance <- function(NUISANCE) {
   stopifnot(is.vector(NUISANCE))
-  stopifnot(all(NUISANCE %in% c("items", "workers", )))
+  stopifnot(all(NUISANCE %in% c("items", "workers")))
   return(NUISANCE)
 }
 
@@ -208,7 +208,7 @@ validate_cpp_control <- function(LIST = NULL) {
 
   # search range for profiling
   if (is.null(LIST$PROF_SEARCH_RANGE)) {
-    LIST$PROF_SEARCH_RANGE <- 4
+    LIST$PROF_SEARCH_RANGE <- 3
   }
   stopifnot(is.numeric(LIST$PROF_SEARCH_RANGE))
   stopifnot(LIST$PROF_SEARCH_RANGE > 0)
@@ -234,24 +234,6 @@ validate_cpp_control <- function(LIST = NULL) {
   stopifnot(is.numeric(LIST$ALT_TOL))
   stopifnot(LIST$ALT_TOL > 0)
   out$ALT_TOL <- LIST$ALT_TOL
-
-  # LBFGS control parameters
-  if (!is.null(LIST$LBFGS_MAX_LINESEARCH)) {
-    stopifnot(is.numeric(LIST$LBFGS_MAX_LINESEARCH))
-    stopifnot(LIST$LBFGS_MAX_LINESEARCH > 0)
-    out$LBFGS_MAX_LINESEARCH <- as.integer(LIST$LBFGS_MAX_LINESEARCH)
-  }
-
-  if (!is.null(LIST$LBFGS_MAX_ITERATIONS)) {
-    stopifnot(is.numeric(LIST$LBFGS_MAX_ITERATIONS))
-    stopifnot(LIST$LBFGS_MAX_ITERATIONS > 0)
-    out$LBFGS_MAX_ITERATIONS <- as.integer(LIST$LBFGS_MAX_ITERATIONS)
-  }
-
-  if (!is.null(LIST$LBFGS_INVISIBLE)) {
-    stopifnot(is.logical(LIST$LBFGS_INVISIBLE))
-    out$LBFGS_INVISIBLE <- LIST$LBFGS_INVISIBLE
-  }
 
   return(out)
 }
