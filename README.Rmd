@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: end -->
 
-The `AgreementPhi` package allows to accurately estimate the general agreement among raters across a collection of items. It provides a general tool to deal with percentage and ordinal data.
+The `AgreementPhi` package is the companion of "Alfonzetti G., Bellio R., Vidoni P. *Accurate agreement estimation in crowdsourced relevance assessments*". It allows the accurate estimation of the general $\Phi$ agreement among crowd-workers assessing a given collection of items (Checco et al. 2017).
 
 ## Installation
 
@@ -54,6 +54,7 @@ dt <- sim_data(
   J = items,
   B = budget_per_item,
   AGREEMENT = agr,
+  DATA_TYPE = "continuous",
   ALPHA = alphas
 )
 
@@ -91,3 +92,8 @@ plot_rll(
   CONFIDENCE=.95
 )
 ```
+
+# References
+ - Checco A., Roitero K., Maddalena E., Mizzaro S., Demartini G., (2017). “Let’s Agree to Disagree: Fixing Agreement Measures for Crowdsourcing.” *Proceedings of the AAAI Conference on Human Computation and Crowdsourcing* **5**: 11–20. [doi](https://doi.org/10.1609/hcomp.v5i1.13306)
+
+
