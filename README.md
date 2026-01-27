@@ -81,7 +81,7 @@ fit <- agreement(
 #> Done!
 ```
 
-Inference and plotting functions
+Construct confidence intervals
 
 ``` r
 # get standard error and confidence interval
@@ -95,21 +95,7 @@ ci
 #> 
 #> $agreement_ci
 #> [1] 0.7684344 0.8156082
-
-# compute log-likelihood over a grid
-range_ll <- get_range_ll(fit)
-
-# utility plot function for relative log-likelihood
-plot_rll(
-  D=range_ll, 
-  M_EST = fit$modified$agreement,
-  P_EST = fit$profile$agreement,
-  M_SE = ci$agreement_se,
-  CONFIDENCE=.95
-)
 ```
-
-<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
 
 # References
 
