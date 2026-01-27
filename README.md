@@ -13,9 +13,11 @@ status](https://www.r-pkg.org/badges/version/AgreementPhi)](https://CRAN.R-proje
 
 <!-- badges: end -->
 
-The `AgreementPhi` package allows to accurately estimate the general
-agreement among raters across a collection of items. It provides a
-general tool to deal with percentage and ordinal data.
+The `AgreementPhi` package is the companion of “Alfonzetti G., Bellio
+R., Vidoni P. *Accurate agreement estimation in crowdsourced relevance
+assessments*”. It allows the accurate estimation of the general $\Phi$
+agreement among crowd-workers assessing a given collection of items
+(Checco et al. 2017).
 
 ## Installation
 
@@ -48,6 +50,7 @@ dt <- sim_data(
   J = items,
   B = budget_per_item,
   AGREEMENT = agr,
+  DATA_TYPE = "continuous",
   ALPHA = alphas
 )
 ```
@@ -66,7 +69,7 @@ fit <- agreement(
 #> 
 #> DATA
 #>  - Detected 199 items and 200 workers.
-#>  - Detected ordinal data on a 6-points scale.
+#>  - Detected continuous data on the (0,1) range.
 #>  - Average number of observed ratings per item is 5.03.
 #>  - Average number of observed ratings per worker is 5.
 #> Average number of ratings per item is lower than reccomended
@@ -74,8 +77,8 @@ fit <- agreement(
 #> MODEL PARAMETERS
 #>  - Constant effects: workers
 #>  - Nuisance effects: items
-#> Non-adjusted agreement: 0.786544
-#> Adjusted agreement: 0.707372
+#> Non-adjusted agreement: 0.789952
+#> Adjusted agreement: 0.709465
 #> Done!
 ```
 
@@ -86,13 +89,14 @@ Inference and plotting functions
 ci <- get_ci(fit)
 ci 
 #> $agreement_est
-#> [1] 0.7073723
+#> [1] 0.7094645
 #> 
 #> $agreement_se
-#> [1] 0.02246179
+#> [1] 0.01757427
 #> 
 #> $agreement_ci
-#> [1] 0.6633480 0.7513966
+#> [1] 0.6750196 0.7439094
+
 # compute log-likelihood over a grid
 range_ll <- get_range_ll(fit)
 
@@ -107,3 +111,11 @@ plot_rll(
 ```
 
 <img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
+
+# References
+
+- Checco A., Roitero K., Maddalena E., Mizzaro S., Demartini G., (2017).
+  “Let’s Agree to Disagree: Fixing Agreement Measures for
+  Crowdsourcing.” *Proceedings of the AAAI Conference on Human
+  Computation and Crowdsourcing* **5**: 11–20.
+  [doi](https://doi.org/10.1609/hcomp.v5i1.13306)
