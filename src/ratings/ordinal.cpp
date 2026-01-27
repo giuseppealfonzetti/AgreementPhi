@@ -121,7 +121,7 @@ double AgreementPhi::ordinal::E0_dmu0dmu1(
 
         double dmu1 = 0;
         double dmu12 = 0;
-        double ll1 = ordinal::loglik(c, MU1, PHI1, TAU, dmu1, dmu12, 1);
+        ordinal::loglik(c, MU1, PHI1, TAU, dmu1, dmu12, 1);
 
         out += dmu0*dmu1*exp(ll0);
 
@@ -326,7 +326,7 @@ double AgreementPhi::ordinal::E0_dmu0dmu1_extended(
 
         double dmu1 = 0;
         double dmu12 = 0;
-        double ll1 = ordinal::loglik(c, MU1, PHI1, TAU1, dmu1, dmu12, 1);
+        ordinal::loglik(c, MU1, PHI1, TAU1, dmu1, dmu12, 1);
 
         out += dmu0*dmu1*exp(ll0);
 
