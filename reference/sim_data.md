@@ -77,7 +77,7 @@ dt1way <- sim_data(
 )
 # generate from two-way model
 # (varying item effects, varying worker effects)
-dt1way <- sim_data(
+dt2way <- sim_data(
  J = 50,
  W = 40,
  B = 5,
