@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: end -->
 
-The `AgreementPhi` package allows to accurately estimate the general agreement among raters across a collection of items. It provides a general tool to deal with percentage and ordinal data.
+The `AgreementPhi` package is the companion of "Alfonzetti G., Bellio R., Vidoni P. *Accurate agreement estimation in crowdsourced relevance assessments*". It allows the accurate estimation of the general $\Phi$ agreement measure among multiple crowd-workers assessing a given collection of items (Checco et al. 2017).
 
 ## Installation
 
@@ -40,20 +40,21 @@ library(AgreementPhi)
 set.seed(321)
 # setting dimension
 items <- 200
-budget_per_item <- 5
+budget_per_item <- 8
 n_obs <- items * budget_per_item
 
 # item-specific intercepts to generate the data
 alphas <- runif(items, -2, 2)
 
 # true agreement (between 0 and 1)
-agr <- .7
+agr <- .8
 
 # generate continuous rating in (0,1)
 dt <- sim_data(
   J = items,
   B = budget_per_item,
   AGREEMENT = agr,
+  DATA_TYPE = "continuous",
   ALPHA = alphas
 )
 
@@ -72,22 +73,15 @@ fit <- agreement(
 
 ```
 
-Inference and plotting functions
+Construct confidence intervals
 
 ```{r}
 # get standard error and confidence interval
 ci <- get_ci(fit)
 ci 
-
-# compute log-likelihood over a grid
-range_ll <- get_range_ll(fit)
-
-# utility plot function for relative log-likelihood
-plot_rll(
-  D=range_ll, 
-  M_EST = fit$modified$agreement,
-  P_EST = fit$profile$agreement,
-  M_SE = ci$agreement_se,
-  CONFIDENCE=.95
-)
 ```
+
+# References
+ - Checco A., Roitero K., Maddalena E., Mizzaro S., Demartini G., (2017). “Let’s Agree to Disagree: Fixing Agreement Measures for Crowdsourcing.” *Proceedings of the AAAI Conference on Human Computation and Crowdsourcing* **5**: 11–20. [doi](https://doi.org/10.1609/hcomp.v5i1.13306)
+
+
