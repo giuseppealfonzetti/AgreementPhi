@@ -1,7 +1,8 @@
 Package: AgreementPhi
 Title: General Agreement Phi
 Version: 0.1.0
-Authors@R: person("Giuseppe", "Alfonzetti", , "giuseppe.alfonzetti@uniud.it", role = c("aut", "cre"))
+Authors@R: person("Giuseppe", "Alfonzetti", , "giuseppe.alfonzetti@uniud.it", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-6118-6553"))
 Description: Compute phi agreement via beta regression.
 License: MIT + file LICENSE
 Suggests: 
