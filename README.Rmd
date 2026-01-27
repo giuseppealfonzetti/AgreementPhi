@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: end -->
 
-The `AgreementPhi` package is the companion of "Alfonzetti G., Bellio R., Vidoni P. *Accurate agreement estimation in crowdsourced relevance assessments*". It allows the accurate estimation of the general $\Phi$ agreement among crowd-workers assessing a given collection of items (Checco et al. 2017).
+The `AgreementPhi` package is the companion of "Alfonzetti G., Bellio R., Vidoni P. *Accurate agreement estimation in crowdsourced relevance assessments*". It allows the accurate estimation of the general $\Phi$ agreement measure among multiple crowd-workers assessing a given collection of items (Checco et al. 2017).
 
 ## Installation
 
@@ -40,14 +40,14 @@ library(AgreementPhi)
 set.seed(321)
 # setting dimension
 items <- 200
-budget_per_item <- 5
+budget_per_item <- 8
 n_obs <- items * budget_per_item
 
 # item-specific intercepts to generate the data
 alphas <- runif(items, -2, 2)
 
 # true agreement (between 0 and 1)
-agr <- .7
+agr <- .8
 
 # generate continuous rating in (0,1)
 dt <- sim_data(

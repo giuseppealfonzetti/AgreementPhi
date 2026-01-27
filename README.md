@@ -16,8 +16,8 @@ status](https://www.r-pkg.org/badges/version/AgreementPhi)](https://CRAN.R-proje
 The `AgreementPhi` package is the companion of “Alfonzetti G., Bellio
 R., Vidoni P. *Accurate agreement estimation in crowdsourced relevance
 assessments*”. It allows the accurate estimation of the general $\Phi$
-agreement among crowd-workers assessing a given collection of items
-(Checco et al. 2017).
+agreement measure among multiple crowd-workers assessing a given
+collection of items (Checco et al. 2017).
 
 ## Installation
 
@@ -36,14 +36,14 @@ library(AgreementPhi)
 set.seed(321)
 # setting dimension
 items <- 200
-budget_per_item <- 5
+budget_per_item <- 8
 n_obs <- items * budget_per_item
 
 # item-specific intercepts to generate the data
 alphas <- runif(items, -2, 2)
 
 # true agreement (between 0 and 1)
-agr <- .7
+agr <- .8
 
 # generate continuous rating in (0,1)
 dt <- sim_data(
@@ -68,17 +68,16 @@ fit <- agreement(
   VERBOSE = TRUE)
 #> 
 #> DATA
-#>  - Detected 199 items and 200 workers.
+#>  - Detected 200 items and 200 workers.
 #>  - Detected continuous data on the (0,1) range.
-#>  - Average number of observed ratings per item is 5.03.
-#>  - Average number of observed ratings per worker is 5.
-#> Average number of ratings per item is lower than reccomended
+#>  - Average number of observed ratings per item is 8.
+#>  - Average number of observed ratings per worker is 8.
 #> 
 #> MODEL PARAMETERS
 #>  - Constant effects: workers
 #>  - Nuisance effects: items
-#> Non-adjusted agreement: 0.789952
-#> Adjusted agreement: 0.709465
+#> Non-adjusted agreement: 0.835331
+#> Adjusted agreement: 0.792021
 #> Done!
 ```
 
@@ -89,13 +88,13 @@ Inference and plotting functions
 ci <- get_ci(fit)
 ci 
 #> $agreement_est
-#> [1] 0.7094645
+#> [1] 0.7920213
 #> 
 #> $agreement_se
-#> [1] 0.01757427
+#> [1] 0.01203436
 #> 
 #> $agreement_ci
-#> [1] 0.6750196 0.7439094
+#> [1] 0.7684344 0.8156082
 
 # compute log-likelihood over a grid
 range_ll <- get_range_ll(fit)
