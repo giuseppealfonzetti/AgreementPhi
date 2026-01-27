@@ -1,6 +1,6 @@
 Package: AgreementPhi
 Title: General Agreement Phi
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: person("Giuseppe", "Alfonzetti", , "giuseppe.alfonzetti@uniud.it", role = c("aut", "cre"))
 Description: Compute phi agreement via beta regression.
 License: MIT + file LICENSE
@@ -20,6 +20,6 @@ LinkingTo:
 Imports:
     Rcpp (>= 1.1.0),
     AlgDesign
-URL: https://github.com/giuseppealfonzetti/AgreementPhi
+URL: https://github.com/giuseppealfonzetti/AgreementPhi, https://giuseppealfonzetti.github.io/AgreementPhi/
 BugReports: https://github.com/giuseppealfonzetti/AgreementPhi/issues
 VignetteBuilder: knitr
