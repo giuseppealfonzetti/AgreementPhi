@@ -207,7 +207,6 @@ double AgreementPhi::ordinal::nuisance::brent_profiling(
         
         return result.first;
     }else{
-        double grad, grad2;
         auto neg_ll = [&](double nuisance){
 
             double nll=0;
@@ -260,7 +259,6 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda(
     const int PROF_MAX_ITER,
     const double TOL
 ){
-    const int max_iter_thr = 3;
     const int n = Y.size();
     std::vector<double> alphas_best = ALPHA;
     std::vector<double> betas_best = BETA;
@@ -363,7 +361,6 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda(
         // Profile workers
         if(WORKER_NUISANCE){
             for(int w = 1; w < W; ++w){
-                double ll_before_beta_w = ll_after;
                 std::vector<double> working_betas = betas_best;
 
                 working_betas.at(w) = AgreementPhi::ordinal::nuisance::brent_profiling(
