@@ -1,5 +1,8 @@
 # AgreementPhi
 
+[![Codecov test
+coverage](https://codecov.io/gh/giuseppealfonzetti/AgreementPhi/graph/badge.svg)](https://app.codecov.io/gh/giuseppealfonzetti/AgreementPhi)
+
 The `AgreementPhi` package is the companion of “Alfonzetti G., Bellio
 R., Vidoni P. *Accurate agreement estimation in crowdsourced relevance
 assessments*”. It allows the accurate estimation of the general $\Phi$
