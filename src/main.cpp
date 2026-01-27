@@ -296,7 +296,6 @@ double cpp_get_se(
     if(DATA_TYPE == "continuous") {
         if(METHOD == "modified") {
             // Modified profile likelihood for continuous data
-            // (same as precision.cpp lines 87-91)
             f = [&](double agr) -> double {
                 double phi = AgreementPhi::utils::agr2prec(agr);
                 return AgreementPhi::continuous::ll::modified_profile(
@@ -308,7 +307,6 @@ double cpp_get_se(
             };
         } else {
             // Profile likelihood for continuous data
-            // (same as precision.cpp lines 28-32)
             f = [&](double agr) -> double {
                 double phi = AgreementPhi::utils::agr2prec(agr);
                 return AgreementPhi::continuous::ll::profile(
@@ -330,7 +328,6 @@ double cpp_get_se(
 
         if(METHOD == "modified") {
             // Modified profile likelihood for ordinal data
-            // (same as precision.cpp lines 350-402)
             f = [&, cat_dict, mle_vec](double agr) -> double {
                 double phi = AgreementPhi::utils::agr2prec(agr);
 
@@ -380,7 +377,6 @@ double cpp_get_se(
             };
         } else {
             // Profile likelihood for ordinal data
-            // (same as precision.cpp lines 152-190)
             f = [&, cat_dict](double agr) -> double {
                 double phi = AgreementPhi::utils::agr2prec(agr);
 

@@ -66,7 +66,7 @@ Rcpp::List cpp_cdfbeta_funs(const double X, const double A, const double B){
     double d2logBdb2 = AgreementPhi::betamath::d2logBdb2(A,B);
     double d2logBdadb = AgreementPhi::betamath::d2logBdadb(A,B);
 
-    double ibeta = boost::math::ibeta(A, B, X) * boost::math::beta(A, B);
+    // double ibeta = boost::math::ibeta(A, B, X) * boost::math::beta(A, B);
     double diBda = AgreementPhi::betamath::diBda(X,A,B);
     double diBdb = AgreementPhi::betamath::diBdb(X,A,B);
     double d2iBda2 = AgreementPhi::betamath::d2iBda2(X,A,B);
@@ -105,7 +105,7 @@ Rcpp::List cpp_cdfbeta_muphi_funs(const double X, const double MU, const double 
     double d2logBdb2 = AgreementPhi::betamath::d2logBdb2(a,b);
     double d2logBdadb = AgreementPhi::betamath::d2logBdadb(a,b);
 
-    double ibeta = boost::math::ibeta(a,b, X) * boost::math::beta(a,b);
+    // double ibeta = boost::math::ibeta(a,b, X) * boost::math::beta(a,b);
     double diBda = AgreementPhi::betamath::diBda(X,a,b);
     double diBdb = AgreementPhi::betamath::diBdb(X,a,b);
     double d2iBda2 = AgreementPhi::betamath::d2iBda2(X,a,b);

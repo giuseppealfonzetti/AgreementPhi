@@ -28,7 +28,6 @@ double AgreementPhi::continuous::nuisance::brent_profiling(
 ){
     const std::vector<int>& obs_vec = DICT.at(IDX-1);
     int n_j = obs_vec.size();
-    double grad, grad2;
     auto neg_ll = [&](double nuisance){
 
         double nll=0;
@@ -298,7 +297,6 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda(
     for(int iter = 0; iter < prof_max_iter; iter++){
         double max_change = 0;
         double ll_iter_start = ll_best;
-        double ll_after = ll_best;
 
         double mean_alpha = std::accumulate(std::begin(alphas_best), std::end(alphas_best), 0.0);
         mean_alpha /= J;
