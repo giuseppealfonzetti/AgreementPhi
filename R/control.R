@@ -35,6 +35,7 @@ validate_data <- function(
   RATINGS,
   ITEM_INDS,
   WORKER_INDS = NULL,
+  K = NULL,
   VERBOSE = TRUE
 ) {
   out <- list()
@@ -114,17 +115,35 @@ validate_data <- function(
     }
   }
 
-  out$data_type <- detect_data_type(RATINGS = out$ratings)
-
-  if (out$data_type == "ordinal") {
-    out$K <- max(out$ratings)
+  if (!is.null(K)) {
+    stopifnot(is.numeric(K), K == as.integer(K), K > 1)
+    if (!all(out$ratings == as.integer(out$ratings)))
+      stop("Explicit K provided but RATINGS are not integers.")
+    if (any(out$ratings < 1) || any(out$ratings > K))
+      stop(paste0("All ratings must be in {1, ..., K}. K=", K))
+    out$data_type <- "ordinal"
+    out$K <- as.integer(K)
     if (VERBOSE) {
-      message(paste0(" - Detected ordinal data on a ", out$K, "-points scale."))
+      message(paste0(" - Ordinal data on a user-specified ", K, "-point scale."))
+      n_missing <- K - length(unique(out$ratings))
+      if (n_missing > 0)
+        message(paste0(
+          " - ", n_missing, " categor",
+          ifelse(n_missing == 1, "y", "ies"), " not observed in data."
+        ))
     }
   } else {
-    out$K <- 1
-    if (VERBOSE) {
-      message(paste0(" - Detected continuous data on the (0,1) range."))
+    out$data_type <- detect_data_type(RATINGS = out$ratings)
+    if (out$data_type == "ordinal") {
+      out$K <- max(out$ratings)
+      if (VERBOSE) {
+        message(paste0(" - Detected ordinal data on a ", out$K, "-points scale."))
+      }
+    } else {
+      out$K <- 1
+      if (VERBOSE) {
+        message(paste0(" - Detected continuous data on the (0,1) range."))
+      }
     }
   }
 
@@ -208,7 +227,7 @@ validate_cpp_control <- function(LIST = NULL) {
 
   # search range for profiling
   if (is.null(LIST$PROF_SEARCH_RANGE)) {
-    LIST$PROF_SEARCH_RANGE <- 3
+    LIST$PROF_SEARCH_RANGE <- 10
   }
   stopifnot(is.numeric(LIST$PROF_SEARCH_RANGE))
   stopifnot(LIST$PROF_SEARCH_RANGE > 0)
@@ -216,7 +235,7 @@ validate_cpp_control <- function(LIST = NULL) {
 
   # max iter for profiling
   if (is.null(LIST$PROF_MAX_ITER)) {
-    LIST$PROF_MAX_ITER <- 10
+    LIST$PROF_MAX_ITER <- 500
   }
   stopifnot(is.numeric(LIST$PROF_MAX_ITER))
   stopifnot(LIST$PROF_MAX_ITER > 0)

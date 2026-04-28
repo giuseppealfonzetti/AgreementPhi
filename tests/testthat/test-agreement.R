@@ -221,3 +221,24 @@ test_that("twoway ordinal works", {
     abs(fit$modified$agreement - agr) < abs(fit$profile$agreement - agr)
   )
 })
+
+test_that("agreement handles ordinal data with missing boundary categories", {
+  dt <- sim_data(
+    J = 30, B = 5, AGREEMENT = 0.6,
+    ALPHA = runif(30, -2, 2),
+    DATA_TYPE = "ordinal", K = 10, SEED = 42
+  )
+  dt_sub <- dt[dt$rating >= 2 & dt$rating <= 9, ]
+
+  expect_no_error(
+    fit <- agreement(
+      RATINGS = dt_sub$rating,
+      ITEM_INDS = dt_sub$id_item,
+      WORKER_INDS = dt_sub$id_worker,
+      K = 10,
+      NUISANCE = "items"
+    )
+  )
+  expect_true(fit$profile$agreement >= 0 && fit$profile$agreement <= 1)
+  expect_equal(fit$cpp_args$K, 10L)
+})

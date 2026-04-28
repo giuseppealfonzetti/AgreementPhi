@@ -21,6 +21,8 @@
 #' @param ALPHA_START Starting values for item-specific intercepts. Vector of length J. Default is `rep(0, J)` where J is the number of items.
 #' @param BETA_START Starting values for worker-specific intercepts. Vector of length W-1. Default is `rep(0, W-1)` where W is the number of workers
 #' @param TAU Thresholds to use for the discretisation of the underlying beta distribution.
+#' @param K Number of ordinal categories. If `NULL` (default), inferred from data as `max(RATINGS)`.
+#'   Provide explicitly when some boundary categories (e.g. 1 or K) may be absent from the observed data.
 #' @param PHI_START Starting value for beta precision parameter. Must be positive. Default is `agr2prec(0.5)` (precision corresponding to 50% agreement).
 #' @param NUISANCE Vector containg either `"items"` or `"workers"` or both. Defines which fixed effects to profile out during estimation.
 #' @param CONTROL Control options for the optimization:
@@ -103,6 +105,7 @@ agreement <- function(
   ALPHA_START = NULL,
   BETA_START = NULL,
   TAU = NULL,
+  K = NULL,
   PHI_START = NULL,
   NUISANCE = c("items", "workers"),
   CONTROL = list(),
@@ -118,6 +121,7 @@ agreement <- function(
     RATINGS = RATINGS,
     ITEM_INDS = ITEM_INDS,
     WORKER_INDS = WORKER_INDS,
+    K = K,
     VERBOSE = VERBOSE
   )
 
