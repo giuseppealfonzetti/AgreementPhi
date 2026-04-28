@@ -8,8 +8,6 @@
 [![R-CMD-check](https://github.com/giuseppealfonzetti/AgreementPhi/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/giuseppealfonzetti/AgreementPhi/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![CRAN
-status](https://www.r-pkg.org/badges/version/AgreementPhi)](https://CRAN.R-project.org/package=AgreementPhi)
 [![Codecov test
 coverage](https://codecov.io/gh/giuseppealfonzetti/AgreementPhi/graph/badge.svg)](https://app.codecov.io/gh/giuseppealfonzetti/AgreementPhi)
 <!-- badges: end -->
@@ -78,7 +76,7 @@ fit <- agreement(
 #>  - Constant effects: workers
 #>  - Nuisance effects: items
 #> Non-adjusted agreement: 0.835331
-#> Adjusted agreement: 0.792021
+#> Adjusted agreement: 0.792023
 #> Done!
 ```
 
@@ -89,13 +87,13 @@ Construct confidence intervals
 ci <- get_ci(fit)
 ci 
 #> $agreement_est
-#> [1] 0.7920213
+#> [1] 0.7920234
 #> 
 #> $agreement_se
-#> [1] 0.01203436
+#> [1] 0.01203426
 #> 
 #> $agreement_ci
-#> [1] 0.7684344 0.8156082
+#> [1] 0.7684367 0.8156101
 ```
 
 # References

@@ -150,3 +150,54 @@ test_that("validate_data requires numeric worker indices", {
 
 
 validate_cpp_control(list())
+
+test_that("validate_data accepts explicit K when min(ratings) != 1", {
+  ratings <- c(2, 3, 4, 5, 2, 3)
+  item_inds <- c(1, 1, 2, 2, 3, 3)
+  result <- validate_data(ratings, item_inds, K = 6, VERBOSE = FALSE)
+  expect_equal(result$K, 6L)
+  expect_equal(result$data_type, "ordinal")
+})
+
+test_that("validate_data accepts explicit K when max(ratings) < K", {
+  ratings <- c(1, 2, 3, 1, 2, 3)
+  item_inds <- c(1, 1, 2, 2, 3, 3)
+  result <- validate_data(ratings, item_inds, K = 10, VERBOSE = FALSE)
+  expect_equal(result$K, 10L)
+})
+
+test_that("validate_data errors when a rating exceeds explicit K", {
+  ratings <- c(1, 2, 7, 6)
+  item_inds <- c(1, 1, 2, 2)
+  expect_error(
+    validate_data(ratings, item_inds, K = 6, VERBOSE = FALSE),
+    "All ratings must be in"
+  )
+})
+
+test_that("validate_data errors when ratings are non-integer with explicit K", {
+  ratings <- c(1.5, 2.5, 3.5)
+  item_inds <- c(1, 1, 2)
+  expect_error(
+    validate_data(ratings, item_inds, K = 6, VERBOSE = FALSE),
+    "not integers"
+  )
+})
+
+test_that("validate_data verbose message contains user-specified when K provided", {
+  ratings <- c(2, 3, 4, 2, 3, 4)
+  item_inds <- c(1, 1, 2, 2, 3, 3)
+  expect_message(
+    validate_data(ratings, item_inds, K = 6, VERBOSE = TRUE),
+    "user-specified"
+  )
+})
+
+test_that("validate_data without K still stops when min(ratings) != 1", {
+  ratings <- c(2, 3, 4, 5, 6)
+  item_inds <- c(1, 1, 2, 2, 3)
+  expect_error(
+    validate_data(ratings, item_inds, VERBOSE = FALSE),
+    "Lowest category different from 1"
+  )
+})
