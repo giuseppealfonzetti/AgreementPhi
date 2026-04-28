@@ -66,7 +66,7 @@ fit <- agreement(
 #>  - Constant effects: workers
 #>  - Nuisance effects: items
 #> Non-adjusted agreement: 0.835331
-#> Adjusted agreement: 0.792021
+#> Adjusted agreement: 0.792023
 #> Done!
 ```
 
@@ -77,13 +77,13 @@ Construct confidence intervals
 ci <- get_ci(fit)
 ci 
 #> $agreement_est
-#> [1] 0.7920213
+#> [1] 0.7920234
 #> 
 #> $agreement_se
-#> [1] 0.01203436
+#> [1] 0.01203426
 #> 
 #> $agreement_ci
-#> [1] 0.7684344 0.8156082
+#> [1] 0.7684367 0.8156101
 ```
 
 # References

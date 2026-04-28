@@ -14,6 +14,7 @@ agreement(
   ALPHA_START = NULL,
   BETA_START = NULL,
   TAU = NULL,
+  K = NULL,
   PHI_START = NULL,
   NUISANCE = c("items", "workers"),
   CONTROL = list(),
@@ -60,6 +61,12 @@ agreement(
 
   Thresholds to use for the discretisation of the underlying beta
   distribution.
+
+- K:
+
+  Number of ordinal categories. If `NULL` (default), inferred from data
+  as `max(RATINGS)`. Provide explicitly when some boundary categories
+  (e.g. 1 or K) may be absent from the observed data.
 
 - PHI_START:
 
@@ -171,20 +178,20 @@ fit <- agreement(
 #> MODEL PARAMETERS
 #>  - Constant effects: workers
 #>  - Nuisance effects: items
-#> Non-adjusted agreement: 0.739811
-#> Adjusted agreement: 0.657685
+#> Non-adjusted agreement: 0.740346
+#> Adjusted agreement: 0.657684
 #> Done!
 # get standard error and confidence interval
 ci <- get_ci(fit)
 ci
 #> $agreement_est
-#> [1] 0.6576846
+#> [1] 0.657684
 #> 
 #> $agreement_se
-#> [1] 0.03584845
+#> [1] 0.03584842
 #> 
 #> $agreement_ci
-#> [1] 0.5874229 0.7279463
+#> [1] 0.5874224 0.7279456
 #> 
 
 # compute log-likelihood over a grid
