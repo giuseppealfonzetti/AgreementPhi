@@ -12,6 +12,7 @@ agreement(
   ALPHA_START = NULL,
   BETA_START = NULL,
   TAU = NULL,
+  K = NULL,
   PHI_START = NULL,
   NUISANCE = c("items", "workers"),
   CONTROL = list(),
@@ -38,6 +39,9 @@ Must be integers in \{1, 2, ..., J\}.}
 \item{BETA_START}{Starting values for worker-specific intercepts. Vector of length W-1. Default is \code{rep(0, W-1)} where W is the number of workers}
 
 \item{TAU}{Thresholds to use for the discretisation of the underlying beta distribution.}
+
+\item{K}{Number of ordinal categories. If \code{NULL} (default), inferred from data as \code{max(RATINGS)}.
+Provide explicitly when some boundary categories (e.g. 1 or K) may be absent from the observed data.}
 
 \item{PHI_START}{Starting value for beta precision parameter. Must be positive. Default is \code{agr2prec(0.5)} (precision corresponding to 50\% agreement).}
 
