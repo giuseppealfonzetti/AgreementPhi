@@ -2,7 +2,7 @@
 
 The `AgreementPhi` package is the companion of “Alfonzetti G., Bellio
 R., Vidoni P. *Accurate agreement estimation in crowdsourced relevance
-assessments*”. It allows the accurate estimation of the general $\Phi$
+assessments*”. It allows the accurate estimation of the general $`\Phi`$
 agreement measure among multiple crowd-workers assessing a given
 collection of items (Checco et al. 2017).
 
@@ -11,6 +11,7 @@ collection of items (Checco et al. 2017).
 You can install `AgreementPhi` using the `devtools` package:
 
 ``` r
+
 devtools::install_github("giuseppealfonzetti/AgreementPhi")
 ```
 
@@ -19,6 +20,7 @@ devtools::install_github("giuseppealfonzetti/AgreementPhi")
 Generate a synthetic dataset with continuous ratings in (0,1)
 
 ``` r
+
 library(AgreementPhi)
 set.seed(321)
 # setting dimension
@@ -47,6 +49,7 @@ Fit the model using the
 function
 
 ``` r
+
 # estimation via modified profile likelihood
 fit <- agreement(
   RATINGS = dt$rating,
@@ -73,6 +76,7 @@ fit <- agreement(
 Construct confidence intervals
 
 ``` r
+
 # get standard error and confidence interval
 ci <- get_ci(fit)
 ci 

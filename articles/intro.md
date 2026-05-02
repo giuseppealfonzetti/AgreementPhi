@@ -6,9 +6,10 @@ The `AgreementPhi` package exports a utility function to simulate data
 by providing the true agreement and item effects. Consider for example
 to simulate continuous ratings for 200 items, collecting 8 relevance
 assessments per item, for a total of 1600 responses. We set the true
-agreement at $\Phi = 0.4$
+agreement at $`\Phi=0.4`$
 
 ``` r
+
 library(AgreementPhi)
 set.seed(321)
 # setting dimension
@@ -37,6 +38,7 @@ The simulated 1600 ratings are stored in `dt$ratings`, while
 related to each rating
 
 ``` r
+
 names(dt)
 #> [1] "id_item"   "id_worker" "rating"
 head(dt$id_item)
@@ -52,6 +54,7 @@ length(dt$rating)
 For convenience, we also provide a plot utility to visualise the data
 
 ``` r
+
 plot_data(
   RATINGS = dt$rating,
   ITEM_INDS = dt$id_item,
@@ -63,13 +66,14 @@ plot_data(
 
 The core function of the `AgreementPhi` package is
 [`agreement()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/agreement.md),
-which implements the numerical algorithms to estimate the $\Phi$
+which implements the numerical algorithms to estimate the $`\Phi`$
 agreement via profile and modified profile likelihood methods. It
 requires as input the ratings, the item ids and worker ids (specified as
 integers). For the estimation via profile likelihood, you can specify
 `METHOD="profile"`
 
 ``` r
+
 # estimation via profile likelihood
 fit_profile <- agreement(
   RATINGS = dt$rating,
@@ -100,6 +104,7 @@ nuisance parameters. The agreement and precision estimates are available
 at
 
 ``` r
+
 fit_profile$profile
 #> $precision
 #> [1] 2.446563
@@ -112,6 +117,7 @@ while the maximum likelihood estimates of the nuisance parameters are
 available at
 
 ``` r
+
 head(fit_profile$alpha)
 #> [1]  1.0698711  1.4333241 -0.2898244 -0.9135686  0.3879414  0.1008767
 ```
@@ -120,6 +126,7 @@ To use the modified likelihood approach, it is enough to change the
 `METHOD` argument to `modified`.
 
 ``` r
+
 # estimation via modified profile likelihood
 fit_modified <- agreement(
   RATINGS = dt$rating,
@@ -150,6 +157,7 @@ modified profile likelihood. Thus, both estimates can be retrieved from
 the fitted object
 
 ``` r
+
 fit_modified$profile
 #> $precision
 #> [1] 2.446563
@@ -172,6 +180,7 @@ automatically recognise if the estimates are related to the profile or
 modified likelihood approach by looking at the fitted object
 
 ``` r
+
 # get standard error and confidence interval
 ci_profile <- get_ci(fit_profile)
 ci_profile
@@ -201,6 +210,7 @@ log-likelihood profiles of the two methods as well as the inference
 results
 
 ``` r
+
 # compute log-likelihood over a grid
 range_ll <- get_range_ll(fit_modified)
 
