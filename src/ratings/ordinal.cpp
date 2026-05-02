@@ -23,7 +23,10 @@ double AgreementPhi::ordinal::loglik(
     double logprob = t_log_cdf + log1p(-exp(tm1_log_cdf - t_log_cdf));
     double prob = exp(logprob);
 
-    
+    if (prob < 1e-8) {
+        return logprob;
+    }
+
     if(GRADFLAG>0){
         double beta = boost::math::beta(a,b);
         double betainv = 1/beta;
