@@ -89,19 +89,19 @@ fit <- agreement(
 #>  - Constant effects: workers
 #>  - Nuisance effects: items
 #> Non-adjusted agreement: 0.740346
-#> Adjusted agreement: 0.657682
+#> Adjusted agreement: 0.657683
 #> Done!
 # get standard error and confidence interval
 ci <- get_ci(fit)
 ci
 #> $agreement_est
-#> [1] 0.6576816
+#> [1] 0.6576834
 #> 
 #> $agreement_se
-#> [1] 0.03584864
+#> [1] 0.0358485
 #> 
 #> $agreement_ci
-#> [1] 0.5874196 0.7279437
+#> [1] 0.5874216 0.7279452
 #> 
 
 # compute log-likelihood over a grid
