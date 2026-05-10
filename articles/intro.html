@@ -187,7 +187,7 @@ available at</p>
 <span><span class="co">#&gt;  - Constant effects: workers</span></span>
 <span><span class="co">#&gt;  - Nuisance effects: items</span></span>
 <span><span class="co">#&gt; Non-adjusted agreement: 0.444413</span></span>
-<span><span class="co">#&gt; Adjusted agreement: 0.400504</span></span>
+<span><span class="co">#&gt; Adjusted agreement: 0.400506</span></span>
 <span><span class="co">#&gt; Done!</span></span></code></pre></div>
 <p>As it can be read from the verbose output, when
 <code>METHOD = "modified"</code>, the proposed algorithm first optimises
@@ -203,10 +203,10 @@ estimates can be retrieved from the fitted object</p>
 <span><span class="co">#&gt; [1] 0.4444125</span></span>
 <span><span class="va">fit_modified</span><span class="op">$</span><span class="va">modified</span></span>
 <span><span class="co">#&gt; $precision</span></span>
-<span><span class="co">#&gt; [1] 2.129928</span></span>
+<span><span class="co">#&gt; [1] 2.129945</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $agreement</span></span>
-<span><span class="co">#&gt; [1] 0.4005036</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.4005059</span></span></code></pre></div>
 <p>Once the point estimates are computed, we can draw inference on
 agreement by using the <code><a href="../reference/get_ci.html">get_ci()</a></code> function to construct
 confidence intervals. The function will automatically recognise if the
@@ -228,13 +228,13 @@ looking at the fitted object</p>
 <span><span class="va">ci_modified</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_ci.html">get_ci</a></span><span class="op">(</span><span class="va">fit_modified</span><span class="op">)</span></span>
 <span><span class="va">ci_modified</span> </span>
 <span><span class="co">#&gt; $agreement_est</span></span>
-<span><span class="co">#&gt; [1] 0.4005036</span></span>
+<span><span class="co">#&gt; [1] 0.4005059</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $agreement_se</span></span>
-<span><span class="co">#&gt; [1] 0.01034237</span></span>
+<span><span class="co">#&gt; [1] 0.0103424</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $agreement_ci</span></span>
-<span><span class="co">#&gt; [1] 0.3802329 0.4207742</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.3802352 0.4207766</span></span></code></pre></div>
 <p>For convenience, we provide a utility function to visualise the
 relative log-likelihood profiles of the two methods as well as the
 inference results</p>

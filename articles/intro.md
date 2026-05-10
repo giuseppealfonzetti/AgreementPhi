@@ -146,7 +146,7 @@ fit_modified <- agreement(
 #>  - Constant effects: workers
 #>  - Nuisance effects: items
 #> Non-adjusted agreement: 0.444413
-#> Adjusted agreement: 0.400504
+#> Adjusted agreement: 0.400506
 #> Done!
 ```
 
@@ -166,10 +166,10 @@ fit_modified$profile
 #> [1] 0.4444125
 fit_modified$modified
 #> $precision
-#> [1] 2.129928
+#> [1] 2.129945
 #> 
 #> $agreement
-#> [1] 0.4005036
+#> [1] 0.4005059
 ```
 
 Once the point estimates are computed, we can draw inference on
@@ -196,13 +196,13 @@ ci_profile
 ci_modified <- get_ci(fit_modified)
 ci_modified 
 #> $agreement_est
-#> [1] 0.4005036
+#> [1] 0.4005059
 #> 
 #> $agreement_se
-#> [1] 0.01034237
+#> [1] 0.0103424
 #> 
 #> $agreement_ci
-#> [1] 0.3802329 0.4207742
+#> [1] 0.3802352 0.4207766
 ```
 
 For convenience, we provide a utility function to visualise the relative
