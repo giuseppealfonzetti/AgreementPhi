@@ -9,8 +9,8 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_profile(
     const std::vector<int> WORKER_INDS,
     const std::vector<std::vector<int>> ITEM_DICT,
     const std::vector<std::vector<int>> WORKER_DICT,
-    const std::vector<double> ALPHA,
-    const std::vector<double> BETA,
+    std::vector<double>& ALPHA,
+    std::vector<double>& BETA,
     const double PHI_START,
     const int J,
     const int W,
@@ -24,15 +24,48 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_profile(
     const double PROF_TOL,
     const bool VERBOSE
 ){
+    struct BestWarmStart {
+        double loglik = -std::numeric_limits<double>::infinity();
+        std::vector<double> alpha;
+        std::vector<double> beta;
+        bool initialized = false;
+    } best;
 
     auto neg_profile_likelihood = [&](double phi){
-        double ll = AgreementPhi::continuous::ll::profile(
-                Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA, BETA, phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_UNI_RANGE,
-                PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+        std::vector<double> alpha_start = best.initialized ? best.alpha : ALPHA;
+        std::vector<double> beta_start  = best.initialized ? best.beta  : BETA;
+
+        std::vector<std::vector<double>> profiled = AgreementPhi::continuous::nuisance::get_lambda(
+            Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, alpha_start, beta_start,
+            phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE,
+            PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+
+        std::vector<double> lambda;
+        lambda.reserve(J + W - 1);
+        lambda.insert(lambda.end(), profiled.at(0).begin(), profiled.at(0).end());
+        lambda.insert(lambda.end(), profiled.at(1).begin() + 1, profiled.at(1).end());
+
+        Eigen::VectorXd dlambda    = Eigen::VectorXd::Zero(J + W - 1);
+        Eigen::VectorXd jaa        = Eigen::VectorXd::Zero(J);
+        Eigen::VectorXd jbb        = Eigen::VectorXd::Zero(W - 1);
+        Eigen::MatrixXd jab        = Eigen::MatrixXd::Zero(J, W - 1);
+
+        double ll = AgreementPhi::continuous::joint_loglik(
+            Y, ITEM_INDS, WORKER_INDS, lambda, phi, J, W,
+            ITEMS_NUISANCE, WORKER_NUISANCE, dlambda, jaa, jbb, jab, 0);
+
+        if (ll > best.loglik) {
+            best.loglik     = ll;
+            best.alpha      = profiled.at(0);
+            best.beta       = profiled.at(1);
+            best.initialized = true;
+        }
+
+        if (!std::isfinite(ll)) return std::numeric_limits<double>::infinity();
         return -ll;
     };
 
-    double lower = 1e-8; 
+    double lower = 1e-8;
     double upper = PHI_START + SEARCH_RANGE;
 
     const int digits = std::numeric_limits<double>::digits;
@@ -40,6 +73,11 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_profile(
     auto result = boost::math::tools::brent_find_minima(
         neg_profile_likelihood, lower, upper, digits, max_iter
     );
+
+    if (best.initialized) {
+        ALPHA = best.alpha;
+        BETA  = best.beta;
+    }
 
     std::vector<double> out(2);
     out[0] = result.first;
@@ -56,8 +94,8 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
     const std::vector<int> WORKER_INDS,
     const std::vector<std::vector<int>> ITEM_DICT,
     const std::vector<std::vector<int>> WORKER_DICT,
-    const std::vector<double> ALPHA,
-    const std::vector<double> BETA,
+    std::vector<double>& ALPHA,
+    std::vector<double>& BETA,
     const double PHI_START,
     const int J,
     const int W,
@@ -71,47 +109,155 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
     const double PROF_TOL,
     const bool VERBOSE
 ){
-    // get mle for phi via profile likleihood
     std::vector<double> phi_mle = AgreementPhi::continuous::inference::get_phi_profile(
-        Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA, BETA, PHI_START, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE,
+        Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA, BETA, PHI_START, J, W,
+        ITEMS_NUISANCE, WORKER_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_UNI_RANGE,
         PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL, VERBOSE);
 
-    if(VERBOSE) Rcpp::Rcout<< "Non-adjusted agreement: " << utils::prec2agr(phi_mle.at(0)) << "\n";
+    if(VERBOSE) Rcpp::Rcout << "Non-adjusted agreement: " << utils::prec2agr(phi_mle.at(0)) << "\n";
 
-    // get mle for lambda
     std::vector<std::vector<double>> lambda_mle = AgreementPhi::continuous::nuisance::get_lambda(
-        Y,  ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA,  BETA, phi_mle.at(0), J, W, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_UNI_RANGE,
-        PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+        Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, ALPHA, BETA, phi_mle.at(0), J, W,
+        ITEMS_NUISANCE, WORKER_NUISANCE, PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
 
-    // negative modified profile log-likelihood to minimize
-    auto neg_modified_profile_likelihood = [&](double phi){
-        double ll = AgreementPhi::continuous::ll::modified_profile(
-                Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, lambda_mle.at(0), lambda_mle.at(1), phi, phi_mle.at(0), J, W, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_UNI_RANGE,
-                PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
-        return -ll; 
+    std::vector<double> mle_vec;
+    mle_vec.reserve(J + W - 1);
+    mle_vec.insert(mle_vec.end(), lambda_mle.at(0).begin(), lambda_mle.at(0).end());
+    mle_vec.insert(mle_vec.end(), lambda_mle.at(1).begin() + 1, lambda_mle.at(1).end());
+
+    // Evaluate modified profile LL for a given phi, starting nuisance profiling from
+    // alpha_s/beta_s. Returns -ll (for minimization); +Inf when ll is not finite.
+    auto eval_mpl = [&](double phi,
+                        const std::vector<double>& alpha_s,
+                        const std::vector<double>& beta_s) -> double {
+        std::vector<std::vector<double>> profiled = AgreementPhi::continuous::nuisance::get_lambda(
+            Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, alpha_s, beta_s,
+            phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE,
+            PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+
+        std::vector<double> pv;
+        pv.reserve(J + W - 1);
+        pv.insert(pv.end(), profiled.at(0).begin(), profiled.at(0).end());
+        pv.insert(pv.end(), profiled.at(1).begin() + 1, profiled.at(1).end());
+
+        Eigen::VectorXd dlambda = Eigen::VectorXd::Zero(J + W - 1);
+        Eigen::VectorXd jaa     = Eigen::VectorXd::Zero(J);
+        Eigen::VectorXd jbb     = Eigen::VectorXd::Zero(W - 1);
+        Eigen::MatrixXd jab     = Eigen::MatrixXd::Zero(J, W - 1);
+
+        double ll = AgreementPhi::continuous::joint_loglik(
+            Y, ITEM_INDS, WORKER_INDS, pv, phi, J, W,
+            ITEMS_NUISANCE, WORKER_NUISANCE, dlambda, jaa, jbb, jab, 0);
+        ll += 0.5 * AgreementPhi::continuous::log_det_obs_info(
+            Y, ITEM_INDS, WORKER_INDS, pv, phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE);
+        ll -= AgreementPhi::continuous::log_det_E0d0d1(
+            ITEM_INDS, WORKER_INDS, mle_vec, pv, phi_mle.at(0), phi,
+            J, W, ITEMS_NUISANCE, WORKER_NUISANCE);
+
+        if (!std::isfinite(ll)) return std::numeric_limits<double>::infinity();
+        return -ll;
     };
 
-    double eps = 1e-8; 
+    double eps = 1e-8;
     double lower = std::max(phi_mle.at(0) - SEARCH_RANGE, eps);
     double upper = std::min(phi_mle.at(0) + SEARCH_RANGE, 15.0);
+
+    // Phase 1: coarse grid on the agreement scale, always starting from lambda_mle.
+    // This avoids warm-start path-dependence that can lead to spurious local maxima.
+    const int N_GRID = 20;
+    double agr_lower = utils::prec2agr(lower);
+    double agr_upper = utils::prec2agr(upper);
+    double best_grid_phi  = phi_mle.at(0);
+    double best_grid_val  = std::numeric_limits<double>::infinity();
+    for(int g = 0; g < N_GRID; ++g){
+        double agr_g = agr_lower + (agr_upper - agr_lower) * g / (N_GRID - 1);
+        double phi_g = utils::agr2prec(agr_g);
+        if(phi_g < lower || phi_g > upper) continue;
+        double val = eval_mpl(phi_g, lambda_mle.at(0), lambda_mle.at(1));
+        if(val < best_grid_val){
+            best_grid_val = val;
+            best_grid_phi = phi_g;
+        }
+    }
+
+    // Phase 2: Brent refinement in a narrow window around the grid best,
+    // using warm-starting initialized from lambda_mle at best_grid_phi.
+    double agr_step = (agr_upper - agr_lower) / (N_GRID - 1);
+    double agr_best = utils::prec2agr(best_grid_phi);
+    double brent_lower = utils::agr2prec(std::max(agr_best - 2.0 * agr_step, agr_lower));
+    double brent_upper = utils::agr2prec(std::min(agr_best + 2.0 * agr_step, agr_upper));
+    brent_lower = std::max(brent_lower, lower);
+    brent_upper = std::min(brent_upper, upper);
+
+    if(brent_lower >= brent_upper) brent_upper = std::min(brent_lower + 0.1, upper);
+
+    struct BestWarmStart {
+        double loglik = -std::numeric_limits<double>::infinity();
+        std::vector<double> alpha;
+        std::vector<double> beta;
+        bool initialized = false;
+    } best;
+
+    auto neg_mpl_ws = [&](double phi) -> double {
+        const std::vector<double>& alpha_s = best.initialized ? best.alpha : lambda_mle.at(0);
+        const std::vector<double>& beta_s  = best.initialized ? best.beta  : lambda_mle.at(1);
+
+        std::vector<std::vector<double>> profiled = AgreementPhi::continuous::nuisance::get_lambda(
+            Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, alpha_s, beta_s,
+            phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE,
+            PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+
+        std::vector<double> pv;
+        pv.reserve(J + W - 1);
+        pv.insert(pv.end(), profiled.at(0).begin(), profiled.at(0).end());
+        pv.insert(pv.end(), profiled.at(1).begin() + 1, profiled.at(1).end());
+
+        Eigen::VectorXd dlambda = Eigen::VectorXd::Zero(J + W - 1);
+        Eigen::VectorXd jaa     = Eigen::VectorXd::Zero(J);
+        Eigen::VectorXd jbb     = Eigen::VectorXd::Zero(W - 1);
+        Eigen::MatrixXd jab     = Eigen::MatrixXd::Zero(J, W - 1);
+
+        double ll = AgreementPhi::continuous::joint_loglik(
+            Y, ITEM_INDS, WORKER_INDS, pv, phi, J, W,
+            ITEMS_NUISANCE, WORKER_NUISANCE, dlambda, jaa, jbb, jab, 0);
+        ll += 0.5 * AgreementPhi::continuous::log_det_obs_info(
+            Y, ITEM_INDS, WORKER_INDS, pv, phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE);
+        ll -= AgreementPhi::continuous::log_det_E0d0d1(
+            ITEM_INDS, WORKER_INDS, mle_vec, pv, phi_mle.at(0), phi,
+            J, W, ITEMS_NUISANCE, WORKER_NUISANCE);
+
+        if(ll > best.loglik){
+            best.loglik      = ll;
+            best.alpha       = profiled.at(0);
+            best.beta        = profiled.at(1);
+            best.initialized = true;
+        }
+        if(!std::isfinite(ll)) return std::numeric_limits<double>::infinity();
+        return -ll;
+    };
 
     const int digits = std::numeric_limits<double>::digits;
     boost::uintmax_t max_iter = MAX_ITER;
     auto result = boost::math::tools::brent_find_minima(
-        neg_modified_profile_likelihood, lower, upper, digits, max_iter
+        neg_mpl_ws, brent_lower, brent_upper, digits, max_iter
     );
 
+    // Use the grid result if brent find is worse
+    double final_phi = result.first;
+    double final_val = result.second;
+    if(best_grid_val < std::numeric_limits<double>::infinity() && best_grid_val < final_val){
+        final_phi = best_grid_phi;
+        final_val = best_grid_val;
+    }
 
-    if(VERBOSE) Rcpp::Rcout<< "Adjusted agreement: " << utils::prec2agr(result.first) << "\n";
+    if(VERBOSE) Rcpp::Rcout << "Adjusted agreement: " << utils::prec2agr(final_phi) << "\n";
 
-    std::vector<double> out(3); 
-    out[0] = result.first;   // estimate
-    out[1] = -result.second; // loglik
-    out[2] = phi_mle.at(0);  // non-adjusted
+    std::vector<double> out(3);
+    out[0] = final_phi;
+    out[1] = -final_val;
+    out[2] = phi_mle.at(0);
 
     return out;
-
-    
 }
 
 

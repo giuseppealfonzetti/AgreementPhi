@@ -57,11 +57,11 @@ Rcpp::List cpp_get_phi(
     if(METHOD == "profile"){
         if(DATA_TYPE=="continuous"){
             res = AgreementPhi::continuous::inference::get_phi_profile(
-                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START, BETA_START, PHI_START, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
+                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, alpha, beta, PHI_START, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
             profile_phi = res.at(0);
             ll = res.at(1);
             std::vector<std::vector<double>> lambda= AgreementPhi::continuous::nuisance::get_lambda(
-                Y,  ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START,  BETA_START, profile_phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_SEARCH_RANGE,
+                Y,  ITEM_INDS, WORKER_INDS, item_dict, worker_dict, alpha, beta, profile_phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_SEARCH_RANGE,
                 PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL);
             alpha=lambda.at(0);
             beta=lambda.at(1);
@@ -91,12 +91,12 @@ Rcpp::List cpp_get_phi(
     }else if(METHOD == "modified"){
         if(DATA_TYPE=="continuous"){
             res = AgreementPhi::continuous::inference::get_phi_modified_profile(
-                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START, BETA_START, PHI_START, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
+                    Y, ITEM_INDS, WORKER_INDS, item_dict, worker_dict, alpha, beta, PHI_START, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, SEARCH_RANGE, MAX_ITER, PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL, VERBOSE);
             modified_phi = res.at(0);
             profile_phi = res.at(2);
             ll = res.at(1);
             std::vector<std::vector<double>> lambda= AgreementPhi::continuous::nuisance::get_lambda(
-                Y,  ITEM_INDS, WORKER_INDS, item_dict, worker_dict, ALPHA_START,  BETA_START, modified_phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_SEARCH_RANGE,
+                Y,  ITEM_INDS, WORKER_INDS, item_dict, worker_dict, alpha, beta, modified_phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_SEARCH_RANGE,
                 PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL);
             alpha=lambda.at(0);
             beta=lambda.at(1);
