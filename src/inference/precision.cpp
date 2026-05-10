@@ -166,13 +166,13 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
     double lower = std::max(phi_mle.at(0) - SEARCH_RANGE, eps);
     double upper = std::min(phi_mle.at(0) + SEARCH_RANGE, 15.0);
 
-    // Bidirectional warm-start grid: start at phi_mle, step left and right, carrying
-    // each step's profiled nuisance to the next. This avoids the convergence failure
-    // that occurs when all grid points start cold from lambda_mle for phi far from phi_mle.
-    const int N_GRID = 20;
+    // Two complementary sequential scans on the agreement scale.
+    // Forward (lower→upper) starts from zero nuisance — good warm-start for small phi.
+    // Backward (upper→lower) starts from lambda_mle — good warm-start for large phi.
+    // Warm-start is only propagated on successful (finite) evaluations to avoid NaN contamination.
+    const int N_GRID = 25;
     double agr_lower = utils::prec2agr(lower);
     double agr_upper = utils::prec2agr(upper);
-    double agr_mle   = utils::prec2agr(phi_mle.at(0));
     double agr_step  = (agr_upper - agr_lower) / N_GRID;
 
     double best_grid_phi = phi_mle.at(0);
@@ -180,78 +180,59 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
     std::vector<double> best_grid_aw = lambda_mle.at(0);
     std::vector<double> best_grid_bw = lambda_mle.at(1);
 
-    // Left scan: phi_mle → lower (decreasing phi)
+    auto try_update_best = [&](double phi_g, double val,
+                                const std::vector<double>& ao, const std::vector<double>& bo){
+        if(val < best_grid_val){
+            best_grid_val = val;
+            best_grid_phi = phi_g;
+            best_grid_aw  = ao;
+            best_grid_bw  = bo;
+        }
+    };
+
+    // Forward scan: agr_lower → agr_upper, zero warm-start
     {
-        std::vector<double> aw = lambda_mle.at(0), bw = lambda_mle.at(1), ao, bo;
+        std::vector<double> aw(J, 0.0), bw(W, 0.0), ao, bo;
         for(int g = 0; g <= N_GRID; ++g){
-            double agr_g = agr_mle - g * agr_step;
-            if(agr_g < agr_lower - 1e-12) break;
-            agr_g = std::max(agr_g, agr_lower);
-            double phi_g = std::max(utils::agr2prec(agr_g), lower);
+            double agr_g = std::min(agr_lower + g * agr_step, agr_upper);
+            double phi_g = std::max(std::min(utils::agr2prec(agr_g), upper), lower);
             double val = eval_mpl_updating(phi_g, aw, bw, ao, bo);
-            if(val < best_grid_val){
-                best_grid_val = val;
-                best_grid_phi = phi_g;
-                best_grid_aw  = ao;
-                best_grid_bw  = bo;
-            }
-            aw = ao; bw = bo;
+            try_update_best(phi_g, val, ao, bo);
+            if(std::isfinite(val)){ aw = ao; bw = bo; }
         }
     }
 
-    // Right scan: phi_mle+step → upper (increasing phi)
+    // Backward scan: agr_upper → agr_lower, lambda_mle warm-start
     {
         std::vector<double> aw = lambda_mle.at(0), bw = lambda_mle.at(1), ao, bo;
-        for(int g = 1; g <= N_GRID; ++g){
-            double agr_g = agr_mle + g * agr_step;
-            if(agr_g > agr_upper + 1e-12) break;
-            agr_g = std::min(agr_g, agr_upper);
-            double phi_g = std::min(utils::agr2prec(agr_g), upper);
+        for(int g = N_GRID; g >= 0; --g){
+            double agr_g = std::min(agr_lower + g * agr_step, agr_upper);
+            double phi_g = std::max(std::min(utils::agr2prec(agr_g), upper), lower);
             double val = eval_mpl_updating(phi_g, aw, bw, ao, bo);
-            if(val < best_grid_val){
-                best_grid_val = val;
-                best_grid_phi = phi_g;
-                best_grid_aw  = ao;
-                best_grid_bw  = bo;
-            }
-            aw = ao; bw = bo;
+            try_update_best(phi_g, val, ao, bo);
+            if(std::isfinite(val)){ aw = ao; bw = bo; }
         }
     }
 
     // Brent refinement in a narrow window around the grid best.
-    double agr_best  = utils::prec2agr(best_grid_phi);
+    // Always starts from best_grid_aw/bw (no within-Brent warm-start update)
+    // to avoid path-dependence in the non-monotone Brent evaluation order.
+    double agr_best    = utils::prec2agr(best_grid_phi);
     double brent_lower = utils::agr2prec(std::max(agr_best - 2.0 * agr_step, agr_lower));
     double brent_upper = utils::agr2prec(std::min(agr_best + 2.0 * agr_step, agr_upper));
     brent_lower = std::max(brent_lower, lower);
     brent_upper = std::min(brent_upper, upper);
     if(brent_lower >= brent_upper) brent_upper = std::min(brent_lower + 0.1, upper);
 
-    struct BestWarmStart {
-        double loglik = -std::numeric_limits<double>::infinity();
-        std::vector<double> alpha;
-        std::vector<double> beta;
-        bool initialized = false;
-    } best;
-    best.alpha = best_grid_aw;
-    best.beta  = best_grid_bw;
-    best.initialized = true;
-
-    auto neg_mpl_ws = [&](double phi) -> double {
+    auto neg_mpl_brent = [&](double phi) -> double {
         std::vector<double> ao, bo;
-        double val = eval_mpl_updating(phi, best.alpha, best.beta, ao, bo);
-        double ll = -val;
-        if(ll > best.loglik){
-            best.loglik = ll;
-            best.alpha  = ao;
-            best.beta   = bo;
-        }
-        return val;
+        return eval_mpl_updating(phi, best_grid_aw, best_grid_bw, ao, bo);
     };
 
     const int digits = std::numeric_limits<double>::digits;
     boost::uintmax_t max_iter = MAX_ITER;
     auto result = boost::math::tools::brent_find_minima(
-        neg_mpl_ws, brent_lower, brent_upper, digits, max_iter
+        neg_mpl_brent, brent_lower, brent_upper, digits, max_iter
     );
 
     double final_phi = result.first;
