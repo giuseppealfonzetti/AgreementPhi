@@ -11,13 +11,13 @@ namespace AgreementPhi{
     namespace continuous{
         namespace inference{
             std::vector<double> get_phi_profile(
-                const std::vector<double> Y,  
+                const std::vector<double> Y,
                 const std::vector<int> ITEM_INDS,
                 const std::vector<int> WORKER_INDS,
                 const std::vector<std::vector<int>> ITEM_DICT,
                 const std::vector<std::vector<int>> WORKER_DICT,
-                const std::vector<double> ALPHA,
-                const std::vector<double> BETA,
+                std::vector<double>& ALPHA,
+                std::vector<double>& BETA,
                 const double PHI_START,
                 const int J,
                 const int W,
@@ -32,13 +32,13 @@ namespace AgreementPhi{
                 const bool VERBOSE
             );
             std::vector<double> get_phi_modified_profile(
-                const std::vector<double> Y,  
+                const std::vector<double> Y,
                 const std::vector<int> ITEM_INDS,
                 const std::vector<int> WORKER_INDS,
                 const std::vector<std::vector<int>> ITEM_DICT,
                 const std::vector<std::vector<int>> WORKER_DICT,
-                const std::vector<double> ALPHA,
-                const std::vector<double> BETA,
+                std::vector<double>& ALPHA,
+                std::vector<double>& BETA,
                 const double PHI_START,
                 const int J,
                 const int W,

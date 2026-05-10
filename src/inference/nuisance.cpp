@@ -57,7 +57,7 @@ double AgreementPhi::continuous::nuisance::brent_profiling(
 }
 
 std::vector<std::vector<double>> AgreementPhi::continuous::nuisance::get_lambda(
-    const std::vector<double> Y,  
+    const std::vector<double> Y,
     const std::vector<int> ITEM_INDS,
     const std::vector<int> WORKER_INDS,
     const std::vector<std::vector<int>> ITEM_DICT,
@@ -74,48 +74,48 @@ std::vector<std::vector<double>> AgreementPhi::continuous::nuisance::get_lambda(
     const int PROF_MAX_ITER,
     const double TOL
 ){
-        
+
     std::vector<double> alphas = ALPHA;
     std::vector<double> betas = BETA;
     betas.at(0) = 0;
-    
+
     if(WORKER_NUISANCE){
         for(int iter = 0; iter < PROF_MAX_ITER; ++iter){
             double max_change = 0;
-            
+
             // Profile items
             for(int j = 0; j < J; ++j){
                 double old_alpha = alphas.at(j);
                 alphas.at(j) = AgreementPhi::continuous::nuisance::brent_profiling(
-                    Y, ITEM_DICT, j+1, WORKER_INDS, betas, 
+                    Y, ITEM_DICT, j+1, WORKER_INDS, betas,
                     old_alpha, PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
                 );
                 max_change = std::max(max_change, std::abs(alphas.at(j) - old_alpha));
             }
-            
+
             // Profile workers
             for(int w = 1; w < W; ++w){
                 double old_beta = betas.at(w);
                 betas.at(w) = AgreementPhi::continuous::nuisance::brent_profiling(
-                    Y, WORKER_DICT, w+1, ITEM_INDS, alphas, 
+                    Y, WORKER_DICT, w+1, ITEM_INDS, alphas,
                     old_beta, PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
                 );
                 max_change = std::max(max_change, std::abs(betas.at(w) - old_beta));
             }
-            
+
             if(max_change < TOL) break;
         }
     }else{
         for(int j = 0; j < J; ++j){
             double old_alpha = alphas.at(j);
             alphas.at(j) = AgreementPhi::continuous::nuisance::brent_profiling(
-                Y, ITEM_DICT, j+1, WORKER_INDS, betas, 
+                Y, ITEM_DICT, j+1, WORKER_INDS, betas,
                 old_alpha, PHI, PROF_UNI_RANGE, PROF_UNI_MAX_ITER
             );
         }
     }
-    
-    
+
+
     std::vector<std::vector<double>> out(2);
     out.at(0) = alphas;
     out.at(1) = betas;
