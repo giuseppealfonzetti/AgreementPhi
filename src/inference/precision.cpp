@@ -125,15 +125,19 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
     mle_vec.insert(mle_vec.end(), lambda_mle.at(0).begin(), lambda_mle.at(0).end());
     mle_vec.insert(mle_vec.end(), lambda_mle.at(1).begin() + 1, lambda_mle.at(1).end());
 
-    // Evaluate modified profile LL for a given phi, starting nuisance profiling from
-    // alpha_s/beta_s. Returns -ll (for minimization); +Inf when ll is not finite.
-    auto eval_mpl = [&](double phi,
-                        const std::vector<double>& alpha_s,
-                        const std::vector<double>& beta_s) -> double {
+    // Profiles nuisance from alpha_s/beta_s, writes profiled values back, returns -mpl.
+    auto eval_mpl_updating = [&](double phi,
+                                  const std::vector<double>& alpha_s,
+                                  const std::vector<double>& beta_s,
+                                  std::vector<double>& alpha_out,
+                                  std::vector<double>& beta_out) -> double {
         std::vector<std::vector<double>> profiled = AgreementPhi::continuous::nuisance::get_lambda(
             Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, alpha_s, beta_s,
             phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE,
             PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+
+        alpha_out = profiled.at(0);
+        beta_out  = profiled.at(1);
 
         std::vector<double> pv;
         pv.reserve(J + W - 1);
@@ -162,33 +166,64 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
     double lower = std::max(phi_mle.at(0) - SEARCH_RANGE, eps);
     double upper = std::min(phi_mle.at(0) + SEARCH_RANGE, 15.0);
 
-    // Phase 1: coarse grid on the agreement scale, always starting from lambda_mle.
-    // This avoids warm-start path-dependence that can lead to spurious local maxima.
+    // Bidirectional warm-start grid: start at phi_mle, step left and right, carrying
+    // each step's profiled nuisance to the next. This avoids the convergence failure
+    // that occurs when all grid points start cold from lambda_mle for phi far from phi_mle.
     const int N_GRID = 20;
     double agr_lower = utils::prec2agr(lower);
     double agr_upper = utils::prec2agr(upper);
-    double best_grid_phi  = phi_mle.at(0);
-    double best_grid_val  = std::numeric_limits<double>::infinity();
-    for(int g = 0; g < N_GRID; ++g){
-        double agr_g = agr_lower + (agr_upper - agr_lower) * g / (N_GRID - 1);
-        double phi_g = utils::agr2prec(agr_g);
-        if(phi_g < lower || phi_g > upper) continue;
-        double val = eval_mpl(phi_g, lambda_mle.at(0), lambda_mle.at(1));
-        if(val < best_grid_val){
-            best_grid_val = val;
-            best_grid_phi = phi_g;
+    double agr_mle   = utils::prec2agr(phi_mle.at(0));
+    double agr_step  = (agr_upper - agr_lower) / N_GRID;
+
+    double best_grid_phi = phi_mle.at(0);
+    double best_grid_val = std::numeric_limits<double>::infinity();
+    std::vector<double> best_grid_aw = lambda_mle.at(0);
+    std::vector<double> best_grid_bw = lambda_mle.at(1);
+
+    // Left scan: phi_mle → lower (decreasing phi)
+    {
+        std::vector<double> aw = lambda_mle.at(0), bw = lambda_mle.at(1), ao, bo;
+        for(int g = 0; g <= N_GRID; ++g){
+            double agr_g = agr_mle - g * agr_step;
+            if(agr_g < agr_lower - 1e-12) break;
+            agr_g = std::max(agr_g, agr_lower);
+            double phi_g = std::max(utils::agr2prec(agr_g), lower);
+            double val = eval_mpl_updating(phi_g, aw, bw, ao, bo);
+            if(val < best_grid_val){
+                best_grid_val = val;
+                best_grid_phi = phi_g;
+                best_grid_aw  = ao;
+                best_grid_bw  = bo;
+            }
+            aw = ao; bw = bo;
         }
     }
 
-    // Phase 2: Brent refinement in a narrow window around the grid best,
-    // using warm-starting initialized from lambda_mle at best_grid_phi.
-    double agr_step = (agr_upper - agr_lower) / (N_GRID - 1);
-    double agr_best = utils::prec2agr(best_grid_phi);
+    // Right scan: phi_mle+step → upper (increasing phi)
+    {
+        std::vector<double> aw = lambda_mle.at(0), bw = lambda_mle.at(1), ao, bo;
+        for(int g = 1; g <= N_GRID; ++g){
+            double agr_g = agr_mle + g * agr_step;
+            if(agr_g > agr_upper + 1e-12) break;
+            agr_g = std::min(agr_g, agr_upper);
+            double phi_g = std::min(utils::agr2prec(agr_g), upper);
+            double val = eval_mpl_updating(phi_g, aw, bw, ao, bo);
+            if(val < best_grid_val){
+                best_grid_val = val;
+                best_grid_phi = phi_g;
+                best_grid_aw  = ao;
+                best_grid_bw  = bo;
+            }
+            aw = ao; bw = bo;
+        }
+    }
+
+    // Brent refinement in a narrow window around the grid best.
+    double agr_best  = utils::prec2agr(best_grid_phi);
     double brent_lower = utils::agr2prec(std::max(agr_best - 2.0 * agr_step, agr_lower));
     double brent_upper = utils::agr2prec(std::min(agr_best + 2.0 * agr_step, agr_upper));
     brent_lower = std::max(brent_lower, lower);
     brent_upper = std::min(brent_upper, upper);
-
     if(brent_lower >= brent_upper) brent_upper = std::min(brent_lower + 0.1, upper);
 
     struct BestWarmStart {
@@ -197,43 +232,20 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
         std::vector<double> beta;
         bool initialized = false;
     } best;
+    best.alpha = best_grid_aw;
+    best.beta  = best_grid_bw;
+    best.initialized = true;
 
     auto neg_mpl_ws = [&](double phi) -> double {
-        const std::vector<double>& alpha_s = best.initialized ? best.alpha : lambda_mle.at(0);
-        const std::vector<double>& beta_s  = best.initialized ? best.beta  : lambda_mle.at(1);
-
-        std::vector<std::vector<double>> profiled = AgreementPhi::continuous::nuisance::get_lambda(
-            Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, alpha_s, beta_s,
-            phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE,
-            PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
-
-        std::vector<double> pv;
-        pv.reserve(J + W - 1);
-        pv.insert(pv.end(), profiled.at(0).begin(), profiled.at(0).end());
-        pv.insert(pv.end(), profiled.at(1).begin() + 1, profiled.at(1).end());
-
-        Eigen::VectorXd dlambda = Eigen::VectorXd::Zero(J + W - 1);
-        Eigen::VectorXd jaa     = Eigen::VectorXd::Zero(J);
-        Eigen::VectorXd jbb     = Eigen::VectorXd::Zero(W - 1);
-        Eigen::MatrixXd jab     = Eigen::MatrixXd::Zero(J, W - 1);
-
-        double ll = AgreementPhi::continuous::joint_loglik(
-            Y, ITEM_INDS, WORKER_INDS, pv, phi, J, W,
-            ITEMS_NUISANCE, WORKER_NUISANCE, dlambda, jaa, jbb, jab, 0);
-        ll += 0.5 * AgreementPhi::continuous::log_det_obs_info(
-            Y, ITEM_INDS, WORKER_INDS, pv, phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE);
-        ll -= AgreementPhi::continuous::log_det_E0d0d1(
-            ITEM_INDS, WORKER_INDS, mle_vec, pv, phi_mle.at(0), phi,
-            J, W, ITEMS_NUISANCE, WORKER_NUISANCE);
-
+        std::vector<double> ao, bo;
+        double val = eval_mpl_updating(phi, best.alpha, best.beta, ao, bo);
+        double ll = -val;
         if(ll > best.loglik){
-            best.loglik      = ll;
-            best.alpha       = profiled.at(0);
-            best.beta        = profiled.at(1);
-            best.initialized = true;
+            best.loglik = ll;
+            best.alpha  = ao;
+            best.beta   = bo;
         }
-        if(!std::isfinite(ll)) return std::numeric_limits<double>::infinity();
-        return -ll;
+        return val;
     };
 
     const int digits = std::numeric_limits<double>::digits;
@@ -242,7 +254,6 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
         neg_mpl_ws, brent_lower, brent_upper, digits, max_iter
     );
 
-    // Use the grid result if brent find is worse
     double final_phi = result.first;
     double final_val = result.second;
     if(best_grid_val < std::numeric_limits<double>::infinity() && best_grid_val < final_val){
