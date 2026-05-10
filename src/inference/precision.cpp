@@ -126,6 +126,10 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
     mle_vec.insert(mle_vec.end(), lambda_mle.at(1).begin() + 1, lambda_mle.at(1).end());
 
     // Profiles nuisance from alpha_s/beta_s, writes profiled values back, returns -mpl.
+    // Use more alternating iterations than the user-specified minimum, scaled with
+    // problem size, so cold-started grid points converge even for large J, W.
+    const int grid_alt_iter = std::max(PROF_MAX_ITER, (J + W) / 10);
+
     auto eval_mpl_updating = [&](double phi,
                                   const std::vector<double>& alpha_s,
                                   const std::vector<double>& beta_s,
@@ -134,7 +138,7 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
         std::vector<std::vector<double>> profiled = AgreementPhi::continuous::nuisance::get_lambda(
             Y, ITEM_INDS, WORKER_INDS, ITEM_DICT, WORKER_DICT, alpha_s, beta_s,
             phi, J, W, ITEMS_NUISANCE, WORKER_NUISANCE,
-            PROF_UNI_RANGE, PROF_UNI_MAX_ITER, PROF_MAX_ITER, PROF_TOL);
+            PROF_UNI_RANGE, PROF_UNI_MAX_ITER, grid_alt_iter, PROF_TOL);
 
         alpha_out = profiled.at(0);
         beta_out  = profiled.at(1);
@@ -190,9 +194,19 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
         }
     };
 
-    // Forward scan: agr_lower → agr_upper, zero warm-start
+    // Forward scan: agr_lower → agr_upper, logit(mean_rating_j) warm-start.
+    // Item mean logits are phi-independent and O(1)-close to the true alpha MLE,
+    // so the alternating optimisation converges quickly even from a cold start.
     {
-        std::vector<double> aw(J, 0.0), bw(W, 0.0), ao, bo;
+        std::vector<double> aw(J, 0.0);
+        for(int j = 0; j < J; ++j){
+            const auto& obs = ITEM_DICT.at(j);
+            double sum_y = 0.0;
+            for(int idx : obs) sum_y += Y.at(idx);
+            double m = std::max(0.01, std::min(0.99, sum_y / obs.size()));
+            aw.at(j) = std::log(m / (1.0 - m));
+        }
+        std::vector<double> bw(W, 0.0), ao, bo;
         for(int g = 0; g <= N_GRID; ++g){
             double agr_g = std::min(agr_lower + g * agr_step, agr_upper);
             double phi_g = std::max(std::min(utils::agr2prec(agr_g), upper), lower);

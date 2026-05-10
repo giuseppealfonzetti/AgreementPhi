@@ -117,27 +117,41 @@ validate_data <- function(
 
   if (!is.null(K)) {
     stopifnot(is.numeric(K), K == as.integer(K), K > 1)
-    if (!all(out$ratings == as.integer(out$ratings)))
+    if (!all(out$ratings == as.integer(out$ratings))) {
       stop("Explicit K provided but RATINGS are not integers.")
-    if (any(out$ratings < 1) || any(out$ratings > K))
+    }
+    if (any(out$ratings < 1) || any(out$ratings > K)) {
       stop(paste0("All ratings must be in {1, ..., K}. K=", K))
+    }
     out$data_type <- "ordinal"
     out$K <- as.integer(K)
     if (VERBOSE) {
-      message(paste0(" - Ordinal data on a user-specified ", K, "-point scale."))
+      message(paste0(
+        " - Ordinal data on a user-specified ",
+        K,
+        "-point scale."
+      ))
       n_missing <- K - length(unique(out$ratings))
-      if (n_missing > 0)
+      if (n_missing > 0) {
         message(paste0(
-          " - ", n_missing, " categor",
-          ifelse(n_missing == 1, "y", "ies"), " not observed in data."
+          " - ",
+          n_missing,
+          " categor",
+          ifelse(n_missing == 1, "y", "ies"),
+          " not observed in data."
         ))
+      }
     }
   } else {
     out$data_type <- detect_data_type(RATINGS = out$ratings)
     if (out$data_type == "ordinal") {
       out$K <- max(out$ratings)
       if (VERBOSE) {
-        message(paste0(" - Detected ordinal data on a ", out$K, "-points scale."))
+        message(paste0(
+          " - Detected ordinal data on a ",
+          out$K,
+          "-points scale."
+        ))
       }
     } else {
       out$K <- 1
@@ -242,13 +256,13 @@ validate_cpp_control <- function(LIST = NULL) {
   out$PROF_MAX_ITER <- LIST$PROF_MAX_ITER
 
   if (is.null(LIST$ALT_MAX_ITER)) {
-    LIST$ALT_MAX_ITER <- 10
+    LIST$ALT_MAX_ITER <- 50
   }
   stopifnot(is.numeric(LIST$ALT_MAX_ITER))
   stopifnot(LIST$ALT_MAX_ITER > 0)
   out$ALT_MAX_ITER <- LIST$ALT_MAX_ITER
   if (is.null(LIST$ALT_TOL)) {
-    LIST$ALT_TOL <- 1e-2
+    LIST$ALT_TOL <- 1e-3
   }
   stopifnot(is.numeric(LIST$ALT_TOL))
   stopifnot(LIST$ALT_TOL > 0)

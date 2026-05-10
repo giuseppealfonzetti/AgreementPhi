@@ -149,10 +149,11 @@ double AgreementPhi::continuous::log_det_obs_info(
         Eigen::VectorXd sqrt_inv_alpha = jalphaalpha.array().pow(-0.5);
         Eigen::MatrixXd Ha = sqrt_inv_alpha.asDiagonal() * jalphabeta;
         Eigen::MatrixXd schur = Eigen::MatrixXd(jbetabeta.asDiagonal()) - Ha.transpose() * Ha;
-        
+        schur.diagonal().array() += 1e-8;
+
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(schur);
         double log_det_schur = es.eigenvalues().array().log().sum();
-        
+
         log_det_ob_info += log_det_schur;
     }
 
@@ -211,7 +212,8 @@ double AgreementPhi::continuous::log_det_E0d0d1(
         Eigen::VectorXd sqrt_inv_alpha = Ialphaalpha.array().pow(-0.5);
         Eigen::MatrixXd Ha = sqrt_inv_alpha.asDiagonal() * Ialphabeta;
         Eigen::MatrixXd schur = Eigen::MatrixXd(Ibetabeta.asDiagonal()) - Ha.transpose() * Ha;
-        
+        schur.diagonal().array() += 1e-8;
+
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(schur);
         double log_det_schur = es.eigenvalues().array().log().sum();
         log_det_ex_info += log_det_schur;
