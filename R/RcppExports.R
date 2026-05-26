@@ -17,6 +17,14 @@ cpp_get_se <- function(Y, ITEM_INDS, WORKER_INDS, ALPHA_MLE, BETA_MLE, TAU_MLE, 
     .Call(`_AgreementPhi_cpp_get_se`, Y, ITEM_INDS, WORKER_INDS, ALPHA_MLE, BETA_MLE, TAU_MLE, PHI_EVAL, PHI_MLE, J, W, K, METHOD, DATA_TYPE, ITEMS_NUISANCE, WORKER_NUISANCE, PROF_SEARCH_RANGE, PROF_MAX_ITER, ALT_MAX_ITER, ALT_TOL)
 }
 
+cpp_inflated_profile <- function(Y, ITEM_INDS, ALPHA_START, PHI, K0, K1, J, ALPHA_LOWER = -40.0, ALPHA_UPPER = 40.0, PROF_MAX_ITER = 500L) {
+    .Call(`_AgreementPhi_cpp_inflated_profile`, Y, ITEM_INDS, ALPHA_START, PHI, K0, K1, J, ALPHA_LOWER, ALPHA_UPPER, PROF_MAX_ITER)
+}
+
+cpp_inflated_mpl <- function(Y, ITEM_INDS, ALPHA_START, ALPHA_MLE, PHI, K0, K1, PHI_MLE, K0_MLE, K1_MLE, J, ALPHA_LOWER = -40.0, ALPHA_UPPER = 40.0, PROF_MAX_ITER = 500L) {
+    .Call(`_AgreementPhi_cpp_inflated_mpl`, Y, ITEM_INDS, ALPHA_START, ALPHA_MLE, PHI, K0, K1, PHI_MLE, K0_MLE, K1_MLE, J, ALPHA_LOWER, ALPHA_UPPER, PROF_MAX_ITER)
+}
+
 cpp_beta_funs <- function(A, B) {
     .Call(`_AgreementPhi_cpp_beta_funs`, A, B)
 }

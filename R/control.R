@@ -15,6 +15,12 @@ detect_data_type <- function(RATINGS) {
 
     return("ordinal")
   } else {
+    if (any(RATINGS == 0) || any(RATINGS == 1)) {
+      if (min_val < 0 || max_val > 1)
+        stop("Ratings must be in [0,1] for the inflated interval model.")
+      return("inflated")
+    }
+
     if (min_val <= 0) {
       stop(
         "Minimum value lower or equal than zero. Consider using an ordinal scale."
@@ -53,27 +59,38 @@ validate_data <- function(
   }
   stopifnot(is.logical(VERBOSE))
 
+  data_type_early <- if (is.null(K)) detect_data_type(RATINGS) else "ordinal"
+
   # Check for degenerate items in the one-way case
   if (is.null(WORKER_INDS)) {
-    degen_collect <- as.numeric(which(sapply(
-      split(RATINGS, ITEM_INDS),
-      function(x) all(x == x[1])
-    )))
+    if (data_type_early != "inflated") {
+      degen_collect <- as.numeric(which(sapply(
+        split(RATINGS, ITEM_INDS),
+        function(x) all(x == x[1])
+      )))
 
-    if (length(degen_collect) > 0) {
-      # Drop degenerate items
-      informative_ids <- ITEM_INDS[!(ITEM_INDS %in% degen_collect)]
-      informative_rts <- RATINGS[!(ITEM_INDS %in% degen_collect)]
+      if (length(degen_collect) > 0) {
+        # Drop degenerate items
+        informative_ids <- ITEM_INDS[!(ITEM_INDS %in% degen_collect)]
+        informative_rts <- RATINGS[!(ITEM_INDS %in% degen_collect)]
 
-      # Recode item indexes
-      unique_ids <- sort(unique(informative_ids))
-      id_map <- setNames(seq_along(unique_ids), unique_ids)
-      informative_ids_recoded <- as.numeric(id_map[as.character(
-        informative_ids
-      )])
+        # Recode item indexes
+        unique_ids <- sort(unique(informative_ids))
+        id_map <- setNames(seq_along(unique_ids), unique_ids)
+        informative_ids_recoded <- as.numeric(id_map[as.character(
+          informative_ids
+        )])
 
-      out$item_ids <- as.integer(informative_ids_recoded)
-      out$ratings <- informative_rts
+        out$item_ids <- as.integer(informative_ids_recoded)
+        out$ratings <- informative_rts
+      } else {
+        out$ratings <- RATINGS * 1.0
+
+        # Recode items in case of non consecutive indexes
+        unique_items <- sort(unique(ITEM_INDS))
+        item_map <- setNames(seq_along(unique_items), unique_items)
+        out$item_ids <- as.integer(item_map[as.character(ITEM_INDS)])
+      }
     } else {
       out$ratings <- RATINGS * 1.0
 
@@ -143,7 +160,7 @@ validate_data <- function(
       }
     }
   } else {
-    out$data_type <- detect_data_type(RATINGS = out$ratings)
+    out$data_type <- data_type_early
     if (out$data_type == "ordinal") {
       out$K <- max(out$ratings)
       if (VERBOSE) {
@@ -152,6 +169,11 @@ validate_data <- function(
           out$K,
           "-points scale."
         ))
+      }
+    } else if (out$data_type == "inflated") {
+      out$K <- NA_integer_
+      if (VERBOSE) {
+        message(paste0(" - Detected inflated interval data on the [0,1] range."))
       }
     } else {
       out$K <- 1

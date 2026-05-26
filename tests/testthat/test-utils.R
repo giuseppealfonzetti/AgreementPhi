@@ -5,6 +5,6 @@ test_that("prec2agr / agr2prec", {
 
   expect_error(agr2prec(-1))
   expect_error(agr2prec(1.1))
-  expect_error(prec2agr(0))
+  expect_equal(prec2agr(0), 0)
   expect_error(prec2agr(-1))
 })

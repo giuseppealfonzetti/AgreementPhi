@@ -6,7 +6,7 @@
 #'
 #' @export
 prec2agr <- function(X) {
-  stopifnot(X > 0)
+  stopifnot(X >= 0)
   out <- 1 - 2^(-X * log(2) / 2)
   return(out)
 }
@@ -196,6 +196,28 @@ get_range_ll <- function(X, RANGE = .2, GRID_LENGTH = 15) {
 get_ci <- function(X, CONFIDENCE = 0.95) {
   stopifnot(is.numeric(CONFIDENCE), CONFIDENCE < 1, CONFIDENCE > 0)
 
+  if (isTRUE(X$data_type == "inflated")) {
+    phi_est <- if (X$method == "modified") {
+      X$modified$precision
+    } else {
+      X$profile$precision
+    }
+    z <- stats::qnorm(1 - (1 - CONFIDENCE) / 2)
+    phi_ci <- function(est, se) c(max(0, est - z * se), est + z * se)
+    sym_ci <- function(est, se) c(est - z * se, est + z * se)
+    return(list(
+      phi_est = phi_est,
+      phi_se = X$se[["phi"]],
+      phi_ci = phi_ci(phi_est, X$se[["phi"]]),
+      k0_est = X$k0,
+      k0_se = X$se[["k0"]],
+      k0_ci = sym_ci(X$k0, X$se[["k0"]]),
+      k1_est = X$k1,
+      k1_se = X$se[["k1"]],
+      k1_ci = sym_ci(X$k1, X$se[["k1"]])
+    ))
+  }
+
   args <- X$cpp_args
 
   # MLE values from fitted object
@@ -247,4 +269,43 @@ get_ci <- function(X, CONFIDENCE = 0.95) {
     agreement_se = agr_se,
     agreement_ci = c(max(0, est - z * agr_se), min(1, est + z * agr_se))
   ))
+}
+
+
+#' From model parameters to agreement
+#'
+#' @param PHI dispersion parameter
+#' @param ALPHA item-specific intercepts
+#' @param BETA worker-specific intercepts
+#' @param K0 zero-inflation threshold
+#' @param K1 one-inflation threshold
+#'
+#' @return return agreement measure according to the estimated parameters
+#'
+#' @export
+par2agr <- function(PHI, ALPHA = NULL, BETA = NULL, K0 = NULL, K1 = NULL) {
+  out <- list()
+  if (is.null(K0) & is.null(K1)) {
+    out$agreement <- prec2agr(PHI)
+    return(out)
+  }
+
+  stopifnot(!is.null(ALPHA))
+  eps    <- .Machine$double.eps^0.5
+  K0_eff <- if (!is.finite(K0)) -100 else K0
+  K1_eff <- if (!is.finite(K1)) 100  else K1
+  L0_i <- plogis(ALPHA - K0_eff)
+  L1_i <- plogis(ALPHA - K1_eff)
+  p0_i <- 1 - L0_i
+  p1_i <- L1_i
+  pc_i <- L0_i - L1_i
+  mu_i <- plogis(ALPHA)
+  m_i <- p1_i + pc_i * mu_i
+  vb_i <- mu_i * (1 - mu_i) / (PHI + 1)
+  V_i <- pc_i * vb_i + p0_i * m_i^2 + p1_i * (1 - m_i)^2 + pc_i * (mu_i - m_i)^2
+  pe_i <- ifelse(V_i <= eps, Inf, m_i * (1 - m_i) / V_i - 1)
+  agr_i <- prec2agr(pmax(0, pe_i))
+  out$agreement_by_item <- agr_i
+  out$agreement <- mean(agr_i)
+  return(out)
 }
