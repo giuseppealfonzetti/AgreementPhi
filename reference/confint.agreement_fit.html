@@ -68,10 +68,17 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>For non-inflated data: a list with <code>agreement_est</code>, <code>agreement_se</code>,
-and <code>agreement_ci</code>. For inflated data: a list with <code>phi_est</code>, <code>phi_se</code>,
-<code>phi_ci</code>, <code>k0_est</code>, <code>k0_se</code>, <code>k0_ci</code>, <code>k1_est</code>, <code>k1_se</code>, <code>k1_ci</code>.</p>
-    </div>
+    <p>A named list with two elements, each a numeric matrix with columns
+<code>Estimate</code>, <code>Std. Error</code>, and the lower/upper confidence bounds (named by
+tail probability, e.g. <code>"2.5 %"</code> and <code>"97.5 %"</code>):</p><dl><dt><code>parameters</code></dt>
+<dd><p>Parameter-scale estimates. One row (<code>phi</code>) for
+non-inflated data; three rows (<code>phi</code>, <code>k0</code>, <code>k1</code>) for inflated data.</p></dd>
+
+<dt><code>agreement</code></dt>
+<dd><p>Agreement-scale estimate. Always one row (<code>agreement</code>).</p></dd>
+
+
+</dl></div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

@@ -103,8 +103,8 @@ item and worker indices related to each rating</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">dt</span><span class="op">$</span><span class="va">rating</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1600</span></span></code></pre></div>
 <p>Use <code><a href="../reference/rating_data.html">rating_data()</a></code> to validate the input and construct a
-<code>rating_data</code> object. The function reports diagnostics and,
-for two-way data, supports <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code></p>
+<code>rating_data</code> object. The function reports diagnostics and
+supports a <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> method</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rating_data.html">rating_data</a></span><span class="op">(</span><span class="va">dt</span><span class="op">$</span><span class="va">rating</span>, <span class="va">dt</span><span class="op">$</span><span class="va">id_item</span>, <span class="va">dt</span><span class="op">$</span><span class="va">id_worker</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  - Detected 200 items and 200 workers.</span></span>
@@ -129,28 +129,22 @@ estimation via profile likelihood, you can specify
 <span><span class="co">#&gt;  - Constant effects: workers</span></span>
 <span><span class="co">#&gt;  - Nuisance effects: items</span></span>
 <span><span class="co">#&gt; Done!</span></span></code></pre></div>
-<p>When the <code>VERBOSE</code> option is chosen, the function prints
-on screen some useful information about data dimensions and sparsity. In
-addition, it also provides an overview of how items and worker effects
-are treated. In this case, for example, worker effects are considered as
-constant (set at zero by default), while items effects are profiled out
-as nuisance parameters. The agreement and precision estimates are
-available at</p>
+<p>When the <code>VERBOSE</code> option is chosen, an overview of how
+items and worker effects are treated is printed. In this case, for
+example, worker effects are considered as constant (set at zero by
+default), while items effects are profiled out as nuisance
+parameters.</p>
+<p>Estimated coefficients can be extracted via <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code>
+method</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit_profile</span><span class="op">$</span><span class="va">profile</span></span>
-<span><span class="co">#&gt; $precision</span></span>
-<span><span class="co">#&gt; [1] 2.446563</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $agreement</span></span>
-<span><span class="co">#&gt; [1] 0.4444125</span></span></code></pre></div>
-<p>while the maximum likelihood estimates of the nuisance parameters are
-available at</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">fit_profile</span><span class="op">$</span><span class="va">alpha</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1]  1.0698711  1.4333241 -0.2898244 -0.9135686  0.3879414  0.1008767</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit_profile</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
+<span><span class="co">#&gt;        phi    alpha_1    alpha_2    alpha_3    alpha_4 </span></span>
+<span><span class="co">#&gt;  2.4465627  1.0698711  1.4333241 -0.2898244 -0.9135686</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit_profile</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 201</span></span></code></pre></div>
 <p>To use the modified likelihood approach, it is enough to change the
 <code>METHOD</code> argument to <code>modified</code>.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_modified</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/agreement.html">agreement</a></span><span class="op">(</span><span class="va">rd</span>, NUISANCE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"items"</span><span class="op">)</span>, METHOD <span class="op">=</span> <span class="st">"modified"</span>, VERBOSE <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; MODEL PARAMETERS</span></span>
@@ -162,57 +156,48 @@ available at</p>
 <p>As it can be read from the verbose output, when
 <code>METHOD = "modified"</code>, the proposed algorithm first optimises
 the profile likelihood to evaluate the maximum likelihood estimators
-needed to construct the modified profile likelihood. Thus, both
-estimates can be retrieved from the fitted object</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit_modified</span><span class="op">$</span><span class="va">profile</span></span>
-<span><span class="co">#&gt; $precision</span></span>
-<span><span class="co">#&gt; [1] 2.446563</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $agreement</span></span>
-<span><span class="co">#&gt; [1] 0.4444125</span></span>
-<span><span class="va">fit_modified</span><span class="op">$</span><span class="va">modified</span></span>
-<span><span class="co">#&gt; $precision</span></span>
-<span><span class="co">#&gt; [1] 2.129941</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $agreement</span></span>
-<span><span class="co">#&gt; [1] 0.4005054</span></span></code></pre></div>
+needed to construct the modified profile likelihood. Also in this case
+you can access estimates using <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code></p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit_profile</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
+<span><span class="co">#&gt;        phi    alpha_1    alpha_2    alpha_3    alpha_4 </span></span>
+<span><span class="co">#&gt;  2.4465627  1.0698711  1.4333241 -0.2898244 -0.9135686</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit_profile</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 201</span></span></code></pre></div>
 <p>Once the point estimates are computed, we can draw inference on
 agreement by using the <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> S3 method to construct
 confidence intervals. The function will automatically recognise if the
 estimates are related to the profile or modified likelihood approach by
 looking at the fitted object</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ci_profile</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit_profile</span><span class="op">)</span></span>
 <span><span class="va">ci_profile</span></span>
-<span><span class="co">#&gt; $agreement_est</span></span>
-<span><span class="co">#&gt; [1] 0.4444125</span></span>
+<span><span class="co">#&gt; $parameters</span></span>
+<span><span class="co">#&gt;     Estimate Std. Error    2.5 %   97.5 %</span></span>
+<span><span class="co">#&gt; phi 2.446563 0.07696817 2.295708 2.597418</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $agreement_se</span></span>
-<span><span class="co">#&gt; [1] 0.0102727</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $agreement_ci</span></span>
-<span><span class="co">#&gt; [1] 0.4242784 0.4645466</span></span>
+<span><span class="co">#&gt; $agreement</span></span>
+<span><span class="co">#&gt;            Estimate Std. Error     2.5 %    97.5 %</span></span>
+<span><span class="co">#&gt; agreement 0.4444125  0.0102727 0.4242784 0.4645466</span></span>
 <span></span>
 <span><span class="va">ci_modified</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit_modified</span><span class="op">)</span></span>
 <span><span class="va">ci_modified</span></span>
-<span><span class="co">#&gt; $agreement_est</span></span>
-<span><span class="co">#&gt; [1] 0.4005054</span></span>
+<span><span class="co">#&gt; $parameters</span></span>
+<span><span class="co">#&gt;     Estimate Std. Error    2.5 %   97.5 %</span></span>
+<span><span class="co">#&gt; phi 2.129941 0.07181497 1.989187 2.270696</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $agreement_se</span></span>
-<span><span class="co">#&gt; [1] 0.0103424</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $agreement_ci</span></span>
-<span><span class="co">#&gt; [1] 0.3802347 0.4207762</span></span></code></pre></div>
+<span><span class="co">#&gt; $agreement</span></span>
+<span><span class="co">#&gt;            Estimate Std. Error     2.5 %    97.5 %</span></span>
+<span><span class="co">#&gt; agreement 0.4005054  0.0103424 0.3802347 0.4207762</span></span></code></pre></div>
 <p>For convenience, <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> visualises the relative
 log-likelihood profile and confidence interval in one step</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit_modified</span><span class="op">)</span></span></code></pre></div>
 <p><img src="intro_files/figure-html/plot_fit-1.png" class="r-plt" alt="" width="672"></p>
 <p>If you need the grid data for further analysis, compute it with
 <code><a href="../reference/get_range_ll.html">get_range_ll()</a></code> and pass it back to <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> to
 avoid recomputation</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">range_ll</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_range_ll.html">get_range_ll</a></span><span class="op">(</span><span class="va">fit_modified</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit_modified</span>, RANGE_LL <span class="op">=</span> <span class="va">range_ll</span><span class="op">)</span></span></code></pre></div>
 <p><img src="intro_files/figure-html/plot_fit_precomputed-1.png" class="r-plt" alt="" width="672"></p>

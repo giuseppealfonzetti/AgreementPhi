@@ -205,14 +205,13 @@ rd <- rating_data(dt_oneway$rating, dt_oneway$id_item, dt_oneway$id_worker)
 #>  - Average number of observed ratings per worker is 5.1.
 fit <- agreement(rd, METHOD = "modified", NUISANCE = c("items"))
 confint(fit)
-#> $agreement_est
-#> [1] 0.6576837
+#> $parameters
+#>     Estimate Std. Error    2.5 %   97.5 %
+#> phi 4.462539  0.4359353 3.608121 5.316956
 #> 
-#> $agreement_se
-#> [1] 0.03584846
-#> 
-#> $agreement_ci
-#> [1] 0.5874220 0.7279454
+#> $agreement
+#>            Estimate Std. Error    2.5 %    97.5 %
+#> agreement 0.6576837 0.03584846 0.587422 0.7279454
 #> 
 plot(fit)
 
@@ -227,38 +226,15 @@ rd_inf <- rating_data(dt_inflated$rating, dt_inflated$id_item)
 #>  - Average number of observed ratings per item is 5.04.
 fit_inf <- agreement(rd_inf, METHOD = "modified")
 confint(fit_inf)
-#> $phi_est
-#> log_phi.log_phi 
-#>        5.168256 
+#> $parameters
+#>      Estimate Std. Error     2.5 %    97.5 %
+#> phi  5.168256  0.6335260  3.926568  6.409945
+#> k0  -1.891239  0.2105952 -2.303998 -1.478480
+#> k1   2.172110  0.2019442  1.776307  2.567914
 #> 
-#> $phi_se
-#> [1] 0.633526
-#> 
-#> $phi_ci
-#>                 log_phi.log_phi 
-#>        3.926568        6.409945 
-#> 
-#> $k0_est
-#>  k0.k0.k0 
-#> -1.891239 
-#> 
-#> $k0_se
-#> [1] 0.2105952
-#> 
-#> $k0_ci
-#>  k0.k0.k0  k0.k0.k0 
-#> -2.303998 -1.478480 
-#> 
-#> $k1_est
-#> k0.k0.k0 
-#>  2.17211 
-#> 
-#> $k1_se
-#> [1] 0.2019442
-#> 
-#> $k1_ci
-#> k0.k0.k0 k0.k0.k0 
-#> 1.776307 2.567914 
+#> $agreement
+#>            Estimate Std. Error     2.5 %    97.5 %
+#> agreement 0.3489285 0.03463438 0.2810463 0.4168106
 #> 
 # }
 ```

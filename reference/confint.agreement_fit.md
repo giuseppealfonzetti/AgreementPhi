@@ -30,6 +30,15 @@ confint(object, parm = NULL, level = 0.95, ...)
 
 ## Value
 
-For non-inflated data: a list with `agreement_est`, `agreement_se`, and
-`agreement_ci`. For inflated data: a list with `phi_est`, `phi_se`,
-`phi_ci`, `k0_est`, `k0_se`, `k0_ci`, `k1_est`, `k1_se`, `k1_ci`.
+A named list with two elements, each a numeric matrix with columns
+`Estimate`, `Std. Error`, and the lower/upper confidence bounds (named
+by tail probability, e.g. `"2.5 %"` and `"97.5 %"`):
+
+- `parameters`:
+
+  Parameter-scale estimates. One row (`phi`) for non-inflated data;
+  three rows (`phi`, `k0`, `k1`) for inflated data.
+
+- `agreement`:
+
+  Agreement-scale estimate. Always one row (`agreement`).

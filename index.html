@@ -85,7 +85,11 @@
 <span><span class="op">)</span></span></code></pre></div>
 <p>Prepare the data with <code><a href="reference/rating_data.html">rating_data()</a></code>, which validates the input and reports diagnostics</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rd</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rating_data.html">rating_data</a></span><span class="op">(</span><span class="va">dt</span><span class="op">$</span><span class="va">rating</span>, <span class="va">dt</span><span class="op">$</span><span class="va">id_item</span>, <span class="va">dt</span><span class="op">$</span><span class="va">id_worker</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">rd</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rating_data.html">rating_data</a></span><span class="op">(</span></span>
+<span>  RATINGS <span class="op">=</span> <span class="va">dt</span><span class="op">$</span><span class="va">rating</span>, </span>
+<span>  ITEM_INDS <span class="op">=</span> <span class="va">dt</span><span class="op">$</span><span class="va">id_item</span>, </span>
+<span>  WORKER_INDS <span class="op">=</span> <span class="va">dt</span><span class="op">$</span><span class="va">id_worker</span></span>
+<span>  <span class="op">)</span></span>
 <span><span class="co">#&gt;  - Detected 200 items and 200 workers.</span></span>
 <span><span class="co">#&gt;  - Detected continuous data on the (0,1) range.</span></span>
 <span><span class="co">#&gt;  - Average number of observed ratings per item is 8.</span></span>
@@ -100,18 +104,25 @@
 <span><span class="co">#&gt; Non-adjusted agreement: 0.835331</span></span>
 <span><span class="co">#&gt; Adjusted agreement: 0.79202</span></span>
 <span><span class="co">#&gt; Done!</span></span></code></pre></div>
-<p>Construct confidence intervals</p>
+<p>Extract estimates</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ci</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="va">ci</span></span>
-<span><span class="co">#&gt; $agreement_est</span></span>
-<span><span class="co">#&gt; [1] 0.7920203</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span>
+<span><span class="co">#&gt;         phi     alpha_1     alpha_2     alpha_3     alpha_4     alpha_5 </span></span>
+<span><span class="co">#&gt;  6.53680906  1.84746562  1.68557164 -1.08680905 -1.36272134 -0.73792367 </span></span>
+<span><span class="co">#&gt;     alpha_6     alpha_7     alpha_8     alpha_9 </span></span>
+<span><span class="co">#&gt; -0.49287874 -0.37423723 -0.54713560  0.01762487</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 201</span></span></code></pre></div>
+<p>Construct confidence intervals</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $parameters</span></span>
+<span><span class="co">#&gt;     Estimate Std. Error    2.5 %   97.5 %</span></span>
+<span><span class="co">#&gt; phi 6.536809  0.2408701 6.064712 7.008906</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $agreement_se</span></span>
-<span><span class="co">#&gt; [1] 0.01203441</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $agreement_ci</span></span>
-<span><span class="co">#&gt; [1] 0.7684333 0.8156073</span></span></code></pre></div>
+<span><span class="co">#&gt; $agreement</span></span>
+<span><span class="co">#&gt;            Estimate Std. Error     2.5 %    97.5 %</span></span>
+<span><span class="co">#&gt; agreement 0.7920203 0.01203441 0.7684333 0.8156073</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level1">

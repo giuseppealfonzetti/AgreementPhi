@@ -47,8 +47,8 @@ length(dt$rating)
 Use
 [`rating_data()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/rating_data.md)
 to validate the input and construct a `rating_data` object. The function
-reports diagnostics and, for two-way data, supports
-[`plot()`](https://rdrr.io/r/graphics/plot.default.html)
+reports diagnostics and supports a
+[`plot()`](https://rdrr.io/r/graphics/plot.default.html) method
 
 ``` r
 
@@ -83,31 +83,21 @@ fit_profile <- agreement(rd, NUISANCE = c("items"), METHOD = "profile", VERBOSE 
 #> Done!
 ```
 
-When the `VERBOSE` option is chosen, the function prints on screen some
-useful information about data dimensions and sparsity. In addition, it
-also provides an overview of how items and worker effects are treated.
-In this case, for example, worker effects are considered as constant
-(set at zero by default), while items effects are profiled out as
-nuisance parameters. The agreement and precision estimates are available
-at
+When the `VERBOSE` option is chosen, an overview of how items and worker
+effects are treated is printed. In this case, for example, worker
+effects are considered as constant (set at zero by default), while items
+effects are profiled out as nuisance parameters.
+
+Estimated coefficients can be extracted via
+[`coef()`](https://rdrr.io/r/stats/coef.html) method
 
 ``` r
 
-fit_profile$profile
-#> $precision
-#> [1] 2.446563
-#> 
-#> $agreement
-#> [1] 0.4444125
-```
-
-while the maximum likelihood estimates of the nuisance parameters are
-available at
-
-``` r
-
-head(fit_profile$alpha)
-#> [1]  1.0698711  1.4333241 -0.2898244 -0.9135686  0.3879414  0.1008767
+coef(fit_profile)[1:5]
+#>        phi    alpha_1    alpha_2    alpha_3    alpha_4 
+#>  2.4465627  1.0698711  1.4333241 -0.2898244 -0.9135686
+length(coef(fit_profile))
+#> [1] 201
 ```
 
 To use the modified likelihood approach, it is enough to change the
@@ -128,23 +118,16 @@ fit_modified <- agreement(rd, NUISANCE = c("items"), METHOD = "modified", VERBOS
 As it can be read from the verbose output, when `METHOD = "modified"`,
 the proposed algorithm first optimises the profile likelihood to
 evaluate the maximum likelihood estimators needed to construct the
-modified profile likelihood. Thus, both estimates can be retrieved from
-the fitted object
+modified profile likelihood. Also in this case you can access estimates
+using [`coef()`](https://rdrr.io/r/stats/coef.html)
 
 ``` r
 
-fit_modified$profile
-#> $precision
-#> [1] 2.446563
-#> 
-#> $agreement
-#> [1] 0.4444125
-fit_modified$modified
-#> $precision
-#> [1] 2.129941
-#> 
-#> $agreement
-#> [1] 0.4005054
+coef(fit_profile)[1:5]
+#>        phi    alpha_1    alpha_2    alpha_3    alpha_4 
+#>  2.4465627  1.0698711  1.4333241 -0.2898244 -0.9135686
+length(coef(fit_profile))
+#> [1] 201
 ```
 
 Once the point estimates are computed, we can draw inference on
@@ -158,25 +141,23 @@ likelihood approach by looking at the fitted object
 
 ci_profile <- confint(fit_profile)
 ci_profile
-#> $agreement_est
-#> [1] 0.4444125
+#> $parameters
+#>     Estimate Std. Error    2.5 %   97.5 %
+#> phi 2.446563 0.07696817 2.295708 2.597418
 #> 
-#> $agreement_se
-#> [1] 0.0102727
-#> 
-#> $agreement_ci
-#> [1] 0.4242784 0.4645466
+#> $agreement
+#>            Estimate Std. Error     2.5 %    97.5 %
+#> agreement 0.4444125  0.0102727 0.4242784 0.4645466
 
 ci_modified <- confint(fit_modified)
 ci_modified
-#> $agreement_est
-#> [1] 0.4005054
+#> $parameters
+#>     Estimate Std. Error    2.5 %   97.5 %
+#> phi 2.129941 0.07181497 1.989187 2.270696
 #> 
-#> $agreement_se
-#> [1] 0.0103424
-#> 
-#> $agreement_ci
-#> [1] 0.3802347 0.4207762
+#> $agreement
+#>            Estimate Std. Error     2.5 %    97.5 %
+#> agreement 0.4005054  0.0103424 0.3802347 0.4207762
 ```
 
 For convenience,
