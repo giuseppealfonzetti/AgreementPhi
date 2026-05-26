@@ -18,21 +18,15 @@ test_that("detect_data_type warns about missing ordinal categories", {
   expect_warning(detect_data_type(ratings), "Some category is missing")
 })
 
-test_that("detect_data_type rejects continuous data with values <= 0", {
+test_that("detect_data_type classifies data with zeros as inflated", {
   ratings <- c(0, 0.5, 0.7)
-  expect_error(
-    detect_data_type(ratings),
-    "Minimum value lower or equal than zero"
-  )
+  expect_equal(detect_data_type(ratings), "inflated")
 })
 
 
-test_that("detect_data_type rejects continuous data with values >= 1", {
+test_that("detect_data_type classifies data with ones as inflated", {
   ratings <- c(0.5, 0.7, 1.0)
-  expect_error(
-    detect_data_type(ratings),
-    "Maximum value higher or equal than one"
-  )
+  expect_equal(detect_data_type(ratings), "inflated")
 })
 
 # Tests for validate_data
@@ -85,6 +79,14 @@ test_that("validate_data removes degenerate items", {
   expect_equal(result$n_items, 3) # Only item 2 remains
   expect_equal(length(result$ratings), 9)
   expect_true(all(result$item_ids == c(1, 1, 1, 2, 2, 2, 3, 3, 3))) # Recoded
+})
+
+test_that("validate_data keeps all-zero items for inflated data", {
+  ratings   <- c(0, 0, 0, 0.3, 0.7, 0, 0, 0)
+  item_inds <- c(1, 1, 1, 2,   2,   3, 3, 3)
+  result <- validate_data(ratings, item_inds, VERBOSE = FALSE)
+  expect_equal(result$n_items, 3)
+  expect_equal(length(result$ratings), 8)
 })
 
 

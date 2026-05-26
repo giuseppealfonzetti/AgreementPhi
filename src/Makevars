@@ -5,7 +5,8 @@ SOURCES = \
   inference/loglik.cpp \
   inference/precision.cpp \
   ratings/continuous.cpp \
-  ratings/ordinal.cpp
+  ratings/ordinal.cpp \
+  ratings/inflated.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)
 

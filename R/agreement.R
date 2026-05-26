@@ -1,100 +1,125 @@
-#' Compute Agreement
-#'
-#' @description
-#'
-#' Compute the \eqn{\Phi} agreement proposed in Checco et al. (2017) via profile likelihood methods.
-#'
-#' @references
-#'
-#' - Checco A., Roitero K., Maddalena E., Mizzaro S., Demartini G., (2017). “Let’s Agree to Disagree: Fixing Agreement Measures for Crowdsourcing.” *Proceedings of the AAAI Conference on Human Computation and Crowdsourcing* **5**: 11–20. [doi](https://doi.org/10.1609/hcomp.v5i1.13306)
-#'
-#' @param RATINGS Ratings vector of dimension n. Ordinal data must be coded in \{1, 2, ..., K\}.
-#'   Continuous data can take values in `(0, 1)`.
-#' @param ITEM_INDS Index vector with items allocations. Same dimension as `RATINGS`.
-#' @param WORKER_INDS Index vector with worker allocations. Same dimension as `RATINGS`. Ignored when MODEL == "oneway".
-#'   Must be integers in \{1, 2, ..., J\}.
-#' @param METHOD Choose between `"modified"` or `"profile"`. Default is `"modified"`.
-#'   \itemize{
-#'     \item `"modified"`: Uses modified profile likelihood with Barndorff-Nielsen correction
-#'     \item `"profile"`: Uses standard profile likelihood
-#'   }
-#' @param ALPHA_START Starting values for item-specific intercepts. Vector of length J. Default is `rep(0, J)` where J is the number of items.
-#' @param BETA_START Starting values for worker-specific intercepts. Vector of length W-1. Default is `rep(0, W-1)` where W is the number of workers
-#' @param TAU Thresholds to use for the discretisation of the underlying beta distribution.
-#' @param K Number of ordinal categories. If `NULL` (default), inferred from data as `max(RATINGS)`.
-#'   Provide explicitly when some boundary categories (e.g. 1 or K) may be absent from the observed data.
-#' @param PHI_START Starting value for beta precision parameter. Must be positive. Default is `agr2prec(0.5)` (precision corresponding to 50% agreement).
-#' @param NUISANCE Vector containg either `"items"` or `"workers"` or both. Defines which fixed effects to profile out during estimation.
-#' @param CONTROL Control options for the optimization:
-#' \describe{
-#'     \item{`SEARCH_RANGE`}{Search range for precision parameter optimization.
-#'       The algorithm searches in \[1e-8, PHI_START + SEARCH_RANGE\].
-#'       Must be positive. Default: `8`.}
-#'     \item{`MAX_ITER`}{Maximum number of iterations for precision parameter optimization.
-#'       Must be a positive integer. Default: `100`.}
-#'     \item{`PROF_SEARCH_RANGE`}{Search range for profiling out nuisance parameters (item intercepts).
-#'       The algorithm searches in \[ALPHA_START\[j\] - PROF_SEARCH_RANGE, ALPHA_START\[j\] + PROF_SEARCH_RANGE\]
-#'       for each item j. Must be positive. Default: `4`.}
-#'     \item{`PROF_MAX_ITER`}{Maximum number of iterations for profiling optimization.
-#'       Must be a positive integer. Default: `10`.}
-#'     \item{`ALT_MAX_ITER`}{Maximum iterations for alternating profiling.
-#'       Must be a positive integer. Default: `10`.}
-#'     \item{`ALT_TOL`}{Relative convergence tolerance for alternating profiling.
-#'       Must be positive. Default: `1e-2`.}
-#'  }
-#' @param VERBOSE Verbose output.
-#'
-#' @return Returns a list with maximum likelihood estimates and corresponding negative log-likelihood.
-#'
-#' @examples
-#' set.seed(321)
-#'
-#' # setting dimension
-#' items <- 50
-#' budget_per_item <- 5
-#' n_obs <- items * budget_per_item
-#' workers <- 50
-#'
-#' # item-specific intercepts to generate the data
-#' alphas <- runif(items, -2, 2)
-#'
-#' # true agreement (between 0 and 1)
-#' agr <- .6
-#'
-#' # generate continuous rating in (0,1)
-#' dt_oneway <- sim_data(
-#'   J = items,
-#'   B = budget_per_item,
-#'   AGREEMENT = agr,
-#'   ALPHA = alphas,
-#'   DATA_TYPE = "continuous",
-#'   SEED = 123
-#' )
-#'
-#' # estimation via oneway specification
-#' fit <- agreement(
-#'   RATINGS = dt_oneway$rating,
-#'   ITEM_INDS = dt_oneway$id_item,
-#'   WORKER_INDS = dt_oneway$id_worker,
-#'   METHOD = "modified",
-#'   NUISANCE = c("items"),
-#'   VERBOSE = TRUE
-#' )
-#' # get standard error and confidence interval
-#' ci <- get_ci(fit)
-#' ci
-#'
-#' # compute log-likelihood over a grid
-#' range_ll <- get_range_ll(fit)
-#'
-#' # utility plot function for relative log-likelihood
-#' plot_rll(
-#'   D = range_ll,
-#'   M_EST = fit$modified$agreement,
-#'   P_EST = fit$profile$agreement,
-#'   M_SE = ci$agreement_se,
-#'   CONFIDENCE=.95
-#' )
+#’ Compute Agreement
+#’
+#’ @description
+#’
+#’ Compute the \eqn{\Phi} agreement proposed in Checco et al. (2017) via profile likelihood methods.
+#’ Three data types are supported and detected automatically from `RATINGS`:
+#’ \itemize{
+#’   \item **Ordinal**: integer-valued in \{1, 2, ..., K\}.
+#’   \item **Continuous**: real-valued in the open interval `(0, 1)`.
+#’   \item **Inflated interval**: real-valued in `[0, 1]` with point masses at 0 and/or 1.
+#’     Fitted via the ordered beta mixture model. One-way only (`WORKER_INDS` must be `NULL`).
+#’ }
+#’
+#’ @references
+#’
+#’ - Checco A., Roitero K., Maddalena E., Mizzaro S., Demartini G., (2017). “Let’s Agree to Disagree: Fixing Agreement Measures for Crowdsourcing.” *Proceedings of the AAAI Conference on Human Computation and Crowdsourcing* **5**: 11–20. [doi](https://doi.org/10.1609/hcomp.v5i1.13306)
+#’
+#’ @param RATINGS Ratings vector of dimension n. Ordinal data must be coded in \{1, 2, ..., K\}.
+#’   Continuous data must lie in `(0, 1)`. Inflated interval data must lie in `[0, 1]` with at
+#’   least one exact 0 or 1.
+#’ @param ITEM_INDS Index vector with item allocations. Same dimension as `RATINGS`.
+#’   Must be integers in \{1, 2, ..., J\}.
+#’ @param WORKER_INDS Index vector with worker allocations. Same dimension as `RATINGS`.
+#’   Must be integers in \{1, 2, ..., W\}. Not used for the inflated interval model.
+#’ @param METHOD Choose between `”modified”` or `”profile”`. Default is `”modified”`.
+#’   \itemize{
+#’     \item `”modified”`: Uses modified profile likelihood with Barndorff-Nielsen correction.
+#’     \item `”profile”`: Uses standard profile likelihood.
+#’   }
+#’ @param ALPHA_START Starting values for item-specific intercepts. Vector of length J. Default is `rep(0, J)`.
+#’   Ignored for the inflated interval model.
+#’ @param BETA_START Starting values for worker-specific intercepts. Vector of length W-1. Default is `rep(0, W-1)`.
+#’   Ignored for the inflated interval model.
+#’ @param TAU Thresholds for discretisation of the underlying beta distribution. Ignored for the inflated interval model.
+#’ @param K Number of ordinal categories. If `NULL` (default), inferred from data as `max(RATINGS)`.
+#’   Provide explicitly when some boundary categories (e.g. 1 or K) may be absent from the observed data.
+#’   Ignored for continuous and inflated interval data.
+#’ @param PHI_START Starting value for the beta precision parameter. Must be positive.
+#’   Default is `agr2prec(0.5)`. Ignored for the inflated interval model.
+#’ @param NUISANCE Vector containing either `”items”`, `”workers”`, or both. Defines which fixed
+#’   effects to profile out during estimation. Ignored for the inflated interval model.
+#’ @param CONTROL Control options for the optimization. Ignored for the inflated interval model.
+#’ \describe{
+#’     \item{`SEARCH_RANGE`}{Search range for precision parameter optimization.
+#’       The algorithm searches in \[1e-8, PHI_START + SEARCH_RANGE\].
+#’       Must be positive. Default: `8`.}
+#’     \item{`MAX_ITER`}{Maximum number of iterations for precision parameter optimization.
+#’       Must be a positive integer. Default: `100`.}
+#’     \item{`PROF_SEARCH_RANGE`}{Search range for profiling out nuisance parameters (item intercepts).
+#’       The algorithm searches in \[ALPHA_START\[j\] - PROF_SEARCH_RANGE, ALPHA_START\[j\] + PROF_SEARCH_RANGE\]
+#’       for each item j. Must be positive. Default: `4`.}
+#’     \item{`PROF_MAX_ITER`}{Maximum number of iterations for profiling optimization.
+#’       Must be a positive integer. Default: `10`.}
+#’     \item{`ALT_MAX_ITER`}{Maximum iterations for alternating profiling.
+#’       Must be a positive integer. Default: `10`.}
+#’     \item{`ALT_TOL`}{Relative convergence tolerance for alternating profiling.
+#’       Must be positive. Default: `1e-2`.}
+#’  }
+#’ @param VERBOSE Verbose output.
+#’
+#’ @return A list with the following components:
+#’ \describe{
+#’   \item{`data_type`}{Detected data type: `”ordinal”`, `”continuous”`, or `”inflated”`.}
+#’   \item{`method`}{Estimation method used: `”profile”` or `”modified”`.}
+#’   \item{`alpha`}{Estimated item-specific intercepts (vector of length J).}
+#’   \item{`beta`}{Estimated worker-specific intercepts. `NULL` for one-way models.}
+#’   \item{`k0`}{Estimated lower cutpoint on the logit scale. Inflated interval model only.}
+#’   \item{`k1`}{Estimated upper cutpoint on the logit scale. Inflated interval model only.}
+#’   \item{`profile`}{List with `$precision` (profile MLE of \eqn{\phi}) and `$agreement` (corresponding \eqn{\Phi}).}
+#’   \item{`modified`}{List with `$precision` (MPL estimate of \eqn{\phi}) and `$agreement` (corresponding \eqn{\Phi}). `NA` when `METHOD = “profile”`.}
+#’   \item{`loglik`}{Profile log-likelihood at the MLE.}
+#’   \item{`se`}{Named vector of standard errors. For inflated interval data: `phi`, `k0`, `k1`.}
+#’   \item{`vcov`}{Variance-covariance matrix of `(phi, k0, k1)`. Inflated interval model only.}
+#’   \item{`inflated_fit`}{Raw output from [fit_inflated_profile()] or [fit_inflated_mpl()]. Inflated interval model only.}
+#’ }
+#’
+#’ @examples
+#’ set.seed(321)
+#’
+#’ items <- 50
+#’ budget_per_item <- 5
+#’ alphas <- runif(items, -2, 2)
+#’ agr <- .6
+#’
+#’ dt_oneway <- sim_data(
+#’   J = items,
+#’   B = budget_per_item,
+#’   AGREEMENT = agr,
+#’   ALPHA = alphas,
+#’   DATA_TYPE = “continuous”,
+#’   SEED = 123
+#’ )
+#’
+#’ fit <- agreement(
+#’   RATINGS = dt_oneway$rating,
+#’   ITEM_INDS = dt_oneway$id_item,
+#’   WORKER_INDS = dt_oneway$id_worker,
+#’   METHOD = “modified”,
+#’   NUISANCE = c(“items”),
+#’   VERBOSE = TRUE
+#’ )
+#’ ci <- get_ci(fit)
+#’ ci
+#’
+#’ dt_inflated <- sim_data(
+#’   J = items,
+#’   B = budget_per_item,
+#’   AGREEMENT = agr,
+#’   ALPHA = alphas,
+#’   DATA_TYPE = “inflated”,
+#’   K0 = -2,
+#’   K1 = 2,
+#’   SEED = 123
+#’ )
+#’
+#’ fit_inf <- agreement(
+#’   RATINGS = dt_inflated$rating,
+#’   ITEM_INDS = dt_inflated$id_item,
+#’   METHOD = “modified”
+#’ )
+#’ ci_inf <- get_ci(fit_inf)
+#’ ci_inf
 #'
 #' @export
 agreement <- function(
@@ -126,6 +151,75 @@ agreement <- function(
   )
 
   params_type <- validate_params_type(NUISANCE, "phi", val_data$n_items)
+
+  if (val_data$data_type == "inflated") {
+    if (!is.null(WORKER_INDS)) {
+      stop("Inflated interval model is one-way only; WORKER_INDS must be NULL.")
+    }
+
+    if (METHOD == "modified") {
+      inflated_fit <- fit_inflated_mpl(
+        Y         = val_data$ratings,
+        ITEM_INDS = val_data$item_ids,
+        J         = val_data$n_items
+      )
+    } else {
+      inflated_fit <- fit_inflated_profile(
+        Y         = val_data$ratings,
+        ITEM_INDS = val_data$item_ids,
+        J         = val_data$n_items
+      )
+    }
+
+    out <- list(
+      data_type = "inflated",
+      method = METHOD,
+      params_type = params_type,
+      alpha = inflated_fit$alpha,
+      beta = NULL,
+      tau = NULL,
+      k0 = inflated_fit$k0,
+      k1 = inflated_fit$k1,
+      profile = list(
+        precision = if (METHOD == "modified") {
+          inflated_fit$ref_fit$phi
+        } else {
+          inflated_fit$phi
+        },
+        agreement = if (METHOD == "modified") {
+          par2agr(inflated_fit$ref_fit$phi,
+                  ALPHA = inflated_fit$ref_fit$alpha[!inflated_fit$ref_fit$is_degen],
+                  K0    = inflated_fit$ref_fit$k0,
+                  K1    = inflated_fit$ref_fit$k1)$agreement
+        } else {
+          par2agr(inflated_fit$phi,
+                  ALPHA = inflated_fit$alpha[!inflated_fit$is_degen],
+                  K0    = inflated_fit$k0,
+                  K1    = inflated_fit$k1)$agreement
+        }
+      ),
+      modified = list(
+        precision = if (METHOD == "modified") inflated_fit$phi else NA_real_,
+        agreement = if (METHOD == "modified") {
+          par2agr(inflated_fit$phi,
+                  ALPHA = inflated_fit$alpha[!inflated_fit$is_degen],
+                  K0    = inflated_fit$k0,
+                  K1    = inflated_fit$k1)$agreement
+        } else {
+          NA_real_
+        }
+      ),
+      loglik = inflated_fit$loglik,
+      se = inflated_fit$se,
+      vcov = inflated_fit$vcov,
+      inflated_fit = inflated_fit
+    )
+
+    if (VERBOSE) {
+      message("Done!\n")
+    }
+    return(out)
+  }
 
   if (val_data$ave_ratings_per_item^3 < val_data$n_items) {
     if (VERBOSE) {
@@ -198,10 +292,10 @@ agreement <- function(
   out$beta <- opt$beta
   out$tau <- opt$tau
   out$profile$precision <- opt$profile_phi
-  out$profile$agreement <- prec2agr(opt$profile_phi)
+  out$profile$agreement <- par2agr(opt$profile_phi)$agreement
   out$modified$precision <- opt$modified_phi
   out$modified$agreement <- if (!is.na(opt$modified_phi)) {
-    prec2agr(opt$modified_phi)
+    par2agr(opt$modified_phi)$agreement
   } else {
     NaN
   }

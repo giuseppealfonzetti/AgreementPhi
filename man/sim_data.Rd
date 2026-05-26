@@ -11,8 +11,10 @@ sim_data(
   AGREEMENT,
   ALPHA,
   BETA = NULL,
-  DATA_TYPE = c("ordinal", "continuous"),
+  DATA_TYPE = c("ordinal", "continuous", "inflated"),
   K = 6,
+  K0 = -2,
+  K1 = 2,
   SEED = 123
 )
 }
@@ -29,9 +31,13 @@ sim_data(
 
 \item{BETA}{Worker-specific intercepts.}
 
-\item{DATA_TYPE}{Choose between \code{ordinal} or \code{continuous}.}
+\item{DATA_TYPE}{Choose between \code{"ordinal"}, \code{"continuous"}, or \code{"inflated"}.}
 
 \item{K}{Number of categories in case of ordinal data.}
+
+\item{K0}{Lower cutpoint for the inflated interval model (logit scale). Only used when \code{DATA_TYPE = "inflated"}.}
+
+\item{K1}{Upper cutpoint for the inflated interval model (logit scale). Only used when \code{DATA_TYPE = "inflated"}. Must satisfy \code{K1 > K0}.}
 
 \item{SEED}{RNG seed.}
 }
