@@ -5,14 +5,11 @@
 \title{Compute Agreement}
 \usage{
 agreement(
-  RATINGS,
-  ITEM_INDS,
-  WORKER_INDS = NULL,
+  DATA,
   METHOD = c("modified", "profile"),
   ALPHA_START = NULL,
   BETA_START = NULL,
   TAU = NULL,
-  K = NULL,
   PHI_START = NULL,
   NUISANCE = c("items", "workers"),
   CONTROL = list(),
@@ -20,112 +17,106 @@ agreement(
 )
 }
 \arguments{
-\item{RATINGS}{Ratings vector of dimension n. Ordinal data must be coded in \{1, 2, ..., K\}.
-Continuous data can take values in \verb{(0, 1)}.}
-
-\item{ITEM_INDS}{Index vector with items allocations. Same dimension as \code{RATINGS}.}
-
-\item{WORKER_INDS}{Index vector with worker allocations. Same dimension as \code{RATINGS}. Ignored when MODEL == "oneway".
-Must be integers in \{1, 2, ..., J\}.}
+\item{DATA}{A \code{rating_data} object created by \code{\link[=rating_data]{rating_data()}}.}
 
 \item{METHOD}{Choose between \code{"modified"} or \code{"profile"}. Default is \code{"modified"}.
 \itemize{
-\item \code{"modified"}: Uses modified profile likelihood with Barndorff-Nielsen correction
-\item \code{"profile"}: Uses standard profile likelihood
+\item \code{"modified"}: Uses modified profile likelihood with Barndorff-Nielsen correction.
+\item \code{"profile"}: Uses standard profile likelihood.
 }}
 
-\item{ALPHA_START}{Starting values for item-specific intercepts. Vector of length J. Default is \code{rep(0, J)} where J is the number of items.}
+\item{ALPHA_START}{Starting values for item-specific intercepts. Vector of length J.
+Default is \code{init_alpha()}. Ignored for the inflated interval model.}
 
-\item{BETA_START}{Starting values for worker-specific intercepts. Vector of length W-1. Default is \code{rep(0, W-1)} where W is the number of workers}
+\item{BETA_START}{Starting values for worker-specific intercepts. Vector of length W-1.
+Default is \code{rep(0, W-1)}. Ignored for the inflated interval model.}
 
-\item{TAU}{Thresholds to use for the discretisation of the underlying beta distribution.}
+\item{TAU}{Thresholds for discretisation of the underlying beta distribution. Ignored for the inflated interval model.}
 
-\item{K}{Number of ordinal categories. If \code{NULL} (default), inferred from data as \code{max(RATINGS)}.
-Provide explicitly when some boundary categories (e.g. 1 or K) may be absent from the observed data.}
+\item{PHI_START}{Starting value for the beta precision parameter. Must be positive.
+Default is \code{agr2prec(0.5)}. Ignored for the inflated interval model.}
 
-\item{PHI_START}{Starting value for beta precision parameter. Must be positive. Default is \code{agr2prec(0.5)} (precision corresponding to 50\% agreement).}
+\item{NUISANCE}{Vector containing either \code{"items"}, \code{"workers"}, or both. Defines which fixed
+effects to profile out during estimation. Ignored for the inflated interval model.}
 
-\item{NUISANCE}{Vector containg either \code{"items"} or \code{"workers"} or both. Defines which fixed effects to profile out during estimation.}
-
-\item{CONTROL}{Control options for the optimization:
+\item{CONTROL}{Control options for the optimization.
 \describe{
 \item{\code{SEARCH_RANGE}}{Search range for precision parameter optimization.
 The algorithm searches in [1e-8, PHI_START + SEARCH_RANGE].
 Must be positive. Default: \code{8}.}
 \item{\code{MAX_ITER}}{Maximum number of iterations for precision parameter optimization.
 Must be a positive integer. Default: \code{100}.}
-\item{\code{PROF_SEARCH_RANGE}}{Search range for profiling out nuisance parameters (item intercepts).
-The algorithm searches in [ALPHA_START[j] - PROF_SEARCH_RANGE, ALPHA_START[j] + PROF_SEARCH_RANGE]
-for each item j. Must be positive. Default: \code{4}.}
+\item{\code{PROF_SEARCH_RANGE}}{Search range for profiling out item intercepts (alpha).
+The algorithm searches in [alpha_j - PROF_SEARCH_RANGE, alpha_j + PROF_SEARCH_RANGE]
+for each item j. Applies to both continuous/ordinal and inflated interval data.
+Must be positive. Default: \code{10}.}
 \item{\code{PROF_MAX_ITER}}{Maximum number of iterations for profiling optimization.
-Must be a positive integer. Default: \code{10}.}
-\item{\code{ALT_MAX_ITER}}{Maximum iterations for alternating profiling.
-Must be a positive integer. Default: \code{10}.}
-\item{\code{ALT_TOL}}{Relative convergence tolerance for alternating profiling.
-Must be positive. Default: \code{1e-2}.}
+Must be a positive integer. Default: \code{500}.}
+\item{\code{ALT_MAX_ITER}}{Maximum iterations for alternating profiling. Non-inflated only.
+Must be a positive integer. Default: \code{50}.}
+\item{\code{ALT_TOL}}{Relative convergence tolerance for alternating profiling. Non-inflated only.
+Must be positive. Default: \code{1e-3}.}
+\item{\code{BOUNDARY}}{Boundary value for cutpoints when one boundary is absent. Inflated interval only.
+Must be positive. Default: \code{100}.}
 }}
 
-\item{VERBOSE}{Verbose output.}
+\item{VERBOSE}{Print optimization progress. Default \code{FALSE}.}
 }
 \value{
-Returns a list with maximum likelihood estimates and corresponding negative log-likelihood.
+An S3 object of class \code{agreement_fit} with the following components:
+\describe{
+\item{\code{data_type}}{Detected data type: \code{"ordinal"}, \code{"continuous"}, or \code{"inflated"}.}
+\item{\code{method}}{Estimation method used: \code{"profile"} or \code{"modified"}.}
+\item{\code{alpha}}{Estimated item-specific intercepts (vector of length J).}
+\item{\code{beta}}{Estimated worker-specific intercepts. \code{NULL} for one-way models.}
+\item{\code{k0}}{Estimated lower cutpoint on the logit scale. Inflated interval model only.}
+\item{\code{k1}}{Estimated upper cutpoint on the logit scale. Inflated interval model only.}
+\item{\code{profile}}{List with \verb{$precision} (profile MLE of \eqn{\phi}) and \verb{$agreement} (corresponding \eqn{\Phi}).}
+\item{\code{modified}}{List with \verb{$precision} (MPL estimate of \eqn{\phi}) and \verb{$agreement} (corresponding \eqn{\Phi}). \code{NA} when \code{METHOD = "profile"}.}
+\item{\code{loglik}}{Profile log-likelihood at the MLE.}
+\item{\code{se}}{Named vector of standard errors. For inflated interval data: \code{phi}, \code{k0}, \code{k1}.}
+\item{\code{vcov}}{Variance-covariance matrix of \verb{(phi, k0, k1)}. Inflated interval model only.}
+\item{\code{convergence}}{Optimizer convergence code. Inflated interval model only.}
+}
 }
 \description{
 Compute the \eqn{\Phi} agreement proposed in Checco et al. (2017) via profile likelihood methods.
+Three data types are supported, detected automatically from the supplied \code{rating_data} object:
+\itemize{
+\item \strong{Ordinal}: integer-valued in \{1, 2, ..., K\}.
+\item \strong{Continuous}: real-valued in the open interval \verb{(0, 1)}.
+\item \strong{Inflated interval}: real-valued in \verb{[0, 1]} with point masses at 0 and/or 1.
+Fitted via the ordered beta mixture model. One-way only (no workers in \code{DATA}).
+}
 }
 \examples{
 set.seed(321)
 
-# setting dimension
 items <- 50
 budget_per_item <- 5
-n_obs <- items * budget_per_item
-workers <- 50
-
-# item-specific intercepts to generate the data
 alphas <- runif(items, -2, 2)
-
-# true agreement (between 0 and 1)
 agr <- .6
 
-# generate continuous rating in (0,1)
 dt_oneway <- sim_data(
-  J = items,
-  B = budget_per_item,
-  AGREEMENT = agr,
-  ALPHA = alphas,
-  DATA_TYPE = "continuous",
-  SEED = 123
+  J = items, B = budget_per_item, AGREEMENT = agr,
+  ALPHA = alphas, DATA_TYPE = "continuous", SEED = 123
 )
+rd <- rating_data(dt_oneway$rating, dt_oneway$id_item, dt_oneway$id_worker)
+fit <- agreement(rd, METHOD = "modified", NUISANCE = c("items"))
+confint(fit)
+plot(fit)
 
-# estimation via oneway specification
-fit <- agreement(
-  RATINGS = dt_oneway$rating,
-  ITEM_INDS = dt_oneway$id_item,
-  WORKER_INDS = dt_oneway$id_worker,
-  METHOD = "modified",
-  NUISANCE = c("items"),
-  VERBOSE = TRUE
+dt_inflated <- sim_data(
+  J = items, B = budget_per_item, AGREEMENT = agr,
+  ALPHA = alphas, DATA_TYPE = "inflated", K0 = -2, K1 = 2, SEED = 123
 )
-# get standard error and confidence interval
-ci <- get_ci(fit)
-ci
-
-# compute log-likelihood over a grid
-range_ll <- get_range_ll(fit)
-
-# utility plot function for relative log-likelihood
-plot_rll(
-  D = range_ll,
-  M_EST = fit$modified$agreement,
-  P_EST = fit$profile$agreement,
-  M_SE = ci$agreement_se,
-  CONFIDENCE=.95
-)
+rd_inf <- rating_data(dt_inflated$rating, dt_inflated$id_item)
+fit_inf <- agreement(rd_inf, METHOD = "modified")
+confint(fit_inf)
 
 }
 \references{
 \itemize{
-\item Checco A., Roitero K., Maddalena E., Mizzaro S., Demartini G., (2017). “Let’s Agree to Disagree: Fixing Agreement Measures for Crowdsourcing.” \emph{Proceedings of the AAAI Conference on Human Computation and Crowdsourcing} \strong{5}: 11–20. \href{https://doi.org/10.1609/hcomp.v5i1.13306}{doi}
+\item Checco A., Roitero K., Maddalena E., Mizzaro S., Demartini G., (2017). "Let's Agree to Disagree: Fixing Agreement Measures for Crowdsourcing." \emph{Proceedings of the AAAI Conference on Human Computation and Crowdsourcing} \strong{5}: 11–20. \href{https://doi.org/10.1609/hcomp.v5i1.13306}{doi}
 }
 }

@@ -12,6 +12,7 @@
 #include "utilities/utils_functions.h"
 #include "ratings/continuous.h"
 #include "ratings/ordinal.h"
+#include "ratings/inflated.h"
 #include "inference/nuisance.h"
 #include "inference/precision.h"
 #include <stdexcept>
@@ -430,4 +431,151 @@ double cpp_get_se(
     } else {
         return std::numeric_limits<double>::quiet_NaN();
     }
+}
+
+
+////////////////////////////////////////////////////////
+// INFLATED INTERVAL (ORDERED BETA) — ONE-WAY FITTING //
+////////////////////////////////////////////////////////
+
+// [[Rcpp::export]]
+Rcpp::List cpp_inflated_profile(
+    const std::vector<double> Y,
+    const std::vector<int>    ITEM_INDS,
+    const std::vector<double> ALPHA_START,
+    const double PHI,
+    const double K0,
+    const double K1,
+    const int J,
+    const double PROF_SEARCH_RANGE = 10.0,
+    const int    PROF_MAX_ITER     = 500
+) {
+    if (PHI <= 0.0 || K1 <= K0) {
+        return Rcpp::List::create(
+            Rcpp::Named("ll")    = R_NegInf,
+            Rcpp::Named("alpha") = ALPHA_START
+        );
+    }
+
+    std::vector<std::vector<int>> item_dict =
+        AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+
+    std::vector<double> alpha(J);
+    double ll = 0.0;
+
+    for (int j = 0; j < J; ++j) {
+        const std::vector<int>& obs = item_dict.at(j);
+        if (obs.empty()) {
+            alpha[j] = ALPHA_START[j];
+            continue;
+        }
+        alpha[j] = AgreementPhi::inflated::brent_alpha(
+            Y, obs, ALPHA_START[j], PHI, K0, K1,
+            ALPHA_START[j] - PROF_SEARCH_RANGE,
+            ALPHA_START[j] + PROF_SEARCH_RANGE,
+            PROF_MAX_ITER
+        );
+        double dalpha = 0.0, neg_d2alpha = 0.0;
+        for (int idx : obs) {
+            ll += AgreementPhi::inflated::obs_loglik(
+                Y[idx], alpha[j], PHI, K0, K1, dalpha, neg_d2alpha, 0
+            );
+        }
+    }
+
+    return Rcpp::List::create(
+        Rcpp::Named("ll")    = ll,
+        Rcpp::Named("alpha") = alpha
+    );
+}
+
+// [[Rcpp::export]]
+Rcpp::List cpp_inflated_mpl(
+    const std::vector<double> Y,
+    const std::vector<int>    ITEM_INDS,
+    const std::vector<double> ALPHA_START,
+    const std::vector<double> ALPHA_MLE,
+    const double PHI,     const double K0,     const double K1,
+    const double PHI_MLE, const double K0_MLE, const double K1_MLE,
+    const int J,
+    const double PROF_SEARCH_RANGE = 10.0,
+    const int    PROF_MAX_ITER     = 500
+) {
+    if (PHI <= 0.0 || PHI_MLE <= 0.0 || K1 <= K0 || K1_MLE <= K0_MLE) {
+        return Rcpp::List::create(
+            Rcpp::Named("ll")          = R_NegInf,
+            Rcpp::Named("profile_ll")  = R_NegInf,
+            Rcpp::Named("correction")  = R_NegInf,
+            Rcpp::Named("alpha")       = ALPHA_START
+        );
+    }
+
+    std::vector<std::vector<int>> item_dict =
+        AgreementPhi::utils::oneway_dict(J, ITEM_INDS);
+
+    std::vector<double> alpha(J);
+    double profile_ll  = 0.0;
+    double sum_log_j   = 0.0;
+    double sum_log_I   = 0.0;
+
+    for (int j = 0; j < J; ++j) {
+        const std::vector<int>& obs = item_dict.at(j);
+        if (obs.empty()) {
+            alpha[j] = ALPHA_START[j];
+            continue;
+        }
+
+        alpha[j] = AgreementPhi::inflated::brent_alpha(
+            Y, obs, ALPHA_START[j], PHI, K0, K1,
+            ALPHA_START[j] - PROF_SEARCH_RANGE,
+            ALPHA_START[j] + PROF_SEARCH_RANGE,
+            PROF_MAX_ITER
+        );
+
+        double dalpha    = 0.0;
+        double neg_d2alpha = 0.0;
+        for (int idx : obs) {
+            profile_ll += AgreementPhi::inflated::obs_loglik(
+                Y[idx], alpha[j], PHI, K0, K1, dalpha, neg_d2alpha, 2
+            );
+        }
+
+        double j_alpha = neg_d2alpha;
+        if (j_alpha <= 0.0 || !R_finite(j_alpha)) {
+            return Rcpp::List::create(
+                Rcpp::Named("ll")         = R_NegInf,
+                Rcpp::Named("profile_ll") = profile_ll,
+                Rcpp::Named("correction") = R_NegInf,
+                Rcpp::Named("alpha")      = alpha
+            );
+        }
+
+        int m_j = static_cast<int>(obs.size());
+        double I_alpha = static_cast<double>(m_j) *
+            AgreementPhi::inflated::E0_dalpha0dalpha1(
+                ALPHA_MLE[j], PHI_MLE, K0_MLE, K1_MLE,
+                alpha[j],     PHI,     K0,     K1
+            );
+
+        if (I_alpha <= 0.0 || !R_finite(I_alpha)) {
+            return Rcpp::List::create(
+                Rcpp::Named("ll")         = R_NegInf,
+                Rcpp::Named("profile_ll") = profile_ll,
+                Rcpp::Named("correction") = R_NegInf,
+                Rcpp::Named("alpha")      = alpha
+            );
+        }
+
+        sum_log_j += std::log(j_alpha);
+        sum_log_I += std::log(I_alpha);
+    }
+
+    double correction = 0.5 * sum_log_j - sum_log_I;
+
+    return Rcpp::List::create(
+        Rcpp::Named("ll")         = profile_ll + correction,
+        Rcpp::Named("profile_ll") = profile_ll,
+        Rcpp::Named("correction") = correction,
+        Rcpp::Named("alpha")      = alpha
+    );
 }
