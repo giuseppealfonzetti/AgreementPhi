@@ -52,7 +52,7 @@ head(dt$rating)
 length(dt$rating)
 ```
 
-Use `rating_data()` to validate the input and construct a `rating_data` object. The function reports diagnostics and, for two-way data, supports `plot()`
+Use `rating_data()` to validate the input and construct a `rating_data` object. The function reports diagnostics and supports a `plot()` method
 
 ```{r rating_data}
 rd <- rating_data(dt$rating, dt$id_item, dt$id_worker)
@@ -70,16 +70,13 @@ For the estimation via profile likelihood, you can specify `METHOD="profile"`
 fit_profile <- agreement(rd, NUISANCE = c("items"), METHOD = "profile", VERBOSE = TRUE)
 ```
 
-When the `VERBOSE` option is chosen, the function prints on screen some useful information about data dimensions and sparsity. In addition, it also provides an overview of how items and worker effects are treated. In this case, for example, worker effects are considered as constant (set at zero by default), while items effects are profiled out as nuisance parameters. The agreement and precision estimates are available at
+When the `VERBOSE` option is chosen, an overview of how items and worker effects are treated is printed. In this case, for example, worker effects are considered as constant (set at zero by default), while items effects are profiled out as nuisance parameters. 
+
+Estimated coefficients can be extracted via `coef()` method
 
 ```{r profile_estimates}
-fit_profile$profile
-```
-
-while the maximum likelihood estimates of the nuisance parameters are available at
-
-```{r profile_alpha}
-head(fit_profile$alpha)
+coef(fit_profile)[1:5]
+length(coef(fit_profile))
 ```
 
 To use the modified likelihood approach, it is enough to change the `METHOD` argument to `modified`.
@@ -88,11 +85,11 @@ To use the modified likelihood approach, it is enough to change the `METHOD` arg
 fit_modified <- agreement(rd, NUISANCE = c("items"), METHOD = "modified", VERBOSE = TRUE)
 ```
 
-As it can be read from the verbose output, when `METHOD = "modified"`, the proposed algorithm first optimises the profile likelihood to evaluate the maximum likelihood estimators needed to construct the modified profile likelihood. Thus, both estimates can be retrieved from the fitted object
+As it can be read from the verbose output, when `METHOD = "modified"`, the proposed algorithm first optimises the profile likelihood to evaluate the maximum likelihood estimators needed to construct the modified profile likelihood. Also in this case you can access estimates using `coef()`
 
 ```{r modified_estimates}
-fit_modified$profile
-fit_modified$modified
+coef(fit_profile)[1:5]
+length(coef(fit_profile))
 ```
 
 Once the point estimates are computed, we can draw inference on agreement by using the `confint()` S3 method to construct confidence intervals. The function will automatically recognise if the estimates are related to the profile or modified likelihood approach by looking at the fitted object

@@ -16,9 +16,14 @@
 \item{...}{Ignored.}
 }
 \value{
-For non-inflated data: a list with \code{agreement_est}, \code{agreement_se},
-and \code{agreement_ci}. For inflated data: a list with \code{phi_est}, \code{phi_se},
-\code{phi_ci}, \code{k0_est}, \code{k0_se}, \code{k0_ci}, \code{k1_est}, \code{k1_se}, \code{k1_ci}.
+A named list with two elements, each a numeric matrix with columns
+\code{Estimate}, \verb{Std. Error}, and the lower/upper confidence bounds (named by
+tail probability, e.g. \code{"2.5 \%"} and \code{"97.5 \%"}):
+\describe{
+\item{\code{parameters}}{Parameter-scale estimates. One row (\code{phi}) for
+non-inflated data; three rows (\code{phi}, \code{k0}, \code{k1}) for inflated data.}
+\item{\code{agreement}}{Agreement-scale estimate. Always one row (\code{agreement}).}
+}
 }
 \description{
 Confidence intervals for an agreement fit

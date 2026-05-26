@@ -51,7 +51,11 @@ Prepare the data with `rating_data()`, which validates the input and
 reports diagnostics
 
 ``` r
-rd <- rating_data(dt$rating, dt$id_item, dt$id_worker)
+rd <- rating_data(
+  RATINGS = dt$rating, 
+  ITEM_INDS = dt$id_item, 
+  WORKER_INDS = dt$id_worker
+  )
 #>  - Detected 200 items and 200 workers.
 #>  - Detected continuous data on the (0,1) range.
 #>  - Average number of observed ratings per item is 8.
@@ -71,19 +75,29 @@ fit <- agreement(rd, METHOD = "modified", NUISANCE = c("items"), VERBOSE = TRUE)
 #> Done!
 ```
 
+Extract estimates
+
+``` r
+coef(fit)[1:10]
+#>         phi     alpha_1     alpha_2     alpha_3     alpha_4     alpha_5 
+#>  6.53680906  1.84746562  1.68557164 -1.08680905 -1.36272134 -0.73792367 
+#>     alpha_6     alpha_7     alpha_8     alpha_9 
+#> -0.49287874 -0.37423723 -0.54713560  0.01762487
+length(coef(fit))
+#> [1] 201
+```
+
 Construct confidence intervals
 
 ``` r
-ci <- confint(fit)
-ci
-#> $agreement_est
-#> [1] 0.7920203
+confint(fit)
+#> $parameters
+#>     Estimate Std. Error    2.5 %   97.5 %
+#> phi 6.536809  0.2408701 6.064712 7.008906
 #> 
-#> $agreement_se
-#> [1] 0.01203441
-#> 
-#> $agreement_ci
-#> [1] 0.7684333 0.8156073
+#> $agreement
+#>            Estimate Std. Error     2.5 %    97.5 %
+#> agreement 0.7920203 0.01203441 0.7684333 0.8156073
 ```
 
 # References

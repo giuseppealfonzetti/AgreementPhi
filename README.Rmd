@@ -55,7 +55,11 @@ dt <- sim_data(
 Prepare the data with `rating_data()`, which validates the input and reports diagnostics
 
 ```{r}
-rd <- rating_data(dt$rating, dt$id_item, dt$id_worker)
+rd <- rating_data(
+  RATINGS = dt$rating, 
+  ITEM_INDS = dt$id_item, 
+  WORKER_INDS = dt$id_worker
+  )
 ```
 
 Fit the model using `agreement()`
@@ -64,11 +68,17 @@ Fit the model using `agreement()`
 fit <- agreement(rd, METHOD = "modified", NUISANCE = c("items"), VERBOSE = TRUE)
 ```
 
+Extract estimates
+
+```{r}
+coef(fit)[1:10]
+length(coef(fit))
+```
+
 Construct confidence intervals
 
 ```{r}
-ci <- confint(fit)
-ci
+confint(fit)
 ```
 
 # References
