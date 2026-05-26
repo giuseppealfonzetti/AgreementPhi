@@ -112,10 +112,9 @@
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># generate from one-way model</span></span></span>
-<span class="r-in"><span><span class="co"># (varying item effects, worker effects fixed to zero)</span></span></span>
 <span class="r-in"><span><span class="va">dt1way</span> <span class="op">&lt;-</span> <span class="fu">sim_data</span><span class="op">(</span></span></span>
 <span class="r-in"><span> J <span class="op">=</span> <span class="fl">50</span>,</span></span>
 <span class="r-in"><span> B <span class="op">=</span> <span class="fl">5</span>,</span></span>
@@ -124,8 +123,6 @@
 <span class="r-in"><span> DATA_TYPE <span class="op">=</span> <span class="st">"continuous"</span>,</span></span>
 <span class="r-in"><span> SEED <span class="op">=</span> <span class="fl">123</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># generate from two-way model</span></span></span>
-<span class="r-in"><span><span class="co"># (varying item effects, varying worker effects)</span></span></span>
 <span class="r-in"><span><span class="va">dt2way</span> <span class="op">&lt;-</span> <span class="fu">sim_data</span><span class="op">(</span></span></span>
 <span class="r-in"><span> J <span class="op">=</span> <span class="fl">50</span>,</span></span>
 <span class="r-in"><span> W <span class="op">=</span> <span class="fl">40</span>,</span></span>
@@ -136,7 +133,7 @@
 <span class="r-in"><span> DATA_TYPE <span class="op">=</span> <span class="st">"continuous"</span>,</span></span>
 <span class="r-in"><span> SEED <span class="op">=</span> <span class="fl">123</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -144,7 +141,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Giuseppe Alfonzetti.</p>
+  <p>Developed by Giuseppe Alfonzetti, Ruggero Bellio, Paolo Vidoni.</p>
 </div>
 
 <div class="pkgdown-footer-right">

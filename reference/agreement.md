@@ -186,6 +186,7 @@ An S3 object of class `agreement_fit` with the following components:
 ## Examples
 
 ``` r
+# \donttest{
 set.seed(321)
 
 items <- 50
@@ -259,4 +260,5 @@ confint(fit_inf)
 #> k0.k0.k0 k0.k0.k0 
 #> 1.776307 2.567914 
 #> 
+# }
 ```

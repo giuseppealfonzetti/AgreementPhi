@@ -1,4 +1,4 @@
 # License
 
-    YEAR: 2025
-    COPYRIGHT HOLDER: Giuseppe Alfonzetti
+    YEAR: 2026
+    COPYRIGHT HOLDER: AgreementPhi authors
