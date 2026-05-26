@@ -447,9 +447,8 @@ Rcpp::List cpp_inflated_profile(
     const double K0,
     const double K1,
     const int J,
-    const double ALPHA_LOWER  = -40.0,
-    const double ALPHA_UPPER  =  40.0,
-    const int    PROF_MAX_ITER = 500
+    const double PROF_SEARCH_RANGE = 10.0,
+    const int    PROF_MAX_ITER     = 500
 ) {
     if (PHI <= 0.0 || K1 <= K0) {
         return Rcpp::List::create(
@@ -472,7 +471,9 @@ Rcpp::List cpp_inflated_profile(
         }
         alpha[j] = AgreementPhi::inflated::brent_alpha(
             Y, obs, ALPHA_START[j], PHI, K0, K1,
-            ALPHA_LOWER, ALPHA_UPPER, PROF_MAX_ITER
+            ALPHA_START[j] - PROF_SEARCH_RANGE,
+            ALPHA_START[j] + PROF_SEARCH_RANGE,
+            PROF_MAX_ITER
         );
         double dalpha = 0.0, neg_d2alpha = 0.0;
         for (int idx : obs) {
@@ -497,9 +498,8 @@ Rcpp::List cpp_inflated_mpl(
     const double PHI,     const double K0,     const double K1,
     const double PHI_MLE, const double K0_MLE, const double K1_MLE,
     const int J,
-    const double ALPHA_LOWER   = -40.0,
-    const double ALPHA_UPPER   =  40.0,
-    const int    PROF_MAX_ITER = 500
+    const double PROF_SEARCH_RANGE = 10.0,
+    const int    PROF_MAX_ITER     = 500
 ) {
     if (PHI <= 0.0 || PHI_MLE <= 0.0 || K1 <= K0 || K1_MLE <= K0_MLE) {
         return Rcpp::List::create(
@@ -527,7 +527,9 @@ Rcpp::List cpp_inflated_mpl(
 
         alpha[j] = AgreementPhi::inflated::brent_alpha(
             Y, obs, ALPHA_START[j], PHI, K0, K1,
-            ALPHA_LOWER, ALPHA_UPPER, PROF_MAX_ITER
+            ALPHA_START[j] - PROF_SEARCH_RANGE,
+            ALPHA_START[j] + PROF_SEARCH_RANGE,
+            PROF_MAX_ITER
         );
 
         double dalpha    = 0.0;

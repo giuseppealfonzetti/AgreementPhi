@@ -1,3 +1,12 @@
+#' @noRd
+init_alpha <- function(Y, ITEM_INDS, J, LO, HI) {
+  ids <- seq_len(J)
+  means <- as.numeric(tapply(Y, ITEM_INDS, mean)[ids])
+  means <- pmax(pmin(means, 1 - 1e-6), 1e-6)
+  alpha <- stats::qlogis(means)
+  pmax(pmin(alpha, HI), LO)
+}
+
 #' From precision to agreement
 #'
 #' @param X Precision parameter.
@@ -98,14 +107,14 @@ lemon <- function(X, U = NULL) {
 #' @importFrom stats plogis rbeta
 #' @export
 get_range_ll <- function(X, RANGE = .2, GRID_LENGTH = 15) {
+  if (isTRUE(X$data_type == "inflated")) {
+    stop("get_range_ll() is not available for inflated interval data.")
+  }
   stopifnot(is.numeric(RANGE))
   stopifnot(RANGE > 0)
   stopifnot(RANGE <= 1)
   stopifnot(GRID_LENGTH > 0)
 
-  args <- X$cpp_args
-
-  # Create grid around profile likelihood estimate
   agreement_range <- seq(
     max(X$profile$agreement - RANGE, 1e-2),
     min(X$profile$agreement + RANGE, 1 - 1e-2),
@@ -113,34 +122,36 @@ get_range_ll <- function(X, RANGE = .2, GRID_LENGTH = 15) {
   )
   phi_range <- sapply(agreement_range, agr2prec)
 
-  # Extract parameters from cpp_args
-  data_type <- args$DATA_TYPE
-  K <- args$K
+  d <- X$data
+  ctl <- X$control
+  worker_inds <- if (!is.null(d$worker_ids)) {
+    as.integer(d$worker_ids)
+  } else {
+    integer(0)
+  }
+  items_nuisance <- "items" %in% X$params_type$nuisance
+  worker_nuisance <- "workers" %in% X$params_type$nuisance
+  W <- if (!is.null(d$n_workers)) d$n_workers else 1L
 
-  # Compute profile likelihood over grid
   pl_range <- sapply(phi_range, function(phi) {
     cpp_profile_likelihood(
-      Y = args$Y,
-      ITEM_INDS = as.integer(args$ITEM_INDS),
-      WORKER_INDS = if (!is.null(args$WORKER_INDS)) {
-        as.integer(args$WORKER_INDS)
-      } else {
-        integer(0)
-      },
-      ALPHA_START = args$ALPHA_START,
-      BETA_START = args$BETA_START,
+      Y = d$ratings,
+      ITEM_INDS = as.integer(d$item_ids),
+      WORKER_INDS = worker_inds,
+      ALPHA_START = X$alpha,
+      BETA_START = X$beta,
       TAU_START = X$tau,
       PHI = phi,
-      J = args$J,
-      W = if (!is.null(args$W)) args$W else 1L,
-      K = K,
-      DATA_TYPE = data_type,
-      ITEMS_NUISANCE = args$ITEMS_NUISANCE,
-      WORKER_NUISANCE = args$WORKER_NUISANCE,
-      PROF_SEARCH_RANGE = args$PROF_SEARCH_RANGE,
-      PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
-      ALT_MAX_ITER = as.integer(args$ALT_MAX_ITER),
-      ALT_TOL = args$ALT_TOL
+      J = d$n_items,
+      W = W,
+      K = d$K,
+      DATA_TYPE = X$data_type,
+      ITEMS_NUISANCE = items_nuisance,
+      WORKER_NUISANCE = worker_nuisance,
+      PROF_SEARCH_RANGE = ctl$PROF_SEARCH_RANGE,
+      PROF_UNI_MAX_ITER = as.integer(ctl$PROF_MAX_ITER),
+      ALT_MAX_ITER = as.integer(ctl$ALT_MAX_ITER),
+      ALT_TOL = ctl$ALT_TOL
     )
   })
 
@@ -148,127 +159,117 @@ get_range_ll <- function(X, RANGE = .2, GRID_LENGTH = 15) {
   if (X$method == "modified") {
     mpl_range <- sapply(phi_range, function(phi) {
       cpp_modified_profile_likelihood(
-        Y = args$Y,
-        ITEM_INDS = as.integer(args$ITEM_INDS),
-        WORKER_INDS = if (!is.null(args$WORKER_INDS)) {
-          as.integer(args$WORKER_INDS)
-        } else {
-          integer(0)
-        },
+        Y = d$ratings,
+        ITEM_INDS = as.integer(d$item_ids),
+        WORKER_INDS = worker_inds,
         ALPHA_MLE = X$alpha,
         BETA_MLE = X$beta,
         TAU = X$tau,
         PHI = phi,
         PHI_MLE = X$profile$precision,
-        J = args$J,
-        W = if (!is.null(args$W)) args$W else 1L,
-        K = K,
-        DATA_TYPE = data_type,
-        ITEMS_NUISANCE = args$ITEMS_NUISANCE,
-        WORKER_NUISANCE = args$WORKER_NUISANCE,
-        PROF_SEARCH_RANGE = args$PROF_SEARCH_RANGE,
-        PROF_UNI_MAX_ITER = as.integer(args$PROF_MAX_ITER),
-        ALT_MAX_ITER = as.integer(args$ALT_MAX_ITER),
-        ALT_TOL = args$ALT_TOL
+        J = d$n_items,
+        W = W,
+        K = d$K,
+        DATA_TYPE = X$data_type,
+        ITEMS_NUISANCE = items_nuisance,
+        WORKER_NUISANCE = worker_nuisance,
+        PROF_SEARCH_RANGE = ctl$PROF_SEARCH_RANGE,
+        PROF_UNI_MAX_ITER = as.integer(ctl$PROF_MAX_ITER),
+        ALT_MAX_ITER = as.integer(ctl$ALT_MAX_ITER),
+        ALT_TOL = ctl$ALT_TOL
       )
     })
   }
 
-  out <- data.frame(
+  data.frame(
     precision = phi_range,
     agreement = agreement_range,
     profile = pl_range,
     modified = mpl_range
   )
-
-  return(out)
 }
 
-#' Get Agreement confidence interval
+#' Confidence intervals for an agreement fit
 #'
-#' @param X Object fitted with [agreement()] function.
-#' @param CONFIDENCE Confidence level.
+#' @param object Object fitted with [agreement()].
+#' @param parm Ignored (included for S3 compatibility).
+#' @param level Confidence level. Default `0.95`.
+#' @param ... Ignored.
 #'
-#' @return Returns a list with estimate, standard error and confidence interval
+#' @return For non-inflated data: a list with `agreement_est`, `agreement_se`,
+#'   and `agreement_ci`. For inflated data: a list with `phi_est`, `phi_se`,
+#'   `phi_ci`, `k0_est`, `k0_se`, `k0_ci`, `k1_est`, `k1_se`, `k1_ci`.
 #'
-#' @importFrom stats qnorm
+#' @importFrom stats confint qnorm
 #' @export
-get_ci <- function(X, CONFIDENCE = 0.95) {
-  stopifnot(is.numeric(CONFIDENCE), CONFIDENCE < 1, CONFIDENCE > 0)
+confint.agreement_fit <- function(object, parm = NULL, level = 0.95, ...) {
+  stopifnot(is.numeric(level), level > 0, level < 1)
+  z <- stats::qnorm(1 - (1 - level) / 2)
 
-  if (isTRUE(X$data_type == "inflated")) {
-    phi_est <- if (X$method == "modified") {
-      X$modified$precision
+  if (isTRUE(object$data_type == "inflated")) {
+    phi_est <- if (object$method == "modified") {
+      object$modified$precision
     } else {
-      X$profile$precision
+      object$profile$precision
     }
-    z <- stats::qnorm(1 - (1 - CONFIDENCE) / 2)
     phi_ci <- function(est, se) c(max(0, est - z * se), est + z * se)
     sym_ci <- function(est, se) c(est - z * se, est + z * se)
     return(list(
       phi_est = phi_est,
-      phi_se = X$se[["phi"]],
-      phi_ci = phi_ci(phi_est, X$se[["phi"]]),
-      k0_est = X$k0,
-      k0_se = X$se[["k0"]],
-      k0_ci = sym_ci(X$k0, X$se[["k0"]]),
-      k1_est = X$k1,
-      k1_se = X$se[["k1"]],
-      k1_ci = sym_ci(X$k1, X$se[["k1"]])
+      phi_se = object$se[["phi"]],
+      phi_ci = phi_ci(phi_est, object$se[["phi"]]),
+      k0_est = object$k0,
+      k0_se = object$se[["k0"]],
+      k0_ci = sym_ci(object$k0, object$se[["k0"]]),
+      k1_est = object$k1,
+      k1_se = object$se[["k1"]],
+      k1_ci = sym_ci(object$k1, object$se[["k1"]])
     ))
   }
 
-  args <- X$cpp_args
+  d <- object$data
+  ctl <- object$control
+  phi_mle <- object$profile$precision
 
-  # MLE values from fitted object
-  alpha_mle <- X$alpha
-  beta_mle <- X$beta
-  tau_mle <- if (!is.null(X$tau)) X$tau else args$TAU_START
-  phi_mle <- X$profile$precision
-
-  # Determine evaluation point
-  if (X$method == "modified") {
-    phi_eval <- X$modified$precision
-    est <- X$modified$agreement
+  if (object$method == "modified") {
+    phi_eval <- object$modified$precision
+    est <- object$modified$agreement
   } else {
     phi_eval <- phi_mle
-    est <- X$profile$agreement
+    est <- object$profile$agreement
   }
 
   agr_se <- cpp_get_se(
-    Y = args$Y,
-    ITEM_INDS = as.integer(args$ITEM_INDS),
-    WORKER_INDS = if (!is.null(args$WORKER_INDS)) {
-      as.integer(args$WORKER_INDS)
+    Y = d$ratings,
+    ITEM_INDS = as.integer(d$item_ids),
+    WORKER_INDS = if (!is.null(d$worker_ids)) {
+      as.integer(d$worker_ids)
     } else {
       integer(0)
     },
-    ALPHA_MLE = alpha_mle,
-    BETA_MLE = beta_mle,
-    TAU_MLE = tau_mle,
+    ALPHA_MLE = object$alpha,
+    BETA_MLE = object$beta,
+    TAU_MLE = object$tau,
     PHI_EVAL = phi_eval,
     PHI_MLE = phi_mle,
-    J = args$J,
-    W = if (!is.null(args$W)) args$W else 1L,
-    K = args$K,
-    METHOD = args$METHOD,
-    DATA_TYPE = args$DATA_TYPE,
-    ITEMS_NUISANCE = args$ITEMS_NUISANCE,
-    WORKER_NUISANCE = args$WORKER_NUISANCE,
-    PROF_SEARCH_RANGE = as.integer(args$PROF_SEARCH_RANGE),
-    PROF_MAX_ITER = as.integer(args$PROF_MAX_ITER),
-    ALT_MAX_ITER = as.integer(args$ALT_MAX_ITER),
-    ALT_TOL = args$ALT_TOL
+    J = d$n_items,
+    W = if (!is.null(d$n_workers)) d$n_workers else 1L,
+    K = d$K,
+    METHOD = object$method,
+    DATA_TYPE = object$data_type,
+    ITEMS_NUISANCE = "items" %in% object$params_type$nuisance,
+    WORKER_NUISANCE = "workers" %in% object$params_type$nuisance,
+    PROF_SEARCH_RANGE = as.integer(ctl$PROF_SEARCH_RANGE),
+    PROF_MAX_ITER = as.integer(ctl$PROF_MAX_ITER),
+    ALT_MAX_ITER = as.integer(ctl$ALT_MAX_ITER),
+    ALT_TOL = ctl$ALT_TOL
   )
 
-  alpha <- 1 - CONFIDENCE
-  z <- qnorm(1 - alpha / 2)
-
-  return(list(
+  list(
     agreement_est = est,
     agreement_se = agr_se,
     agreement_ci = c(max(0, est - z * agr_se), min(1, est + z * agr_se))
-  ))
+  )
 }
 
 
@@ -291,9 +292,9 @@ par2agr <- function(PHI, ALPHA = NULL, BETA = NULL, K0 = NULL, K1 = NULL) {
   }
 
   stopifnot(!is.null(ALPHA))
-  eps    <- .Machine$double.eps^0.5
+  eps <- .Machine$double.eps^0.5
   K0_eff <- if (!is.finite(K0)) -100 else K0
-  K1_eff <- if (!is.finite(K1)) 100  else K1
+  K1_eff <- if (!is.finite(K1)) 100 else K1
   L0_i <- plogis(ALPHA - K0_eff)
   L1_i <- plogis(ALPHA - K1_eff)
   p0_i <- 1 - L0_i

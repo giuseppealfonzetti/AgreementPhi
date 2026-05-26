@@ -1,57 +1,72 @@
-detect_data_type <- function(RATINGS) {
-  integer_data <- all(RATINGS == as.integer(RATINGS))
-  min_val <- min(RATINGS)
-  max_val <- max(RATINGS)
-  unique_vals <- length(unique(RATINGS))
-  n_vals <- length(RATINGS)
-
-  if (integer_data) {
-    if (min_val != 1) {
-      stop("Lowest category different from 1")
-    }
-    if (unique_vals != max_val) {
-      warning("Some category is missing")
-    }
-
-    return("ordinal")
-  } else {
-    if (any(RATINGS == 0) || any(RATINGS == 1)) {
-      if (min_val < 0 || max_val > 1)
-        stop("Ratings must be in [0,1] for the inflated interval model.")
-      return("inflated")
-    }
-
-    if (min_val <= 0) {
-      stop(
-        "Minimum value lower or equal than zero. Consider using an ordinal scale."
-      )
-    }
-    if (max_val >= 1) {
-      stop(
-        "Maximum value higher or equal than one. Consider using an ordinal scale."
-      )
-    }
-
-    return("continuous")
-  }
-}
-
+#' Prepare rating data for analysis
+#'
+#' @description
+#' Validates and preprocesses a raw ratings dataset. Returns a `rating_data`
+#' S3 object that can be passed to [agreement()], [plot()], and [print()].
+#' Degenerate items (all ratings identical) are automatically dropped in
+#' one-way models.
+#'
+#' @param RATINGS Ratings vector. Ordinal: integers in \{1,...,K\}. Continuous:
+#'   reals in `(0,1)`. Inflated interval: reals in `[0,1]` with exact 0s or 1s.
+#' @param ITEM_INDS Integer index vector of item allocations (same length as `RATINGS`).
+#' @param WORKER_INDS Integer index vector of worker allocations. `NULL` for one-way models.
+#' @param ITEM_LABELS Optional character vector of item labels (same length as `RATINGS`).
+#'   Each unique item index must map to exactly one label. When provided, label names
+#'   are used for `alpha` coefficients in [coef()].
+#' @param WORKER_LABELS Optional character vector of worker labels (same length as `RATINGS`).
+#'   Requires `WORKER_INDS`. When provided, label names are used for `beta` coefficients in [coef()].
+#' @param K Number of ordinal categories. If `NULL`, inferred as `max(RATINGS)`.
+#'   Provide explicitly when boundary categories may be absent from the data.
+#' @param VERBOSE Print data diagnostics on construction. Default `TRUE`.
+#'
+#' @return An S3 object of class `rating_data`.
+#'
+#' @examples
+#' dt <- sim_data(J = 20, B = 5, AGREEMENT = 0.6,
+#'                ALPHA = rep(0, 20), DATA_TYPE = "continuous", SEED = 1)
+#' rd <- rating_data(dt$rating, dt$id_item, dt$id_worker)
+#' print(rd)
+#'
+#' @export
 #' @importFrom stats setNames
-validate_data <- function(
+rating_data <- function(
   RATINGS,
   ITEM_INDS,
   WORKER_INDS = NULL,
+  ITEM_LABELS = NULL,
+  WORKER_LABELS = NULL,
   K = NULL,
   VERBOSE = TRUE
 ) {
-  out <- list()
+  detect_type <- function(r) {
+    if (all(r == as.integer(r))) {
+      if (min(r) != 1) {
+        stop("Lowest category different from 1")
+      }
+      if (length(unique(r)) != max(r)) {
+        warning("Some category is missing")
+      }
+      return("ordinal")
+    }
+    if (any(r == 0) || any(r == 1)) {
+      if (min(r) < 0 || max(r) > 1) {
+        stop("Ratings must be in [0,1] for the inflated interval model.")
+      }
+      return("inflated")
+    }
+    if (min(r) < 0) {
+      stop("Continuous data must lie strictly in [0, 1]: values < 0 detected.")
+    }
+    if (max(r) > 1) {
+      stop("Continuous data must lie strictly in [0, 1]: values > 1 detected.")
+    }
+    "continuous"
+  }
 
-  # Check args
   stopifnot(is.numeric(RATINGS))
   stopifnot(is.numeric(ITEM_INDS))
   stopifnot(all(ITEM_INDS == as.integer(ITEM_INDS)))
   stopifnot(length(RATINGS) == length(ITEM_INDS))
-
   if (!is.null(WORKER_INDS)) {
     stopifnot(is.numeric(WORKER_INDS))
     stopifnot(all(WORKER_INDS == as.integer(WORKER_INDS)))
@@ -59,76 +74,82 @@ validate_data <- function(
   }
   stopifnot(is.logical(VERBOSE))
 
-  data_type_early <- if (is.null(K)) detect_data_type(RATINGS) else "ordinal"
+  if (!is.null(ITEM_LABELS)) {
+    stopifnot(is.character(ITEM_LABELS))
+    stopifnot(length(ITEM_LABELS) == length(RATINGS))
+  }
+  if (!is.null(WORKER_LABELS)) {
+    stopifnot(is.character(WORKER_LABELS))
+    stopifnot(length(WORKER_LABELS) == length(RATINGS))
+    if (is.null(WORKER_INDS)) {
+      stop("WORKER_LABELS requires WORKER_INDS to be provided.")
+    }
+  }
 
-  # Check for degenerate items in the one-way case
-  if (is.null(WORKER_INDS)) {
-    if (data_type_early != "inflated") {
-      degen_collect <- as.numeric(which(sapply(
-        split(RATINGS, ITEM_INDS),
-        function(x) all(x == x[1])
-      )))
+  data_type_early <- if (is.null(K)) detect_type(RATINGS) else "ordinal"
 
-      if (length(degen_collect) > 0) {
-        # Drop degenerate items
-        informative_ids <- ITEM_INDS[!(ITEM_INDS %in% degen_collect)]
-        informative_rts <- RATINGS[!(ITEM_INDS %in% degen_collect)]
+  recode <- function(ids) {
+    u <- sort(unique(ids))
+    as.integer(setNames(seq_along(u), u)[as.character(ids)])
+  }
 
-        # Recode item indexes
-        unique_ids <- sort(unique(informative_ids))
-        id_map <- setNames(seq_along(unique_ids), unique_ids)
-        informative_ids_recoded <- as.numeric(id_map[as.character(
-          informative_ids
-        )])
-
-        out$item_ids <- as.integer(informative_ids_recoded)
-        out$ratings <- informative_rts
-      } else {
-        out$ratings <- RATINGS * 1.0
-
-        # Recode items in case of non consecutive indexes
-        unique_items <- sort(unique(ITEM_INDS))
-        item_map <- setNames(seq_along(unique_items), unique_items)
-        out$item_ids <- as.integer(item_map[as.character(ITEM_INDS)])
+  extract_labels <- function(inds, labels) {
+    u <- sort(unique(inds))
+    out_labels <- character(length(u))
+    for (i in seq_along(u)) {
+      lbls <- unique(labels[inds == u[i]])
+      if (length(lbls) != 1L) {
+        stop(
+          "Index ",
+          u[i],
+          " maps to multiple labels: ",
+          paste(lbls, collapse = ", ")
+        )
       }
-    } else {
-      out$ratings <- RATINGS * 1.0
+      out_labels[i] <- lbls
+    }
+    out_labels
+  }
 
-      # Recode items in case of non consecutive indexes
-      unique_items <- sort(unique(ITEM_INDS))
-      item_map <- setNames(seq_along(unique_items), unique_items)
-      out$item_ids <- as.integer(item_map[as.character(ITEM_INDS)])
+  out <- list()
+
+  if (is.null(WORKER_INDS)) {
+    degen <- as.numeric(which(sapply(split(RATINGS, ITEM_INDS), function(x) {
+      all(x == x[1])
+    })))
+    keep <- !(ITEM_INDS %in% degen)
+    out$ratings <- RATINGS[keep] * 1.0
+    out$item_ids <- recode(ITEM_INDS[keep])
+    out$n_degen <- length(degen)
+    if (!is.null(ITEM_LABELS)) {
+      out$item_labels <- extract_labels(ITEM_INDS[keep], ITEM_LABELS[keep])
     }
   } else {
     out$ratings <- RATINGS * 1.0
-
-    # Recode items in case of non consecutive indexes
-    unique_items <- sort(unique(ITEM_INDS))
-    item_map <- setNames(seq_along(unique_items), unique_items)
-    out$item_ids <- as.integer(item_map[as.character(ITEM_INDS)])
-
-    # Recode workers in case of non consecutive indexes
-    unique_workers <- sort(unique(WORKER_INDS))
-    worker_map <- setNames(seq_along(unique_workers), unique_workers)
-    out$worker_ids <- as.integer(worker_map[as.character(WORKER_INDS)])
+    out$item_ids <- recode(ITEM_INDS)
+    out$worker_ids <- recode(WORKER_INDS)
+    if (!is.null(ITEM_LABELS)) {
+      out$item_labels <- extract_labels(ITEM_INDS, ITEM_LABELS)
+    }
+    if (!is.null(WORKER_LABELS)) {
+      out$worker_labels <- extract_labels(WORKER_INDS, WORKER_LABELS)
+    }
   }
 
   out$n_items <- length(unique(out$item_ids))
 
   if (is.null(WORKER_INDS)) {
-    if (VERBOSE) {
-      message(paste0(" - Detected ", out$n_items, " non-degenerate items."))
-    }
+    if (VERBOSE) message(" - Detected ", out$n_items, " non-degenerate items.")
   } else {
     out$n_workers <- length(unique(out$worker_ids))
     if (VERBOSE) {
-      message(paste0(
+      message(
         " - Detected ",
         out$n_items,
         " items and ",
         out$n_workers,
         " workers."
-      ))
+      )
     }
   }
 
@@ -143,152 +164,109 @@ validate_data <- function(
     out$data_type <- "ordinal"
     out$K <- as.integer(K)
     if (VERBOSE) {
-      message(paste0(
-        " - Ordinal data on a user-specified ",
-        K,
-        "-point scale."
-      ))
-      n_missing <- K - length(unique(out$ratings))
-      if (n_missing > 0) {
-        message(paste0(
+      message(" - Ordinal data on a user-specified ", K, "-point scale.")
+      n_miss <- K - length(unique(out$ratings))
+      if (n_miss > 0) {
+        message(
           " - ",
-          n_missing,
+          n_miss,
           " categor",
-          ifelse(n_missing == 1, "y", "ies"),
+          ifelse(n_miss == 1, "y", "ies"),
           " not observed in data."
-        ))
+        )
       }
     }
   } else {
     out$data_type <- data_type_early
-    if (out$data_type == "ordinal") {
-      out$K <- max(out$ratings)
-      if (VERBOSE) {
-        message(paste0(
+    out$K <- switch(
+      data_type_early,
+      ordinal = max(out$ratings),
+      inflated = NA_integer_,
+      continuous = 1L
+    )
+    if (VERBOSE) {
+      message(switch(
+        data_type_early,
+        ordinal = paste0(
           " - Detected ordinal data on a ",
           out$K,
           "-points scale."
-        ))
-      }
-    } else if (out$data_type == "inflated") {
-      out$K <- NA_integer_
-      if (VERBOSE) {
-        message(paste0(" - Detected inflated interval data on the [0,1] range."))
-      }
-    } else {
-      out$K <- 1
-      if (VERBOSE) {
-        message(paste0(" - Detected continuous data on the (0,1) range."))
-      }
+        ),
+        inflated = " - Detected inflated interval data on the [0,1] range.",
+        continuous = " - Detected continuous data on the (0,1) range."
+      ))
     }
   }
 
-  if (is.null(WORKER_INDS)) {
-    out$ave_ratings_per_item <- mean(table(out$item_ids))
-    if (VERBOSE) {
-      message(paste0(
-        " - Average number of observed ratings per item is ",
-        round(out$ave_ratings_per_item, 2),
-        "."
-      ))
-    }
-  } else {
-    out$ave_ratings_per_item <- mean(table(out$item_ids))
+  out$ave_ratings_per_item <- mean(table(out$item_ids))
+  if (!is.null(out$worker_ids)) {
     out$ave_ratings_per_worker <- mean(table(out$worker_ids))
+  }
 
-    if (VERBOSE) {
-      message(paste0(
-        " - Average number of observed ratings per item is ",
-        round(out$ave_ratings_per_item, 2),
-        "."
-      ))
-      message(paste0(
+  if (VERBOSE) {
+    message(
+      " - Average number of observed ratings per item is ",
+      round(out$ave_ratings_per_item, 2),
+      "."
+    )
+    if (!is.null(out$worker_ids)) {
+      message(
         " - Average number of observed ratings per worker is ",
         round(out$ave_ratings_per_worker, 2),
         "."
-      ))
+      )
     }
   }
 
-  return(out)
+  structure(out, class = "rating_data")
 }
 
-validate_nuisance <- function(NUISANCE) {
-  stopifnot(is.vector(NUISANCE))
-  stopifnot(all(NUISANCE %in% c("items", "workers")))
-  return(NUISANCE)
-}
-
-validate_params_type <- function(NUISANCE, TARGET, DATA_TYPE) {
+validate_params_type <- function(NUISANCE, TARGET) {
   stopifnot(is.vector(NUISANCE))
   stopifnot(all(NUISANCE %in% c("items", "workers")))
   stopifnot(is.vector(TARGET))
   stopifnot(all(TARGET %in% c("phi")))
 
   params <- c("items", "workers")
-  if (DATA_TYPE == "continuous") {
-    params <- c("items", "workers")
-  }
-
-  constant <- params[!(params %in% NUISANCE) & !(params %in% TARGET)]
-
-  out <- list(
-    constant = constant,
-    nuisance = NUISANCE,
-    target = TARGET
+  structure(
+    list(
+      constant = params[!(params %in% NUISANCE) & !(params %in% TARGET)],
+      nuisance = NUISANCE,
+      target = TARGET
+    ),
+    class = "params_spec"
   )
-
-  return(out)
 }
 
 validate_cpp_control <- function(LIST = NULL) {
-  out <- list()
-
-  # search range for precision
-  if (is.null(LIST$SEARCH_RANGE)) {
-    LIST$SEARCH_RANGE <- 8
+  default <- function(x, val) if (is.null(x)) val else x
+  chk_pos <- function(x, nm) {
+    stopifnot(is.numeric(x))
+    stopifnot(x > 0)
+    x
   }
 
-  stopifnot(is.numeric(LIST$SEARCH_RANGE))
-  stopifnot(LIST$SEARCH_RANGE > 0)
-  out$SEARCH_RANGE <- LIST$SEARCH_RANGE
+  LIST$SEARCH_RANGE <- chk_pos(default(LIST$SEARCH_RANGE, 8), "SEARCH_RANGE")
+  LIST$MAX_ITER <- chk_pos(default(LIST$MAX_ITER, 100), "MAX_ITER")
+  LIST$PROF_SEARCH_RANGE <- chk_pos(
+    default(LIST$PROF_SEARCH_RANGE, 10),
+    "PROF_SEARCH_RANGE"
+  )
+  LIST$PROF_MAX_ITER <- chk_pos(
+    default(LIST$PROF_MAX_ITER, 500),
+    "PROF_MAX_ITER"
+  )
+  LIST$ALT_MAX_ITER <- chk_pos(default(LIST$ALT_MAX_ITER, 50), "ALT_MAX_ITER")
+  LIST$ALT_TOL <- chk_pos(default(LIST$ALT_TOL, 1e-3), "ALT_TOL")
+  LIST$BOUNDARY <- chk_pos(default(LIST$BOUNDARY, 100), "BOUNDARY")
 
-  # max iter for precision
-  if (is.null(LIST$MAX_ITER)) {
-    LIST$MAX_ITER <- 100
-  }
-  stopifnot(is.numeric(LIST$MAX_ITER))
-  stopifnot(LIST$MAX_ITER > 0)
-  out$MAX_ITER <- LIST$MAX_ITER
-
-  # search range for profiling
-  if (is.null(LIST$PROF_SEARCH_RANGE)) {
-    LIST$PROF_SEARCH_RANGE <- 10
-  }
-  stopifnot(is.numeric(LIST$PROF_SEARCH_RANGE))
-  stopifnot(LIST$PROF_SEARCH_RANGE > 0)
-  out$PROF_SEARCH_RANGE <- LIST$PROF_SEARCH_RANGE
-
-  # max iter for profiling
-  if (is.null(LIST$PROF_MAX_ITER)) {
-    LIST$PROF_MAX_ITER <- 500
-  }
-  stopifnot(is.numeric(LIST$PROF_MAX_ITER))
-  stopifnot(LIST$PROF_MAX_ITER > 0)
-  out$PROF_MAX_ITER <- LIST$PROF_MAX_ITER
-
-  if (is.null(LIST$ALT_MAX_ITER)) {
-    LIST$ALT_MAX_ITER <- 50
-  }
-  stopifnot(is.numeric(LIST$ALT_MAX_ITER))
-  stopifnot(LIST$ALT_MAX_ITER > 0)
-  out$ALT_MAX_ITER <- LIST$ALT_MAX_ITER
-  if (is.null(LIST$ALT_TOL)) {
-    LIST$ALT_TOL <- 1e-3
-  }
-  stopifnot(is.numeric(LIST$ALT_TOL))
-  stopifnot(LIST$ALT_TOL > 0)
-  out$ALT_TOL <- LIST$ALT_TOL
-
-  return(out)
+  LIST[c(
+    "SEARCH_RANGE",
+    "MAX_ITER",
+    "PROF_SEARCH_RANGE",
+    "PROF_MAX_ITER",
+    "ALT_MAX_ITER",
+    "ALT_TOL",
+    "BOUNDARY"
+  )]
 }

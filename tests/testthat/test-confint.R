@@ -11,36 +11,29 @@ test_that("get_ci returns list with correct structure", {
     DATA_TYPE = "continuous",
     SEED = 123
   )
+  rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 
   fit <- agreement(
-    RATINGS = dt$rating,
-    ITEM_INDS = dt$id_item,
-    WORKER_INDS = dt$id_worker,
+    rd,
     METHOD = "modified",
     NUISANCE = c("items"),
     VERBOSE = FALSE
   )
-
-  ci <- get_ci(fit)
+  ci <- confint(fit)
 
   expect_type(ci, "list")
   expect_true(all(
     c("agreement_est", "agreement_se", "agreement_ci") %in% names(ci)
   ))
   expect_length(ci, 3)
-
-  # Check types and dimensions
   expect_true(is.numeric(ci$agreement_est) && length(ci$agreement_est) == 1)
   expect_true(is.numeric(ci$agreement_se) && length(ci$agreement_se) == 1)
   expect_true(is.numeric(ci$agreement_ci) && length(ci$agreement_ci) == 2)
-
-  # Check bounds
   expect_true(ci$agreement_se >= 0)
   expect_true(ci$agreement_ci[1] >= 0 && ci$agreement_ci[2] <= 1)
   expect_true(ci$agreement_ci[1] <= ci$agreement_est)
   expect_true(ci$agreement_est <= ci$agreement_ci[2])
 })
-
 
 test_that("get_ci works for continuous one-way model with low agreement", {
   set.seed(321)
@@ -55,34 +48,27 @@ test_that("get_ci works for continuous one-way model with low agreement", {
     DATA_TYPE = "continuous",
     SEED = 123
   )
+  rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 
   fit <- agreement(
-    RATINGS = dt$rating,
-    ITEM_INDS = dt$id_item,
-    WORKER_INDS = dt$id_worker,
+    rd,
     METHOD = "modified",
     NUISANCE = c("items"),
     VERBOSE = FALSE
   )
-
-  ci <- get_ci(fit, CONFIDENCE = 0.95)
-
+  ci <- confint(fit, level = 0.95)
   expect_type(ci, "list")
   expect_true(is.finite(ci$agreement_est))
   expect_true(ci$agreement_se > 0)
   expect_true(ci$agreement_ci[1] >= 0 && ci$agreement_ci[2] <= 1)
 
   fit <- agreement(
-    RATINGS = dt$rating,
-    ITEM_INDS = dt$id_item,
-    WORKER_INDS = dt$id_worker,
+    rd,
     METHOD = "profile",
     NUISANCE = c("items"),
     VERBOSE = FALSE
   )
-
-  ci <- get_ci(fit, CONFIDENCE = 0.95)
-
+  ci <- confint(fit, level = 0.95)
   expect_type(ci, "list")
   expect_true(is.finite(ci$agreement_est))
   expect_true(ci$agreement_se > 0)
@@ -102,18 +88,15 @@ test_that("get_ci works for continuous one-way model with high agreement", {
     DATA_TYPE = "continuous",
     SEED = 123
   )
+  rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 
   fit <- agreement(
-    RATINGS = dt$rating,
-    ITEM_INDS = dt$id_item,
-    WORKER_INDS = dt$id_worker,
+    rd,
     METHOD = "modified",
     NUISANCE = c("items"),
     VERBOSE = FALSE
   )
-
-  ci <- get_ci(fit, CONFIDENCE = 0.95)
-
+  ci <- confint(fit, level = 0.95)
   expect_type(ci, "list")
   expect_true(is.finite(ci$agreement_est))
   expect_true(ci$agreement_se > 0)
@@ -133,18 +116,15 @@ test_that("get_ci works for continuous two-way model with low agreement", {
     DATA_TYPE = "continuous",
     SEED = 456
   )
+  rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 
   fit <- agreement(
-    RATINGS = dt$rating,
-    ITEM_INDS = dt$id_item,
-    WORKER_INDS = dt$id_worker,
+    rd,
     METHOD = "modified",
     NUISANCE = c("items", "workers"),
     VERBOSE = FALSE
   )
-
-  ci <- get_ci(fit, CONFIDENCE = 0.95)
-
+  ci <- confint(fit, level = 0.95)
   expect_type(ci, "list")
   expect_true(is.finite(ci$agreement_est))
   expect_true(ci$agreement_se > 0)
@@ -164,24 +144,20 @@ test_that("get_ci works for continuous two-way model with high agreement", {
     DATA_TYPE = "continuous",
     SEED = 123
   )
+  rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 
   fit <- agreement(
-    RATINGS = dt$rating,
-    ITEM_INDS = dt$id_item,
-    WORKER_INDS = dt$id_worker,
+    rd,
     METHOD = "modified",
     NUISANCE = c("items", "workers"),
     VERBOSE = FALSE
   )
-
-  ci <- get_ci(fit, CONFIDENCE = 0.95)
-
+  ci <- confint(fit, level = 0.95)
   expect_type(ci, "list")
   expect_true(is.finite(ci$agreement_est))
   expect_true(ci$agreement_se > 0)
   expect_true(ci$agreement_ci[1] >= 0 && ci$agreement_ci[2] <= 1)
 })
-
 
 test_that("get_ci works for ordinal one-way model", {
   set.seed(321)
@@ -197,40 +173,32 @@ test_that("get_ci works for ordinal one-way model", {
     K = 5,
     SEED = 123
   )
+  rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 
   fit <- agreement(
-    RATINGS = dt$rating,
-    ITEM_INDS = dt$id_item,
-    WORKER_INDS = dt$id_worker,
+    rd,
     METHOD = "modified",
     NUISANCE = c("items"),
     VERBOSE = FALSE
   )
-
-  ci <- get_ci(fit, CONFIDENCE = 0.95)
-
+  ci <- confint(fit, level = 0.95)
   expect_type(ci, "list")
   expect_true(is.finite(ci$agreement_est))
   expect_true(ci$agreement_se > 0)
   expect_true(ci$agreement_ci[1] >= 0 && ci$agreement_ci[2] <= 1)
 
   fit <- agreement(
-    RATINGS = dt$rating,
-    ITEM_INDS = dt$id_item,
-    WORKER_INDS = dt$id_worker,
+    rd,
     METHOD = "profile",
     NUISANCE = c("items"),
     VERBOSE = FALSE
   )
-
-  ci <- get_ci(fit, CONFIDENCE = 0.95)
-
+  ci <- confint(fit, level = 0.95)
   expect_type(ci, "list")
   expect_true(is.finite(ci$agreement_est))
   expect_true(ci$agreement_se > 0)
   expect_true(ci$agreement_ci[1] >= 0 && ci$agreement_ci[2] <= 1)
 })
-
 
 test_that("wider confidence intervals for higher confidence levels", {
   set.seed(321)
@@ -245,19 +213,17 @@ test_that("wider confidence intervals for higher confidence levels", {
     DATA_TYPE = "continuous",
     SEED = 123
   )
+  rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 
   fit <- agreement(
-    RATINGS = dt$rating,
-    ITEM_INDS = dt$id_item,
-    WORKER_INDS = dt$id_worker,
+    rd,
     METHOD = "modified",
     NUISANCE = c("items"),
     VERBOSE = FALSE
   )
-
-  ci_90 <- get_ci(fit, CONFIDENCE = 0.90)
-  ci_95 <- get_ci(fit, CONFIDENCE = 0.95)
-  ci_99 <- get_ci(fit, CONFIDENCE = 0.99)
+  ci_90 <- confint(fit, level = 0.90)
+  ci_95 <- confint(fit, level = 0.95)
+  ci_99 <- confint(fit, level = 0.99)
 
   width_90 <- ci_90$agreement_ci[2] - ci_90$agreement_ci[1]
   width_95 <- ci_95$agreement_ci[2] - ci_95$agreement_ci[1]
@@ -265,12 +231,9 @@ test_that("wider confidence intervals for higher confidence levels", {
 
   expect_true(width_90 < width_95)
   expect_true(width_95 < width_99)
-
-  # All should have same center (estimate)
   expect_equal(ci_90$agreement_est, ci_95$agreement_est)
   expect_equal(ci_95$agreement_est, ci_99$agreement_est)
 })
-
 
 test_that("get_ci rejects invalid CONFIDENCE values", {
   set.seed(321)
@@ -285,19 +248,18 @@ test_that("get_ci rejects invalid CONFIDENCE values", {
     DATA_TYPE = "continuous",
     SEED = 123
   )
+  rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 
   fit <- agreement(
-    RATINGS = dt$rating,
-    ITEM_INDS = dt$id_item,
-    WORKER_INDS = dt$id_worker,
+    rd,
     METHOD = "modified",
     NUISANCE = c("items"),
     VERBOSE = FALSE
   )
 
-  expect_error(get_ci(fit, CONFIDENCE = 0))
-  expect_error(get_ci(fit, CONFIDENCE = 1))
-  expect_error(get_ci(fit, CONFIDENCE = -0.5))
-  expect_error(get_ci(fit, CONFIDENCE = 1.5))
-  expect_error(get_ci(fit, CONFIDENCE = "0.95"))
+  expect_error(confint(fit, level = 0))
+  expect_error(confint(fit, level = 1))
+  expect_error(confint(fit, level = -0.5))
+  expect_error(confint(fit, level = 1.5))
+  expect_error(confint(fit, level = "0.95"))
 })

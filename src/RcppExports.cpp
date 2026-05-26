@@ -127,8 +127,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_inflated_profile
-Rcpp::List cpp_inflated_profile(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<double> ALPHA_START, const double PHI, const double K0, const double K1, const int J, const double ALPHA_LOWER, const double ALPHA_UPPER, const int PROF_MAX_ITER);
-RcppExport SEXP _AgreementPhi_cpp_inflated_profile(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP PHISEXP, SEXP K0SEXP, SEXP K1SEXP, SEXP JSEXP, SEXP ALPHA_LOWERSEXP, SEXP ALPHA_UPPERSEXP, SEXP PROF_MAX_ITERSEXP) {
+Rcpp::List cpp_inflated_profile(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<double> ALPHA_START, const double PHI, const double K0, const double K1, const int J, const double PROF_SEARCH_RANGE, const int PROF_MAX_ITER);
+RcppExport SEXP _AgreementPhi_cpp_inflated_profile(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP PHISEXP, SEXP K0SEXP, SEXP K1SEXP, SEXP JSEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_MAX_ITERSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -139,16 +139,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type K0(K0SEXP);
     Rcpp::traits::input_parameter< const double >::type K1(K1SEXP);
     Rcpp::traits::input_parameter< const int >::type J(JSEXP);
-    Rcpp::traits::input_parameter< const double >::type ALPHA_LOWER(ALPHA_LOWERSEXP);
-    Rcpp::traits::input_parameter< const double >::type ALPHA_UPPER(ALPHA_UPPERSEXP);
+    Rcpp::traits::input_parameter< const double >::type PROF_SEARCH_RANGE(PROF_SEARCH_RANGESEXP);
     Rcpp::traits::input_parameter< const int >::type PROF_MAX_ITER(PROF_MAX_ITERSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_inflated_profile(Y, ITEM_INDS, ALPHA_START, PHI, K0, K1, J, ALPHA_LOWER, ALPHA_UPPER, PROF_MAX_ITER));
+    rcpp_result_gen = Rcpp::wrap(cpp_inflated_profile(Y, ITEM_INDS, ALPHA_START, PHI, K0, K1, J, PROF_SEARCH_RANGE, PROF_MAX_ITER));
     return rcpp_result_gen;
 END_RCPP
 }
 // cpp_inflated_mpl
-Rcpp::List cpp_inflated_mpl(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<double> ALPHA_START, const std::vector<double> ALPHA_MLE, const double PHI, const double K0, const double K1, const double PHI_MLE, const double K0_MLE, const double K1_MLE, const int J, const double ALPHA_LOWER, const double ALPHA_UPPER, const int PROF_MAX_ITER);
-RcppExport SEXP _AgreementPhi_cpp_inflated_mpl(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP ALPHA_MLESEXP, SEXP PHISEXP, SEXP K0SEXP, SEXP K1SEXP, SEXP PHI_MLESEXP, SEXP K0_MLESEXP, SEXP K1_MLESEXP, SEXP JSEXP, SEXP ALPHA_LOWERSEXP, SEXP ALPHA_UPPERSEXP, SEXP PROF_MAX_ITERSEXP) {
+Rcpp::List cpp_inflated_mpl(const std::vector<double> Y, const std::vector<int> ITEM_INDS, const std::vector<double> ALPHA_START, const std::vector<double> ALPHA_MLE, const double PHI, const double K0, const double K1, const double PHI_MLE, const double K0_MLE, const double K1_MLE, const int J, const double PROF_SEARCH_RANGE, const int PROF_MAX_ITER);
+RcppExport SEXP _AgreementPhi_cpp_inflated_mpl(SEXP YSEXP, SEXP ITEM_INDSSEXP, SEXP ALPHA_STARTSEXP, SEXP ALPHA_MLESEXP, SEXP PHISEXP, SEXP K0SEXP, SEXP K1SEXP, SEXP PHI_MLESEXP, SEXP K0_MLESEXP, SEXP K1_MLESEXP, SEXP JSEXP, SEXP PROF_SEARCH_RANGESEXP, SEXP PROF_MAX_ITERSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -163,10 +162,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type K0_MLE(K0_MLESEXP);
     Rcpp::traits::input_parameter< const double >::type K1_MLE(K1_MLESEXP);
     Rcpp::traits::input_parameter< const int >::type J(JSEXP);
-    Rcpp::traits::input_parameter< const double >::type ALPHA_LOWER(ALPHA_LOWERSEXP);
-    Rcpp::traits::input_parameter< const double >::type ALPHA_UPPER(ALPHA_UPPERSEXP);
+    Rcpp::traits::input_parameter< const double >::type PROF_SEARCH_RANGE(PROF_SEARCH_RANGESEXP);
     Rcpp::traits::input_parameter< const int >::type PROF_MAX_ITER(PROF_MAX_ITERSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_inflated_mpl(Y, ITEM_INDS, ALPHA_START, ALPHA_MLE, PHI, K0, K1, PHI_MLE, K0_MLE, K1_MLE, J, ALPHA_LOWER, ALPHA_UPPER, PROF_MAX_ITER));
+    rcpp_result_gen = Rcpp::wrap(cpp_inflated_mpl(Y, ITEM_INDS, ALPHA_START, ALPHA_MLE, PHI, K0, K1, PHI_MLE, K0_MLE, K1_MLE, J, PROF_SEARCH_RANGE, PROF_MAX_ITER));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -295,8 +293,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_AgreementPhi_cpp_profile_likelihood", (DL_FUNC) &_AgreementPhi_cpp_profile_likelihood, 17},
     {"_AgreementPhi_cpp_modified_profile_likelihood", (DL_FUNC) &_AgreementPhi_cpp_modified_profile_likelihood, 18},
     {"_AgreementPhi_cpp_get_se", (DL_FUNC) &_AgreementPhi_cpp_get_se, 19},
-    {"_AgreementPhi_cpp_inflated_profile", (DL_FUNC) &_AgreementPhi_cpp_inflated_profile, 10},
-    {"_AgreementPhi_cpp_inflated_mpl", (DL_FUNC) &_AgreementPhi_cpp_inflated_mpl, 14},
+    {"_AgreementPhi_cpp_inflated_profile", (DL_FUNC) &_AgreementPhi_cpp_inflated_profile, 9},
+    {"_AgreementPhi_cpp_inflated_mpl", (DL_FUNC) &_AgreementPhi_cpp_inflated_mpl, 13},
     {"_AgreementPhi_cpp_beta_funs", (DL_FUNC) &_AgreementPhi_cpp_beta_funs, 2},
     {"_AgreementPhi_cpp_ibeta_funs", (DL_FUNC) &_AgreementPhi_cpp_ibeta_funs, 3},
     {"_AgreementPhi_cpp_cdfbeta_funs", (DL_FUNC) &_AgreementPhi_cpp_cdfbeta_funs, 3},
