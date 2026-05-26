@@ -6,8 +6,10 @@
 #' @param AGREEMENT General agreement.
 #' @param ALPHA Item-specific intercepts.
 #' @param BETA Worker-specific intercepts.
-#' @param DATA_TYPE Choose between `ordinal` or `continuous`.
+#' @param DATA_TYPE Choose between `"ordinal"`, `"continuous"`, or `"inflated"`.
 #' @param K Number of categories in case of ordinal data.
+#' @param K0 Lower cutpoint for the inflated interval model (logit scale). Only used when `DATA_TYPE = "inflated"`.
+#' @param K1 Upper cutpoint for the inflated interval model (logit scale). Only used when `DATA_TYPE = "inflated"`. Must satisfy `K1 > K0`.
 #' @param SEED RNG seed.
 #'
 #' @return Returns a dataframe with columns id_items, id_worker and rating
@@ -47,8 +49,10 @@ sim_data <- function(
   AGREEMENT,
   ALPHA,
   BETA = NULL,
-  DATA_TYPE = c("ordinal", "continuous"),
+  DATA_TYPE = c("ordinal", "continuous", "inflated"),
   K = 6,
+  K0 = -2,
+  K1 = 2,
   SEED = 123
 ) {
   set.seed(SEED)
@@ -63,6 +67,11 @@ sim_data <- function(
 
   DATA_TYPE <- match.arg(DATA_TYPE)
   stopifnot(is.numeric(SEED))
+  if (DATA_TYPE == "inflated") {
+    stopifnot(is.numeric(K0) || is.na(K0), is.numeric(K1) || is.na(K1))
+    stopifnot(is.finite(K0) || is.finite(K1))
+    if (is.finite(K0) && is.finite(K1)) stopifnot(K1 > K0)
+  }
 
   n_obs <- J * B
   precision <- agr2prec(AGREEMENT)
@@ -94,6 +103,24 @@ sim_data <- function(
 
   if (DATA_TYPE == "ordinal") {
     obs_y <- cont2ord(obs_beta, K)
+  } else if (DATA_TYPE == "inflated") {
+    u <- stats::runif(n_obs)
+    if (!is.finite(K0)) {
+      L1    <- plogis(ALPHA[design$item_id] - K1)
+      p1    <- L1
+      obs_y <- ifelse(u < p1, 1, obs_beta)
+    } else if (!is.finite(K1)) {
+      L0    <- plogis(ALPHA[design$item_id] - K0)
+      p0    <- 1 - L0
+      obs_y <- ifelse(u < p0, 0, obs_beta)
+    } else {
+      L0  <- plogis(ALPHA[design$item_id] - K0)
+      L1  <- plogis(ALPHA[design$item_id] - K1)
+      p0  <- 1 - L0
+      p1  <- L1
+      pc  <- L0 - L1
+      obs_y <- ifelse(u < p0, 0, ifelse(u < p0 + pc, obs_beta, 1))
+    }
   } else {
     obs_y <- ifelse(
       abs(obs_beta - 1) < .Machine$double.eps / 2,

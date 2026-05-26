@@ -1,62 +1,3 @@
-#' Plot relative log-likelihood
-#'
-#' @param D output from [get_range_ll]
-#' @param M_EST agreement estimate from modified profile likelihood
-#' @param P_EST agreement estimate from profile likelihood
-#' @param M_SE standard error for agreement estimate from modified profile likelihood
-#' @param P_SE standard error for agreement estimate from profile likelihood
-#' @param CONFIDENCE Confidence level to construct confidence intervals
-#'
-#' @examples
-#' set.seed(321)
-#'
-#' # setting dimension
-#' items <- 50
-#' budget_per_item <- 5
-#' n_obs <- items * budget_per_item
-#' workers <- 50
-#'
-#' # item-specific intercepts to generate the data
-#' alphas <- runif(items, -2, 2)
-#'
-#' # true agreement (between 0 and 1)
-#' agr <- .6
-#'
-#' # generate continuous rating in (0,1)
-#' dt_oneway <- sim_data(
-#'   J = items,
-#'   B = budget_per_item,
-#'   AGREEMENT = agr,
-#'   ALPHA = alphas,
-#'   DATA_TYPE = "continuous",
-#'   SEED = 123
-#' )
-#'
-#' # estimation via oneway specification
-#' fit <- agreement(
-#'   RATINGS = dt_oneway$rating,
-#'   ITEM_INDS = dt_oneway$id_item,
-#'   WORKER_INDS = dt_oneway$id_worker,
-#'   METHOD = "modified",
-#'   NUISANCE = c("items"),
-#'   VERBOSE = TRUE
-#' )
-#' # get standard error and confidence interval
-#' ci <- get_ci(fit)
-#' ci
-#'
-#' # compute log-likelihood over a grid
-#' range_ll <- get_range_ll(fit)
-#'
-#' # utility plot function for relative log-likelihood
-#' plot_rll(
-#'   D = range_ll,
-#'   M_EST = fit$modified$agreement,
-#'   P_EST = fit$profile$agreement,
-#'   M_SE = ci$agreement_se,
-#'   CONFIDENCE=.95
-#' )
-#' @export
 #' @importFrom graphics abline legend lines plot rect axis par
 #' @importFrom grDevices adjustcolor
 plot_rll <- function(
@@ -124,81 +65,39 @@ plot_rll <- function(
   }
 }
 
-#' Plot data
+#' Plot a rating_data object
 #'
-#' @param RATINGS Ratings vector of dimension n. Ordinal data must be coded in \{1, 2, ..., K\}.
-#'   Continuous data can take values in `(0, 1)`.
-#' @param ITEM_INDS Index vector with items allocations. Same dimension as `RATINGS`.
-#' @param WORKER_INDS Index vector with worker allocations. Same dimension as `RATINGS`. Ignored when MODEL == "oneway".
-#'   Must be integers in \{1, 2, ..., J\}.
-#' @param VERBOSE Verbose output.
-#' @returns Plot with the relevance rating matrix
+#' @param x A `rating_data` object from [rating_data()].
+#' @param ... Ignored.
+#' @returns Invisibly returns `x`. Called for its side effect (a rating matrix plot).
 #'
 #' @examples
-#' set.seed(321)
-#'
-#' # setting dimension
-#' items <- 50
-#' budget_per_item <- 5
-#' n_obs <- items * budget_per_item
-#'
-#' # item-specific intercepts to generate the data
-#' alphas <- runif(items, -2, 2)
-#'
-#' # true agreement (between 0 and 1)
-#' agr <- .6
-#'
-#' # generate continuous rating in (0,1)
-#' dt <- sim_data(
-#'   J = items,
-#'   B = budget_per_item,
-#'   AGREEMENT = agr,
-#'   ALPHA = alphas,
-#'   DATA_TYPE = "continuous",
-#'   SEED = 123
-#' )
-#'
-#' plot_data(
-#'   RATINGS = dt$rating,
-#'   ITEM_INDS = dt$id_item,
-#'   WORKER_INDS = dt$id_worker
-#' )
+#' dt <- sim_data(J = 20, B = 5, AGREEMENT = 0.6,
+#'                ALPHA = rep(0, 20), DATA_TYPE = "continuous", SEED = 1)
+#' rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
+#' plot(rd)
 #'
 #' @export
 #' @importFrom graphics image layout
 #' @importFrom grDevices hcl.colors
-plot_data <- function(
-  RATINGS,
-  ITEM_INDS,
-  WORKER_INDS = NULL,
-  VERBOSE = FALSE
-) {
-  val_data <- validate_data(
-    RATINGS = RATINGS,
-    ITEM_INDS = ITEM_INDS,
-    WORKER_INDS = WORKER_INDS,
-    VERBOSE = VERBOSE
-  )
+plot.rating_data <- function(x, ...) {
+  if (is.null(x$worker_ids)) {
+    stop(
+      "plot() requires a two-way rating_data object (WORKER_INDS must be provided)."
+    )
+  }
 
-  # setup matrix with correct dimensions
-  plot_matrix <- matrix(
-    NA,
-    nrow = val_data$n_workers,
-    ncol = val_data$n_items
-  )
+  plot_matrix <- matrix(NA, nrow = x$n_workers, ncol = x$n_items)
+  plot_matrix[cbind(x$worker_ids, x$item_ids)] <- x$ratings
 
-  # populate using per-rating indices
-  plot_matrix[cbind(val_data$worker_ids, val_data$item_ids)] <- val_data$ratings
-
-  # save and restore graphics state
   opar <- par(no.readonly = TRUE)
   on.exit(par(opar))
 
   layout(matrix(1:2, ncol = 2), widths = c(5, 1))
   par(mar = c(5, 4, 4, 1))
 
-  if (val_data$data_type == "ordinal") {
-    K <- val_data$K
+  if (x$data_type == "ordinal") {
+    K <- x$K
     image(
       t(plot_matrix),
       col = hcl.colors(K, "teal", rev = TRUE),
@@ -207,14 +106,11 @@ plot_data <- function(
       xlab = "Items",
       ylab = "Workers"
     )
-
-    # discrete color legend
     par(mar = c(5, 0.5, 4, 3))
-    legend_image <- as.matrix(K:1)
     image(
       1,
       seq_len(K),
-      t(legend_image),
+      t(as.matrix(K:1)),
       col = hcl.colors(K, "teal", rev = FALSE),
       zlim = c(1, K),
       axes = FALSE,
@@ -230,14 +126,11 @@ plot_data <- function(
       xlab = "Items",
       ylab = "Workers"
     )
-
-    # continuous color legend
     par(mar = c(5, 0.5, 4, 3))
-    legend_image <- as.matrix(rev(seq(0, 100, length.out = 100)))
     image(
       1,
       seq(0, 1, length.out = 100),
-      t(legend_image),
+      t(as.matrix(rev(seq(0, 100, length.out = 100)))),
       col = hcl.colors(100, "teal", rev = FALSE),
       axes = FALSE,
       xlab = "",
@@ -245,4 +138,60 @@ plot_data <- function(
     )
     axis(4, las = 1)
   }
+  invisible(x)
+}
+
+#' Plot an agreement_fit object
+#'
+#' @description
+#' Plots the relative log-likelihood curve(s) for a fitted agreement model.
+#' Calls [get_range_ll()] to evaluate the likelihood over a grid. A precomputed
+#' grid can be supplied via `RANGE_LL` to avoid recomputation.
+#'
+#' @param x An `agreement_fit` object from [agreement()].
+#' @param RANGE_LL Optional. A data frame returned by [get_range_ll()]. If
+#'   `NULL` (default), the grid is computed internally using `RANGE` and
+#'   `GRID_LENGTH`.
+#' @param RANGE Range of agreement values around the MLE to evaluate. Default `0.2`.
+#' @param GRID_LENGTH Number of grid points. Default `15`.
+#' @param CONFIDENCE Confidence level for the shaded interval. Default `0.95`.
+#' @param ... Ignored (required for S3 consistency).
+#'
+#' @return Invisibly returns `x`.
+#'
+#' @examples
+#' set.seed(1)
+#' dt <- sim_data(J = 30, B = 5, AGREEMENT = 0.6,
+#'                ALPHA = rep(0, 30), DATA_TYPE = "continuous", SEED = 1)
+#' rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
+#' fit <- agreement(rd, METHOD = "modified", NUISANCE = "items")
+#' plot(fit)
+#'
+#' @export
+#' @importFrom graphics abline legend lines plot rect axis par
+#' @importFrom grDevices adjustcolor
+plot.agreement_fit <- function(
+  x,
+  RANGE_LL = NULL,
+  RANGE = 0.2,
+  GRID_LENGTH = 15,
+  CONFIDENCE = 0.95,
+  ...
+) {
+  if (isTRUE(x$data_type == "inflated")) {
+    stop("plot() is not available for inflated interval fits.")
+  }
+  if (is.null(RANGE_LL)) {
+    RANGE_LL <- get_range_ll(x, RANGE = RANGE, GRID_LENGTH = GRID_LENGTH)
+  }
+  ci <- confint(x, level = CONFIDENCE)
+  plot_rll(
+    D = RANGE_LL,
+    M_EST = if (x$method == "modified") x$modified$agreement else NULL,
+    P_EST = x$profile$agreement,
+    M_SE = if (x$method == "modified") ci$agreement_se else NULL,
+    P_SE = if (x$method == "profile") ci$agreement_se else NULL,
+    CONFIDENCE = CONFIDENCE
+  )
+  invisible(x)
 }

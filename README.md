@@ -33,18 +33,11 @@ Generate a synthetic dataset with continuous ratings in (0,1)
 ``` r
 library(AgreementPhi)
 set.seed(321)
-# setting dimension
 items <- 200
 budget_per_item <- 8
-n_obs <- items * budget_per_item
-
-# item-specific intercepts to generate the data
 alphas <- runif(items, -2, 2)
-
-# true agreement (between 0 and 1)
 agr <- .8
 
-# generate continuous rating in (0,1)
 dt <- sim_data(
   J = items,
   B = budget_per_item,
@@ -54,46 +47,43 @@ dt <- sim_data(
 )
 ```
 
-Fit the model using the `agreement()` function
+Prepare the data with `rating_data()`, which validates the input and
+reports diagnostics
 
 ``` r
-# estimation via modified profile likelihood
-fit <- agreement(
-  RATINGS = dt$rating,
-  ITEM_INDS = dt$id_item,
-  WORKER_INDS = dt$id_worker,
-  METHOD = "modified",
-  NUISANCE = c("items"),
-  VERBOSE = TRUE)
-#> 
-#> DATA
+rd <- rating_data(dt$rating, dt$id_item, dt$id_worker)
 #>  - Detected 200 items and 200 workers.
 #>  - Detected continuous data on the (0,1) range.
 #>  - Average number of observed ratings per item is 8.
 #>  - Average number of observed ratings per worker is 8.
+```
+
+Fit the model using `agreement()`
+
+``` r
+fit <- agreement(rd, METHOD = "modified", NUISANCE = c("items"), VERBOSE = TRUE)
 #> 
 #> MODEL PARAMETERS
 #>  - Constant effects: workers
 #>  - Nuisance effects: items
 #> Non-adjusted agreement: 0.835331
-#> Adjusted agreement: 0.792023
+#> Adjusted agreement: 0.79202
 #> Done!
 ```
 
 Construct confidence intervals
 
 ``` r
-# get standard error and confidence interval
-ci <- get_ci(fit)
-ci 
+ci <- confint(fit)
+ci
 #> $agreement_est
-#> [1] 0.7920234
+#> [1] 0.7920203
 #> 
 #> $agreement_se
-#> [1] 0.01203426
+#> [1] 0.01203441
 #> 
 #> $agreement_ci
-#> [1] 0.7684367 0.8156101
+#> [1] 0.7684333 0.8156073
 ```
 
 # References
