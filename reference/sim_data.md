@@ -12,8 +12,10 @@ sim_data(
   AGREEMENT,
   ALPHA,
   BETA = NULL,
-  DATA_TYPE = c("ordinal", "continuous"),
+  DATA_TYPE = c("ordinal", "continuous", "inflated"),
   K = 6,
+  K0 = -2,
+  K1 = 2,
   SEED = 123
 )
 ```
@@ -46,11 +48,21 @@ sim_data(
 
 - DATA_TYPE:
 
-  Choose between `ordinal` or `continuous`.
+  Choose between `"ordinal"`, `"continuous"`, or `"inflated"`.
 
 - K:
 
   Number of categories in case of ordinal data.
+
+- K0:
+
+  Lower cutpoint for the inflated interval model (logit scale). Only
+  used when `DATA_TYPE = "inflated"`.
+
+- K1:
+
+  Upper cutpoint for the inflated interval model (logit scale). Only
+  used when `DATA_TYPE = "inflated"`. Must satisfy `K1 > K0`.
 
 - SEED:
 

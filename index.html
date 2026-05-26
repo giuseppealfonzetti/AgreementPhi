@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>General Agreement Phi • AgreementPhi</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="General Agreement Phi">
 <meta name="description" content="Compute phi agreement via fixed effects beta regression.">
@@ -71,18 +71,11 @@
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/giuseppealfonzetti/AgreementPhi" class="external-link">AgreementPhi</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">321</span><span class="op">)</span></span>
-<span><span class="co"># setting dimension</span></span>
 <span><span class="va">items</span> <span class="op">&lt;-</span> <span class="fl">200</span></span>
 <span><span class="va">budget_per_item</span> <span class="op">&lt;-</span> <span class="fl">8</span></span>
-<span><span class="va">n_obs</span> <span class="op">&lt;-</span> <span class="va">items</span> <span class="op">*</span> <span class="va">budget_per_item</span></span>
-<span></span>
-<span><span class="co"># item-specific intercepts to generate the data</span></span>
 <span><span class="va">alphas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">items</span>, <span class="op">-</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># true agreement (between 0 and 1)</span></span>
 <span><span class="va">agr</span> <span class="op">&lt;-</span> <span class="fl">.8</span></span>
 <span></span>
-<span><span class="co"># generate continuous rating in (0,1)</span></span>
 <span><span class="va">dt</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/sim_data.html">sim_data</a></span><span class="op">(</span></span>
 <span>  J <span class="op">=</span> <span class="va">items</span>,</span>
 <span>  B <span class="op">=</span> <span class="va">budget_per_item</span>,</span>
@@ -90,42 +83,35 @@
 <span>  DATA_TYPE <span class="op">=</span> <span class="st">"continuous"</span>,</span>
 <span>  ALPHA <span class="op">=</span> <span class="va">alphas</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>Fit the model using the <code><a href="reference/agreement.html">agreement()</a></code> function</p>
+<p>Prepare the data with <code><a href="reference/rating_data.html">rating_data()</a></code>, which validates the input and reports diagnostics</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># estimation via modified profile likelihood</span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/agreement.html">agreement</a></span><span class="op">(</span></span>
-<span>  RATINGS <span class="op">=</span> <span class="va">dt</span><span class="op">$</span><span class="va">rating</span>,</span>
-<span>  ITEM_INDS <span class="op">=</span> <span class="va">dt</span><span class="op">$</span><span class="va">id_item</span>,</span>
-<span>  WORKER_INDS <span class="op">=</span> <span class="va">dt</span><span class="op">$</span><span class="va">id_worker</span>,</span>
-<span>  METHOD <span class="op">=</span> <span class="st">"modified"</span>,</span>
-<span>  NUISANCE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"items"</span><span class="op">)</span>,</span>
-<span>  VERBOSE <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; DATA</span></span>
+<code class="sourceCode R"><span><span class="va">rd</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rating_data.html">rating_data</a></span><span class="op">(</span><span class="va">dt</span><span class="op">$</span><span class="va">rating</span>, <span class="va">dt</span><span class="op">$</span><span class="va">id_item</span>, <span class="va">dt</span><span class="op">$</span><span class="va">id_worker</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  - Detected 200 items and 200 workers.</span></span>
 <span><span class="co">#&gt;  - Detected continuous data on the (0,1) range.</span></span>
 <span><span class="co">#&gt;  - Average number of observed ratings per item is 8.</span></span>
-<span><span class="co">#&gt;  - Average number of observed ratings per worker is 8.</span></span>
+<span><span class="co">#&gt;  - Average number of observed ratings per worker is 8.</span></span></code></pre></div>
+<p>Fit the model using <code><a href="reference/agreement.html">agreement()</a></code></p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/agreement.html">agreement</a></span><span class="op">(</span><span class="va">rd</span>, METHOD <span class="op">=</span> <span class="st">"modified"</span>, NUISANCE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"items"</span><span class="op">)</span>, VERBOSE <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; MODEL PARAMETERS</span></span>
 <span><span class="co">#&gt;  - Constant effects: workers</span></span>
 <span><span class="co">#&gt;  - Nuisance effects: items</span></span>
 <span><span class="co">#&gt; Non-adjusted agreement: 0.835331</span></span>
-<span><span class="co">#&gt; Adjusted agreement: 0.792023</span></span>
+<span><span class="co">#&gt; Adjusted agreement: 0.79202</span></span>
 <span><span class="co">#&gt; Done!</span></span></code></pre></div>
 <p>Construct confidence intervals</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># get standard error and confidence interval</span></span>
-<span><span class="va">ci</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_ci.html">get_ci</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="va">ci</span> </span>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ci</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="va">ci</span></span>
 <span><span class="co">#&gt; $agreement_est</span></span>
-<span><span class="co">#&gt; [1] 0.7920234</span></span>
+<span><span class="co">#&gt; [1] 0.7920203</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $agreement_se</span></span>
-<span><span class="co">#&gt; [1] 0.01203426</span></span>
+<span><span class="co">#&gt; [1] 0.01203441</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $agreement_ci</span></span>
-<span><span class="co">#&gt; [1] 0.7684367 0.8156101</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.7684333 0.8156073</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level1">

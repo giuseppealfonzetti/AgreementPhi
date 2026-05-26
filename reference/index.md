@@ -6,19 +6,25 @@
   : From agreement to precision
 - [`agreement()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/agreement.md)
   : Compute Agreement
+- [`coef(`*`<agreement_fit>`*`)`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/coef.agreement_fit.md)
+  : Extract coefficients from an agreement fit
+- [`confint(`*`<agreement_fit>`*`)`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/confint.agreement_fit.md)
+  : Confidence intervals for an agreement fit
 - [`cont2ord()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/cont2ord.md)
   : Discretise continuous data
-- [`get_ci()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/get_ci.md)
-  : Get Agreement confidence interval
 - [`get_range_ll()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/get_range_ll.md)
   : Get log-likelihood range
 - [`lemon()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/lemon.md)
   : Squeeze \[0,1\] data
-- [`plot_data()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/plot_data.md)
-  : Plot data
-- [`plot_rll()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/plot_rll.md)
-  : Plot relative log-likelihood
+- [`par2agr()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/par2agr.md)
+  : From model parameters to agreement
+- [`plot(`*`<agreement_fit>`*`)`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/plot.agreement_fit.md)
+  : Plot an agreement_fit object
+- [`plot(`*`<rating_data>`*`)`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/plot.rating_data.md)
+  : Plot a rating_data object
 - [`prec2agr()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/prec2agr.md)
   : From precision to agreement
+- [`rating_data()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/rating_data.md)
+  : Prepare rating data for analysis
 - [`sim_data()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/sim_data.md)
   : Simulate ordinal or continuous (0,1) ratings

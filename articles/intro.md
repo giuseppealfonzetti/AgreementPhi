@@ -12,18 +12,11 @@ agreement at $`\Phi=0.4`$
 
 library(AgreementPhi)
 set.seed(321)
-# setting dimension
 items <- 200
 budget_per_item <- 8
-n_obs <- items * budget_per_item
-
-# item-specific intercepts to generate the data
 alphas <- runif(items, -1, 1)
-
-# true agreement (between 0 and 1)
 agr <- .4
 
-# generate continuous rating in (0,1)
 dt <- sim_data(
   J = items,
   B = budget_per_item,
@@ -51,15 +44,24 @@ length(dt$rating)
 #> [1] 1600
 ```
 
-For convenience, we also provide a plot utility to visualise the data
+Use
+[`rating_data()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/rating_data.md)
+to validate the input and construct a `rating_data` object. The function
+reports diagnostics and, for two-way data, supports
+[`plot()`](https://rdrr.io/r/graphics/plot.default.html)
 
 ``` r
 
-plot_data(
-  RATINGS = dt$rating,
-  ITEM_INDS = dt$id_item,
-  WORKER_INDS = dt$id_worker
-)
+rd <- rating_data(dt$rating, dt$id_item, dt$id_worker)
+#>  - Detected 200 items and 200 workers.
+#>  - Detected continuous data on the (0,1) range.
+#>  - Average number of observed ratings per item is 8.
+#>  - Average number of observed ratings per worker is 8.
+```
+
+``` r
+
+plot(rd)
 ```
 
 ![](intro_files/figure-html/plot_data-1.png)
@@ -67,27 +69,13 @@ plot_data(
 The core function of the `AgreementPhi` package is
 [`agreement()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/agreement.md),
 which implements the numerical algorithms to estimate the $`\Phi`$
-agreement via profile and modified profile likelihood methods. It
-requires as input the ratings, the item ids and worker ids (specified as
-integers). For the estimation via profile likelihood, you can specify
-`METHOD="profile"`
+agreement via profile and modified profile likelihood methods. It takes
+a `rating_data` object as its first argument. For the estimation via
+profile likelihood, you can specify `METHOD="profile"`
 
 ``` r
 
-# estimation via profile likelihood
-fit_profile <- agreement(
-  RATINGS = dt$rating,
-  ITEM_INDS = dt$id_item,
-  WORKER_INDS = dt$id_worker,
-  NUISANCE = c("items"),
-  METHOD = "profile",
-  VERBOSE = TRUE)
-#> 
-#> DATA
-#>  - Detected 200 items and 200 workers.
-#>  - Detected continuous data on the (0,1) range.
-#>  - Average number of observed ratings per item is 8.
-#>  - Average number of observed ratings per worker is 8.
+fit_profile <- agreement(rd, NUISANCE = c("items"), METHOD = "profile", VERBOSE = TRUE)
 #> 
 #> MODEL PARAMETERS
 #>  - Constant effects: workers
@@ -127,20 +115,7 @@ To use the modified likelihood approach, it is enough to change the
 
 ``` r
 
-# estimation via modified profile likelihood
-fit_modified <- agreement(
-  RATINGS = dt$rating,
-  ITEM_INDS = dt$id_item,
-  WORKER_INDS = dt$id_worker,
-  NUISANCE = c("items"),
-  METHOD = "modified",
-  VERBOSE = TRUE)
-#> 
-#> DATA
-#>  - Detected 200 items and 200 workers.
-#>  - Detected continuous data on the (0,1) range.
-#>  - Average number of observed ratings per item is 8.
-#>  - Average number of observed ratings per worker is 8.
+fit_modified <- agreement(rd, NUISANCE = c("items"), METHOD = "modified", VERBOSE = TRUE)
 #> 
 #> MODEL PARAMETERS
 #>  - Constant effects: workers
@@ -166,23 +141,22 @@ fit_modified$profile
 #> [1] 0.4444125
 fit_modified$modified
 #> $precision
-#> [1] 2.129937
+#> [1] 2.129941
 #> 
 #> $agreement
-#> [1] 0.4005048
+#> [1] 0.4005054
 ```
 
 Once the point estimates are computed, we can draw inference on
 agreement by using the
-[`get_ci()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/get_ci.md)
-function to construct confidence intervals. The function will
-automatically recognise if the estimates are related to the profile or
-modified likelihood approach by looking at the fitted object
+[`confint()`](https://rdrr.io/r/stats/confint.html) S3 method to
+construct confidence intervals. The function will automatically
+recognise if the estimates are related to the profile or modified
+likelihood approach by looking at the fitted object
 
 ``` r
 
-# get standard error and confidence interval
-ci_profile <- get_ci(fit_profile)
+ci_profile <- confint(fit_profile)
 ci_profile
 #> $agreement_est
 #> [1] 0.4444125
@@ -191,38 +165,41 @@ ci_profile
 #> [1] 0.0102727
 #> 
 #> $agreement_ci
-#> [1] 0.4242784 0.4645467
+#> [1] 0.4242784 0.4645466
 
-ci_modified <- get_ci(fit_modified)
-ci_modified 
+ci_modified <- confint(fit_modified)
+ci_modified
 #> $agreement_est
-#> [1] 0.4005048
+#> [1] 0.4005054
 #> 
 #> $agreement_se
-#> [1] 0.01034239
+#> [1] 0.0103424
 #> 
 #> $agreement_ci
-#> [1] 0.3802341 0.4207755
+#> [1] 0.3802347 0.4207762
 ```
 
-For convenience, we provide a utility function to visualise the relative
-log-likelihood profiles of the two methods as well as the inference
-results
+For convenience,
+[`plot()`](https://rdrr.io/r/graphics/plot.default.html) visualises the
+relative log-likelihood profile and confidence interval in one step
 
 ``` r
 
-# compute log-likelihood over a grid
-range_ll <- get_range_ll(fit_modified)
-
-# utility plot function for relative log-likelihood
-plot_rll(
-  D=range_ll,
-  M_EST = fit_modified$modified$agreement,
-  P_EST = fit_profile$profile$agreement,
-  M_SE = ci_modified$agreement_se,
-  P_SE = ci_profile$agreement_se,
-  CONFIDENCE=.95
-)
+plot(fit_modified)
 ```
 
-![](intro_files/figure-html/unnamed-chunk-9-1.png)
+![](intro_files/figure-html/plot_fit-1.png)
+
+If you need the grid data for further analysis, compute it with
+[`get_range_ll()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/get_range_ll.md)
+and pass it back to
+[`plot()`](https://rdrr.io/r/graphics/plot.default.html) to avoid
+recomputation
+
+``` r
+
+range_ll <- get_range_ll(fit_modified)
+plot(fit_modified, RANGE_LL = range_ll)
+```
+
+![](intro_files/figure-html/plot_fit_precomputed-1.png)
