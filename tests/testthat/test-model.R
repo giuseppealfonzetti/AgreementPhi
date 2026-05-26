@@ -83,6 +83,7 @@ test_that("probabilities are normalized", {
 })
 
 #### Ordinal model | sample single item ####
+if (requireNamespace("AlgDesign", quietly = TRUE)) {
 set.seed(1)
 items <- 10
 budget_per_item <- 10
@@ -157,8 +158,10 @@ test_that("ll item accumulation", {
     exp = ll
   )
 })
+}
 
 #### Ordinal model | log det obs info ####
+if (requireNamespace("AlgDesign", quietly = TRUE)) {
 set.seed(1)
 items <- 3
 budget_per_item <- 10
@@ -234,3 +237,4 @@ cpp_res_E <- cpp_log_det_E0d0d1(
 test_that("log det obs info equivalent to E0d0d0", {
   expect_equal(cpp_res_E, cpp_res, tolerance = 1e-1)
 })
+}

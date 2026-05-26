@@ -30,11 +30,11 @@ Calls \code{\link[=get_range_ll]{get_range_ll()}} to evaluate the likelihood ove
 grid can be supplied via \code{RANGE_LL} to avoid recomputation.
 }
 \examples{
-set.seed(1)
+\donttest{
 dt <- sim_data(J = 30, B = 5, AGREEMENT = 0.6,
                ALPHA = rep(0, 30), DATA_TYPE = "continuous", SEED = 1)
 rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 fit <- agreement(rd, METHOD = "modified", NUISANCE = "items")
 plot(fit)
-
+}
 }

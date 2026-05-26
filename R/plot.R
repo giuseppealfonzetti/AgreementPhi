@@ -72,11 +72,12 @@ plot_rll <- function(
 #' @returns Invisibly returns `x`. Called for its side effect (a rating matrix plot).
 #'
 #' @examples
+#' \donttest{
 #' dt <- sim_data(J = 20, B = 5, AGREEMENT = 0.6,
 #'                ALPHA = rep(0, 20), DATA_TYPE = "continuous", SEED = 1)
 #' rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 #' plot(rd)
-#'
+#' }
 #' @export
 #' @importFrom graphics image layout
 #' @importFrom grDevices hcl.colors
@@ -160,13 +161,13 @@ plot.rating_data <- function(x, ...) {
 #' @return Invisibly returns `x`.
 #'
 #' @examples
-#' set.seed(1)
+#' \donttest{
 #' dt <- sim_data(J = 30, B = 5, AGREEMENT = 0.6,
 #'                ALPHA = rep(0, 30), DATA_TYPE = "continuous", SEED = 1)
 #' rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 #' fit <- agreement(rd, METHOD = "modified", NUISANCE = "items")
 #' plot(fit)
-#'
+#' }
 #' @export
 #' @importFrom graphics abline legend lines plot rect axis par
 #' @importFrom grDevices adjustcolor

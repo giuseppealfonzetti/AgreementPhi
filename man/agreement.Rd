@@ -90,6 +90,7 @@ Fitted via the ordered beta mixture model. One-way only (no workers in \code{DAT
 }
 }
 \examples{
+\donttest{
 set.seed(321)
 
 items <- 50
@@ -113,7 +114,7 @@ dt_inflated <- sim_data(
 rd_inf <- rating_data(dt_inflated$rating, dt_inflated$id_item)
 fit_inf <- agreement(rd_inf, METHOD = "modified")
 confint(fit_inf)
-
+}
 }
 \references{
 \itemize{

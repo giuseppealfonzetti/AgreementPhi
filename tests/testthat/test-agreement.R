@@ -1,4 +1,5 @@
 test_that("oneway continuous works", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   items <- 200
   budget_per_item <- 5
@@ -74,6 +75,7 @@ test_that("oneway continuous works", {
 })
 
 test_that("oneway ordinal works", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   items <- 50
   budget_per_item <- 5
@@ -120,6 +122,7 @@ test_that("oneway ordinal works", {
 })
 
 test_that("twoway continuous works", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   items <- 100
   budget_per_item <- 10
@@ -187,6 +190,7 @@ test_that("twoway continuous works", {
 })
 
 test_that("twoway ordinal works", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   items <- 10
   budget_per_item <- 5
@@ -225,6 +229,7 @@ test_that("twoway ordinal works", {
 })
 
 test_that("agreement handles ordinal data with missing boundary categories", {
+  skip_if_not_installed("AlgDesign")
   dt <- sim_data(
     J = 30,
     B = 5,
