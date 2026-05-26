@@ -1,13 +1,4 @@
 #' @noRd
-init_alpha <- function(Y, ITEM_INDS, J, LO, HI) {
-  ids <- seq_len(J)
-  means <- as.numeric(tapply(Y, ITEM_INDS, mean)[ids])
-  means <- pmax(pmin(means, 1 - 1e-6), 1e-6)
-  alpha <- stats::qlogis(means)
-  pmax(pmin(alpha, HI), LO)
-}
-
-#' @noRd
 init_cutpoints <- function(Y) {
   p0 <- mean(Y == 0)
   p1 <- mean(Y == 1)
@@ -17,95 +8,45 @@ init_cutpoints <- function(Y) {
 }
 
 #' @noRd
-inflated_profile_cpp <- function(
-  Y,
-  ITEM_INDS,
-  J,
-  ALPHA_START,
-  PHI,
-  K0,
-  K1,
-  LOWER_ALPHA = -5,
-  UPPER_ALPHA = 5,
-  PROF_MAX_ITER = 500L
-) {
-  cpp_inflated_profile(
-    as.numeric(Y),
-    as.integer(ITEM_INDS),
-    as.numeric(ALPHA_START),
-    PHI,
-    K0,
-    K1,
-    J,
-    LOWER_ALPHA,
-    UPPER_ALPHA,
-    as.integer(PROF_MAX_ITER)
-  )
-}
-
-#' @noRd
-inflated_mpl_cpp <- function(
-  Y,
-  ITEM_INDS,
-  J,
-  ALPHA_START,
-  ALPHA_MLE,
-  PHI,
-  K0,
-  K1,
-  PHI_MLE,
-  K0_MLE,
-  K1_MLE,
-  LOWER_ALPHA = -5,
-  UPPER_ALPHA = 5,
-  PROF_MAX_ITER = 500L
-) {
-  cpp_inflated_mpl(
-    as.numeric(Y),
-    as.integer(ITEM_INDS),
-    as.numeric(ALPHA_START),
-    as.numeric(ALPHA_MLE),
-    PHI,
-    K0,
-    K1,
-    PHI_MLE,
-    K0_MLE,
-    K1_MLE,
-    J,
-    LOWER_ALPHA,
-    UPPER_ALPHA,
-    as.integer(PROF_MAX_ITER)
-  )
-}
-
-#' @noRd
-inflated_fd_hessian <- function(FN, PAR, STEP = 1e-4) {
-  p <- length(PAR)
-  H <- matrix(NA_real_, p, p)
-  f0 <- FN(PAR)
-  h <- STEP * (abs(PAR) + 1)
-  for (i in seq_len(p)) {
-    ei <- replace(numeric(p), i, h[i])
-    H[i, i] <- (FN(PAR + ei) - 2 * f0 + FN(PAR - ei)) / h[i]^2
-    if (i < p) {
-      for (j in (i + 1):p) {
-        ej <- replace(numeric(p), j, h[j])
-        H[i, j] <- H[j, i] <- (FN(PAR + ei + ej) -
-          FN(PAR + ei - ej) -
-          FN(PAR - ei + ej) +
-          FN(PAR - ei - ej)) /
-          (4 * h[i] * h[j])
+inflated_encoding <- function(fix_k0, fix_k1, BK0, BK1) {
+  if (fix_k0) {
+    list(
+      make_start = function(phi0, k0_init, k1_init) {
+        c(log_phi = log(phi0), log_delta = log(pmax(k1_init - BK0, 0.1)))
+      },
+      decode = function(par) {
+        list(phi = exp(par[1]), k0 = BK0, k1 = BK0 + exp(par[2]))
       }
-    }
+    )
+  } else if (fix_k1) {
+    list(
+      make_start = function(phi0, k0_init, k1_init) {
+        c(log_phi = log(phi0), k0 = k0_init)
+      },
+      decode = function(par) {
+        list(phi = exp(par[1]), k0 = par[2], k1 = BK1)
+      }
+    )
+  } else {
+    list(
+      make_start = function(phi0, k0_init, k1_init) {
+        c(
+          log_phi = log(phi0),
+          k0 = k0_init,
+          log_delta = log(pmax(k1_init - k0_init, 0.5))
+        )
+      },
+      decode = function(par) {
+        list(phi = exp(par[1]), k0 = par[2], k1 = par[2] + exp(par[3]))
+      }
+    )
   }
-  0.5 * (H + t(H))
 }
 
 #' @noRd
 inflated_add_vcov <- function(
   FIT,
   OBJ,
-  STEP = 1e-4,
   FIX_K0 = FALSE,
   FIX_K1 = FALSE
 ) {
@@ -115,11 +56,7 @@ inflated_add_vcov <- function(
     val <- tryCatch(OBJ(x), error = function(e) NA_real_)
     if (is.finite(val)) val else NA_real_
   }
-  H <- if (!FIX_K0 && !FIX_K1 && requireNamespace("numDeriv", quietly = TRUE)) {
-    numDeriv::hessian(safe_obj, par)
-  } else {
-    inflated_fd_hessian(safe_obj, par, STEP)
-  }
+  H <- stats::optimHess(par, safe_obj)
   V_un <- tryCatch(
     solve(H),
     error = function(e) {
@@ -163,43 +100,16 @@ inflated_add_vcov <- function(
   FIT
 }
 
-#' Fit inflated interval model by profile likelihood
-#'
-#' @description
-#' Estimates (phi, k0, k1) for data in \[0,1\] with possible point masses at 0
-#' and 1 using profile likelihood. Item intercepts are profiled out via
-#' Brent's method at each outer function evaluation.
-#'
-#' @param Y Numeric vector of responses in \[0,1\].
-#' @param ITEM_INDS Integer vector of item indices (1-indexed, length equal to Y).
-#' @param J Number of items.
-#' @param START Named numeric vector of starting values on the unconstrained scale:
-#'   `log_phi` (log of precision), `k0` (lower cutpoint), `log_delta` (log of k1 - k0).
-#' @param METHOD Optimization method passed to [optim()]. Default `"BFGS"`.
-#' @param CONTROL List of control parameters passed to [optim()].
-#' @param COMPUTE_VCOV Logical. If `TRUE`, compute vcov and standard errors.
-#' @param HESSIAN_STEP Step size for numerical Hessian when numDeriv is unavailable.
-#' @param LOWER_ALPHA Lower bound for per-item alpha search. Default -5.
-#' @param UPPER_ALPHA Upper bound for per-item alpha search. Default 5.
-#' @param PROF_MAX_ITER Maximum Brent iterations per item. Default 500.
-#' @param BOUNDARY Boundary value used to pin the fixed cutpoint. Default 100.
-#'
-#' @return A list of class `"inflated_fit"` with components `phi`, `k0`, `k1`,
-#'   `alpha`, `loglik`, `vcov`, `se`, `convergence`, and others.
-#'
-#' @importFrom stats optim qlogis
-#' @export
+#' @noRd
 fit_inflated_profile <- function(
   Y,
   ITEM_INDS,
   J,
   START = NULL,
   METHOD = "BFGS",
-  CONTROL = list(),
+  OPTIM_CONTROL = list(),
   COMPUTE_VCOV = TRUE,
-  HESSIAN_STEP = 1e-4,
-  LOWER_ALPHA = -5,
-  UPPER_ALPHA = 5,
+  PROF_SEARCH_RANGE = 10,
   PROF_MAX_ITER = 500L,
   BOUNDARY = 100
 ) {
@@ -207,168 +117,73 @@ fit_inflated_profile <- function(
   fix_k1 <- !any(Y == 1)
   BK0 <- -BOUNDARY
   BK1 <- BOUNDARY
+  enc <- inflated_encoding(fix_k0, fix_k1, BK0, BK1)
 
-  alpha_warm <- init_alpha(Y, ITEM_INDS, J, LOWER_ALPHA + 1, UPPER_ALPHA - 1)
-
-  if (fix_k0) {
-    if (is.null(START)) {
-      cuts <- init_cutpoints(Y)
-      START <- c(log_phi = log(2), log_delta = log(pmax(cuts["k1"] - BK0, 0.1)))
-    }
-    obj <- function(par) {
-      phi <- exp(par[1])
-      k1 <- BK0 + exp(par[2])
-      res <- inflated_profile_cpp(
-        Y,
-        ITEM_INDS,
-        J,
-        alpha_warm,
-        phi,
-        BK0,
-        k1,
-        LOWER_ALPHA,
-        UPPER_ALPHA,
-        PROF_MAX_ITER
-      )
-      alpha_warm <<- res$alpha
-      -res$ll
-    }
-    opt <- stats::optim(START, obj, method = METHOD, control = CONTROL)
-    phi <- unname(exp(opt$par[1]))
-    k0 <- BK0
-    k1 <- k0 + unname(exp(opt$par[2]))
-  } else if (fix_k1) {
-    if (is.null(START)) {
-      cuts <- init_cutpoints(Y)
-      START <- c(log_phi = log(2), k0 = cuts["k0"])
-    }
-    obj <- function(par) {
-      phi <- exp(par[1])
-      k0 <- par[2]
-      res <- inflated_profile_cpp(
-        Y,
-        ITEM_INDS,
-        J,
-        alpha_warm,
-        phi,
-        k0,
-        BK1,
-        LOWER_ALPHA,
-        UPPER_ALPHA,
-        PROF_MAX_ITER
-      )
-      alpha_warm <<- res$alpha
-      -res$ll
-    }
-    opt <- stats::optim(START, obj, method = METHOD, control = CONTROL)
-    phi <- unname(exp(opt$par[1]))
-    k0 <- unname(opt$par[2])
-    k1 <- BK1
-  } else {
-    if (is.null(START)) {
-      cuts <- init_cutpoints(Y)
-      START <- c(
-        log_phi = log(2),
-        k0 = cuts["k0"],
-        log_delta = log(pmax(cuts["k1"] - cuts["k0"], 0.5))
-      )
-    }
-    obj <- function(par) {
-      phi <- exp(par[1])
-      k0 <- par[2]
-      k1 <- k0 + exp(par[3])
-      res <- inflated_profile_cpp(
-        Y,
-        ITEM_INDS,
-        J,
-        alpha_warm,
-        phi,
-        k0,
-        k1,
-        LOWER_ALPHA,
-        UPPER_ALPHA,
-        PROF_MAX_ITER
-      )
-      alpha_warm <<- res$alpha
-      -res$ll
-    }
-    opt <- stats::optim(START, obj, method = METHOD, control = CONTROL)
-    phi <- unname(exp(opt$par[1]))
-    k0 <- unname(opt$par[2])
-    k1 <- k0 + unname(exp(opt$par[3]))
-  }
-
-  final <- inflated_profile_cpp(
+  alpha_warm <- init_alpha(
     Y,
     ITEM_INDS,
     J,
-    alpha_warm,
+    -PROF_SEARCH_RANGE + 1,
+    PROF_SEARCH_RANGE - 1
+  )
+
+  if (is.null(START)) {
+    cuts <- init_cutpoints(Y)
+    START <- enc$make_start(2, cuts["k0"], cuts["k1"])
+  }
+
+  obj <- function(par) {
+    p <- enc$decode(par)
+    res <- cpp_inflated_profile(
+      as.numeric(Y),
+      as.integer(ITEM_INDS),
+      as.numeric(alpha_warm),
+      p$phi,
+      p$k0,
+      p$k1,
+      J,
+      PROF_SEARCH_RANGE,
+      as.integer(PROF_MAX_ITER)
+    )
+    if (is.finite(res$ll)) {
+      alpha_warm <<- res$alpha
+    }
+    -res$ll
+  }
+
+  opt <- stats::optim(START, obj, method = METHOD, control = OPTIM_CONTROL)
+  p <- enc$decode(opt$par)
+  phi <- p$phi
+  k0 <- p$k0
+  k1 <- p$k1
+
+  final <- cpp_inflated_profile(
+    as.numeric(Y),
+    as.integer(ITEM_INDS),
+    as.numeric(alpha_warm),
     phi,
     k0,
     k1,
-    LOWER_ALPHA,
-    UPPER_ALPHA,
-    PROF_MAX_ITER
+    J,
+    PROF_SEARCH_RANGE,
+    as.integer(PROF_MAX_ITER)
   )
-
   alpha_fixed <- final$alpha
-  if (fix_k0) {
-    frozen_obj <- function(par) {
-      p <- exp(par[1])
-      k1_ <- BK0 + exp(par[2])
-      -inflated_profile_cpp(
-        Y,
-        ITEM_INDS,
-        J,
-        alpha_fixed,
-        p,
-        BK0,
-        k1_,
-        LOWER_ALPHA,
-        UPPER_ALPHA,
-        PROF_MAX_ITER
-      )$ll
-    }
-  } else if (fix_k1) {
-    frozen_obj <- function(par) {
-      p <- exp(par[1])
-      k0_ <- par[2]
-      -inflated_profile_cpp(
-        Y,
-        ITEM_INDS,
-        J,
-        alpha_fixed,
-        p,
-        k0_,
-        BK1,
-        LOWER_ALPHA,
-        UPPER_ALPHA,
-        PROF_MAX_ITER
-      )$ll
-    }
-  } else {
-    frozen_obj <- function(par) {
-      p <- exp(par[1])
-      k0_ <- par[2]
-      k1_ <- k0_ + exp(par[3])
-      -inflated_profile_cpp(
-        Y,
-        ITEM_INDS,
-        J,
-        alpha_fixed,
-        p,
-        k0_,
-        k1_,
-        LOWER_ALPHA,
-        UPPER_ALPHA,
-        PROF_MAX_ITER
-      )$ll
-    }
-  }
 
-  is_degen <- as.logical(tapply(Y, ITEM_INDS, function(x) {
-    all(x == 0) | all(x == 1)
-  }))
+  frozen_obj <- function(par) {
+    p <- enc$decode(par)
+    -cpp_inflated_profile(
+      as.numeric(Y),
+      as.integer(ITEM_INDS),
+      as.numeric(alpha_fixed),
+      p$phi,
+      p$k0,
+      p$k1,
+      J,
+      PROF_SEARCH_RANGE,
+      as.integer(PROF_MAX_ITER)
+    )$ll
+  }
 
   fit <- structure(
     list(
@@ -383,7 +198,6 @@ fit_inflated_profile <- function(
       par = opt$par,
       loglik = final$ll,
       alpha = final$alpha,
-      is_degen = is_degen,
       optim = opt,
       convergence = opt$convergence
     ),
@@ -391,40 +205,12 @@ fit_inflated_profile <- function(
   )
 
   if (COMPUTE_VCOV) {
-    fit <- inflated_add_vcov(fit, frozen_obj, HESSIAN_STEP, fix_k0, fix_k1)
+    fit <- inflated_add_vcov(fit, frozen_obj, fix_k0, fix_k1)
   }
   fit
 }
 
-#' Fit inflated interval model by modified profile likelihood
-#'
-#' @description
-#' Estimates (phi, k0, k1) using the Barndorff-Nielsen modified profile
-#' likelihood. A profile likelihood fit is first obtained (or supplied via
-#' `REF_FIT`) and used as the MLE reference for the BN correction.
-#'
-#' @param Y Numeric vector of responses in \[0,1\].
-#' @param ITEM_INDS Integer vector of item indices (1-indexed, length equal to Y).
-#' @param J Number of items.
-#' @param REF_FIT Optional profile likelihood fit from [fit_inflated_profile()].
-#'   If `NULL`, it is computed automatically.
-#' @param START Named starting values on the unconstrained scale. If `NULL`,
-#'   initialized from `REF_FIT`.
-#' @param METHOD Optimization method passed to [optim()]. Default `"BFGS"`.
-#' @param CONTROL List of control parameters passed to [optim()].
-#' @param COMPUTE_VCOV Logical. If `TRUE`, compute vcov and standard errors.
-#' @param HESSIAN_STEP Step size for numerical Hessian when numDeriv is unavailable.
-#' @param LOWER_ALPHA Lower bound for per-item alpha search. Default -5.
-#' @param UPPER_ALPHA Upper bound for per-item alpha search. Default 5.
-#' @param PROF_MAX_ITER Maximum Brent iterations per item. Default 500.
-#' @param BOUNDARY Boundary value used to pin the fixed cutpoint. Default 100.
-#'
-#' @return A list of class `"inflated_fit"` with components `phi`, `k0`, `k1`,
-#'   `alpha`, `loglik`, `profile_loglik`, `correction`, `vcov`, `se`,
-#'   `convergence`, and others.
-#'
-#' @importFrom stats optim qlogis
-#' @export
+#' @noRd
 fit_inflated_mpl <- function(
   Y,
   ITEM_INDS,
@@ -432,11 +218,9 @@ fit_inflated_mpl <- function(
   REF_FIT = NULL,
   START = NULL,
   METHOD = "BFGS",
-  CONTROL = list(),
+  OPTIM_CONTROL = list(),
   COMPUTE_VCOV = TRUE,
-  HESSIAN_STEP = 1e-4,
-  LOWER_ALPHA = -5,
-  UPPER_ALPHA = 5,
+  PROF_SEARCH_RANGE = 10,
   PROF_MAX_ITER = 500L,
   BOUNDARY = 100
 ) {
@@ -446,8 +230,7 @@ fit_inflated_mpl <- function(
       ITEM_INDS,
       J,
       COMPUTE_VCOV = FALSE,
-      LOWER_ALPHA = LOWER_ALPHA,
-      UPPER_ALPHA = UPPER_ALPHA,
+      PROF_SEARCH_RANGE = PROF_SEARCH_RANGE,
       PROF_MAX_ITER = PROF_MAX_ITER,
       BOUNDARY = BOUNDARY
     )
@@ -458,198 +241,77 @@ fit_inflated_mpl <- function(
   bnd <- if (!is.null(REF_FIT$boundary)) REF_FIT$boundary else BOUNDARY
   BK0 <- -bnd
   BK1 <- bnd
+  enc <- inflated_encoding(fix_k0, fix_k1, BK0, BK1)
 
   if (is.null(START)) {
-    START <- if (fix_k0) {
-      c(log_phi = log(REF_FIT$phi), log_delta = log(REF_FIT$k1 - REF_FIT$k0))
-    } else if (fix_k1) {
-      c(log_phi = log(REF_FIT$phi), k0 = REF_FIT$k0)
-    } else {
-      c(
-        log_phi = log(REF_FIT$phi),
-        k0 = REF_FIT$k0,
-        log_delta = log(REF_FIT$k1 - REF_FIT$k0)
-      )
-    }
+    START <- enc$make_start(REF_FIT$phi, REF_FIT$k0, REF_FIT$k1)
   }
 
   alpha_warm <- REF_FIT$alpha
 
-  if (fix_k0) {
-    obj <- function(par) {
-      phi <- exp(par[1])
-      k1 <- BK0 + exp(par[2])
-      res <- inflated_mpl_cpp(
-        Y,
-        ITEM_INDS,
-        J,
-        alpha_warm,
-        REF_FIT$alpha,
-        phi,
-        BK0,
-        k1,
-        REF_FIT$phi,
-        REF_FIT$k0,
-        REF_FIT$k1,
-        LOWER_ALPHA,
-        UPPER_ALPHA,
-        PROF_MAX_ITER
-      )
-      if (is.finite(res$ll)) {
-        alpha_warm <<- res$alpha
-      }
-      -res$ll
+  obj <- function(par) {
+    p <- enc$decode(par)
+    res <- cpp_inflated_mpl(
+      as.numeric(Y),
+      as.integer(ITEM_INDS),
+      as.numeric(alpha_warm),
+      as.numeric(REF_FIT$alpha),
+      p$phi,
+      p$k0,
+      p$k1,
+      REF_FIT$phi,
+      REF_FIT$k0,
+      REF_FIT$k1,
+      J,
+      PROF_SEARCH_RANGE,
+      as.integer(PROF_MAX_ITER)
+    )
+    if (is.finite(res$ll)) {
+      alpha_warm <<- res$alpha
     }
-    opt <- stats::optim(START, obj, method = METHOD, control = CONTROL)
-    phi <- unname(exp(opt$par[1]))
-    k0 <- BK0
-    k1 <- k0 + unname(exp(opt$par[2]))
-  } else if (fix_k1) {
-    obj <- function(par) {
-      phi <- exp(par[1])
-      k0 <- par[2]
-      res <- inflated_mpl_cpp(
-        Y,
-        ITEM_INDS,
-        J,
-        alpha_warm,
-        REF_FIT$alpha,
-        phi,
-        k0,
-        BK1,
-        REF_FIT$phi,
-        REF_FIT$k0,
-        REF_FIT$k1,
-        LOWER_ALPHA,
-        UPPER_ALPHA,
-        PROF_MAX_ITER
-      )
-      if (is.finite(res$ll)) {
-        alpha_warm <<- res$alpha
-      }
-      -res$ll
-    }
-    opt <- stats::optim(START, obj, method = METHOD, control = CONTROL)
-    phi <- unname(exp(opt$par[1]))
-    k0 <- unname(opt$par[2])
-    k1 <- BK1
-  } else {
-    obj <- function(par) {
-      phi <- exp(par[1])
-      k0 <- par[2]
-      k1 <- k0 + exp(par[3])
-      res <- inflated_mpl_cpp(
-        Y,
-        ITEM_INDS,
-        J,
-        alpha_warm,
-        REF_FIT$alpha,
-        phi,
-        k0,
-        k1,
-        REF_FIT$phi,
-        REF_FIT$k0,
-        REF_FIT$k1,
-        LOWER_ALPHA,
-        UPPER_ALPHA,
-        PROF_MAX_ITER
-      )
-      if (is.finite(res$ll)) {
-        alpha_warm <<- res$alpha
-      }
-      -res$ll
-    }
-    opt <- stats::optim(START, obj, method = METHOD, control = CONTROL)
-    phi <- unname(exp(opt$par[1]))
-    k0 <- unname(opt$par[2])
-    k1 <- k0 + unname(exp(opt$par[3]))
+    -res$ll
   }
 
-  final <- inflated_mpl_cpp(
-    Y,
-    ITEM_INDS,
-    J,
-    alpha_warm,
-    REF_FIT$alpha,
+  opt <- stats::optim(START, obj, method = METHOD, control = OPTIM_CONTROL)
+  p <- enc$decode(opt$par)
+  phi <- p$phi
+  k0 <- p$k0
+  k1 <- p$k1
+
+  final <- cpp_inflated_mpl(
+    as.numeric(Y),
+    as.integer(ITEM_INDS),
+    as.numeric(alpha_warm),
+    as.numeric(REF_FIT$alpha),
     phi,
     k0,
     k1,
     REF_FIT$phi,
     REF_FIT$k0,
     REF_FIT$k1,
-    LOWER_ALPHA,
-    UPPER_ALPHA,
-    PROF_MAX_ITER
+    J,
+    PROF_SEARCH_RANGE,
+    as.integer(PROF_MAX_ITER)
   )
-
   alpha_fixed <- final$alpha
-  if (fix_k0) {
-    frozen_obj <- function(par) {
-      p <- exp(par[1])
-      k1_ <- BK0 + exp(par[2])
-      res <- inflated_mpl_cpp(
-        Y,
-        ITEM_INDS,
-        J,
-        alpha_fixed,
-        REF_FIT$alpha,
-        p,
-        BK0,
-        k1_,
-        REF_FIT$phi,
-        REF_FIT$k0,
-        REF_FIT$k1,
-        LOWER_ALPHA,
-        UPPER_ALPHA,
-        PROF_MAX_ITER
-      )
-      -res$ll
-    }
-  } else if (fix_k1) {
-    frozen_obj <- function(par) {
-      p <- exp(par[1])
-      k0_ <- par[2]
-      res <- inflated_mpl_cpp(
-        Y,
-        ITEM_INDS,
-        J,
-        alpha_fixed,
-        REF_FIT$alpha,
-        p,
-        k0_,
-        BK1,
-        REF_FIT$phi,
-        REF_FIT$k0,
-        REF_FIT$k1,
-        LOWER_ALPHA,
-        UPPER_ALPHA,
-        PROF_MAX_ITER
-      )
-      -res$ll
-    }
-  } else {
-    frozen_obj <- function(par) {
-      p <- exp(par[1])
-      k0_ <- par[2]
-      k1_ <- k0_ + exp(par[3])
-      res <- inflated_mpl_cpp(
-        Y,
-        ITEM_INDS,
-        J,
-        alpha_fixed,
-        REF_FIT$alpha,
-        p,
-        k0_,
-        k1_,
-        REF_FIT$phi,
-        REF_FIT$k0,
-        REF_FIT$k1,
-        LOWER_ALPHA,
-        UPPER_ALPHA,
-        PROF_MAX_ITER
-      )
-      -res$ll
-    }
+
+  frozen_obj <- function(par) {
+    p <- enc$decode(par)
+    -cpp_inflated_mpl(
+      as.numeric(Y),
+      as.integer(ITEM_INDS),
+      as.numeric(alpha_fixed),
+      as.numeric(REF_FIT$alpha),
+      p$phi,
+      p$k0,
+      p$k1,
+      REF_FIT$phi,
+      REF_FIT$k0,
+      REF_FIT$k1,
+      J,
+      PROF_SEARCH_RANGE,
+      as.integer(PROF_MAX_ITER)
+    )$ll
   }
 
   fit <- structure(
@@ -667,7 +329,6 @@ fit_inflated_mpl <- function(
       profile_loglik = final$profile_ll,
       correction = final$correction,
       alpha = final$alpha,
-      is_degen = REF_FIT$is_degen,
       ref_fit = REF_FIT,
       optim = opt,
       convergence = opt$convergence
@@ -676,33 +337,7 @@ fit_inflated_mpl <- function(
   )
 
   if (COMPUTE_VCOV) {
-    fit <- inflated_add_vcov(fit, frozen_obj, HESSIAN_STEP, fix_k0, fix_k1)
+    fit <- inflated_add_vcov(fit, frozen_obj, fix_k0, fix_k1)
   }
   fit
-}
-
-#' @export
-print.inflated_fit <- function(X, ...) {
-  cat("Inflated interval fit\n")
-  cat("  estimator:", X$estimator, "\n")
-  cat("  phi:      ", signif(X$phi, 6), "\n")
-  cat("  k0:       ", signif(X$k0, 6), "\n")
-  cat("  k1:       ", signif(X$k1, 6), "\n")
-  cat("  loglik:   ", signif(X$loglik, 8), "\n")
-  if (!is.null(X$correction)) {
-    cat("  correction:", signif(X$correction, 6), "\n")
-  }
-  if (!is.null(X$se) && all(is.finite(X$se))) {
-    cat(
-      "  se(phi):",
-      signif(X$se["phi"], 4),
-      " se(k0):",
-      signif(X$se["k0"], 4),
-      " se(k1):",
-      signif(X$se["k1"], 4),
-      "\n"
-    )
-  }
-  cat("  convergence:", X$convergence, "\n")
-  invisible(X)
 }

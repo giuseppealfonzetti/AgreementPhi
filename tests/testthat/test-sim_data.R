@@ -229,4 +229,3 @@ test_that("sim_data BETA affects two-way model correctly", {
   ratings_others <- dt$rating[dt$id_worker != 1]
   expect_true(mean(ratings_worker1) > mean(ratings_others))
 })
-
