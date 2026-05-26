@@ -190,8 +190,8 @@ plot.agreement_fit <- function(
     D = RANGE_LL,
     M_EST = if (x$method == "modified") x$modified$agreement else NULL,
     P_EST = x$profile$agreement,
-    M_SE = if (x$method == "modified") ci$agreement_se else NULL,
-    P_SE = if (x$method == "profile") ci$agreement_se else NULL,
+    M_SE = if (x$method == "modified") ci$agreement["agreement", "Std. Error"] else NULL,
+    P_SE = if (x$method == "profile") ci$agreement["agreement", "Std. Error"] else NULL,
     CONFIDENCE = CONFIDENCE
   )
   invisible(x)

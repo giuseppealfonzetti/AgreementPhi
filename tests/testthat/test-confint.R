@@ -1,4 +1,4 @@
-test_that("get_ci returns list with correct structure", {
+test_that("confint returns list with parameters and agreement matrices", {
   skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
@@ -23,20 +23,26 @@ test_that("get_ci returns list with correct structure", {
   ci <- confint(fit)
 
   expect_type(ci, "list")
-  expect_true(all(
-    c("agreement_est", "agreement_se", "agreement_ci") %in% names(ci)
-  ))
-  expect_length(ci, 3)
-  expect_true(is.numeric(ci$agreement_est) && length(ci$agreement_est) == 1)
-  expect_true(is.numeric(ci$agreement_se) && length(ci$agreement_se) == 1)
-  expect_true(is.numeric(ci$agreement_ci) && length(ci$agreement_ci) == 2)
-  expect_true(ci$agreement_se >= 0)
-  expect_true(ci$agreement_ci[1] >= 0 && ci$agreement_ci[2] <= 1)
-  expect_true(ci$agreement_ci[1] <= ci$agreement_est)
-  expect_true(ci$agreement_est <= ci$agreement_ci[2])
+  expect_named(ci, c("parameters", "agreement"))
+
+  expect_true(is.matrix(ci$parameters))
+  expect_equal(rownames(ci$parameters), "phi")
+  expect_equal(colnames(ci$parameters), c("Estimate", "Std. Error", "2.5 %", "97.5 %"))
+  expect_true(ci$parameters["phi", "Std. Error"] > 0)
+  expect_true(ci$parameters["phi", "Estimate"] > 0)
+  expect_true(ci$parameters["phi", "2.5 %"] > 0)
+
+  expect_true(is.matrix(ci$agreement))
+  expect_equal(rownames(ci$agreement), "agreement")
+  expect_equal(colnames(ci$agreement), c("Estimate", "Std. Error", "2.5 %", "97.5 %"))
+  expect_true(ci$agreement["agreement", "Std. Error"] > 0)
+  expect_true(ci$agreement["agreement", "2.5 %"] >= 0)
+  expect_true(ci$agreement["agreement", "97.5 %"] <= 1)
+  expect_true(ci$agreement["agreement", "2.5 %"] <= ci$agreement["agreement", "Estimate"])
+  expect_true(ci$agreement["agreement", "Estimate"] <= ci$agreement["agreement", "97.5 %"])
 })
 
-test_that("get_ci works for continuous one-way model with low agreement", {
+test_that("confint works for continuous one-way model with low agreement", {
   skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
@@ -52,32 +58,24 @@ test_that("get_ci works for continuous one-way model with low agreement", {
   )
   rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 
-  fit <- agreement(
-    rd,
-    METHOD = "modified",
-    NUISANCE = c("items"),
-    VERBOSE = FALSE
-  )
+  fit <- agreement(rd, METHOD = "modified", NUISANCE = c("items"), VERBOSE = FALSE)
   ci <- confint(fit, level = 0.95)
-  expect_type(ci, "list")
-  expect_true(is.finite(ci$agreement_est))
-  expect_true(ci$agreement_se > 0)
-  expect_true(ci$agreement_ci[1] >= 0 && ci$agreement_ci[2] <= 1)
+  expect_named(ci, c("parameters", "agreement"))
+  expect_true(is.finite(ci$agreement["agreement", "Estimate"]))
+  expect_true(ci$agreement["agreement", "Std. Error"] > 0)
+  expect_true(ci$agreement["agreement", "2.5 %"] >= 0)
+  expect_true(ci$agreement["agreement", "97.5 %"] <= 1)
 
-  fit <- agreement(
-    rd,
-    METHOD = "profile",
-    NUISANCE = c("items"),
-    VERBOSE = FALSE
-  )
+  fit <- agreement(rd, METHOD = "profile", NUISANCE = c("items"), VERBOSE = FALSE)
   ci <- confint(fit, level = 0.95)
-  expect_type(ci, "list")
-  expect_true(is.finite(ci$agreement_est))
-  expect_true(ci$agreement_se > 0)
-  expect_true(ci$agreement_ci[1] >= 0 && ci$agreement_ci[2] <= 1)
+  expect_named(ci, c("parameters", "agreement"))
+  expect_true(is.finite(ci$agreement["agreement", "Estimate"]))
+  expect_true(ci$agreement["agreement", "Std. Error"] > 0)
+  expect_true(ci$agreement["agreement", "2.5 %"] >= 0)
+  expect_true(ci$agreement["agreement", "97.5 %"] <= 1)
 })
 
-test_that("get_ci works for continuous one-way model with high agreement", {
+test_that("confint works for continuous one-way model with high agreement", {
   skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
@@ -93,20 +91,16 @@ test_that("get_ci works for continuous one-way model with high agreement", {
   )
   rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 
-  fit <- agreement(
-    rd,
-    METHOD = "modified",
-    NUISANCE = c("items"),
-    VERBOSE = FALSE
-  )
+  fit <- agreement(rd, METHOD = "modified", NUISANCE = c("items"), VERBOSE = FALSE)
   ci <- confint(fit, level = 0.95)
-  expect_type(ci, "list")
-  expect_true(is.finite(ci$agreement_est))
-  expect_true(ci$agreement_se > 0)
-  expect_true(ci$agreement_ci[1] >= 0 && ci$agreement_ci[2] <= 1)
+  expect_named(ci, c("parameters", "agreement"))
+  expect_true(is.finite(ci$agreement["agreement", "Estimate"]))
+  expect_true(ci$agreement["agreement", "Std. Error"] > 0)
+  expect_true(ci$agreement["agreement", "2.5 %"] >= 0)
+  expect_true(ci$agreement["agreement", "97.5 %"] <= 1)
 })
 
-test_that("get_ci works for continuous two-way model with low agreement", {
+test_that("confint works for continuous two-way model with low agreement", {
   skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 60
@@ -122,20 +116,16 @@ test_that("get_ci works for continuous two-way model with low agreement", {
   )
   rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 
-  fit <- agreement(
-    rd,
-    METHOD = "modified",
-    NUISANCE = c("items", "workers"),
-    VERBOSE = FALSE
-  )
+  fit <- agreement(rd, METHOD = "modified", NUISANCE = c("items", "workers"), VERBOSE = FALSE)
   ci <- confint(fit, level = 0.95)
-  expect_type(ci, "list")
-  expect_true(is.finite(ci$agreement_est))
-  expect_true(ci$agreement_se > 0)
-  expect_true(ci$agreement_ci[1] >= 0 && ci$agreement_ci[2] <= 1)
+  expect_named(ci, c("parameters", "agreement"))
+  expect_true(is.finite(ci$agreement["agreement", "Estimate"]))
+  expect_true(ci$agreement["agreement", "Std. Error"] > 0)
+  expect_true(ci$agreement["agreement", "2.5 %"] >= 0)
+  expect_true(ci$agreement["agreement", "97.5 %"] <= 1)
 })
 
-test_that("get_ci works for continuous two-way model with high agreement", {
+test_that("confint works for continuous two-way model with high agreement", {
   skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
@@ -151,20 +141,16 @@ test_that("get_ci works for continuous two-way model with high agreement", {
   )
   rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 
-  fit <- agreement(
-    rd,
-    METHOD = "modified",
-    NUISANCE = c("items", "workers"),
-    VERBOSE = FALSE
-  )
+  fit <- agreement(rd, METHOD = "modified", NUISANCE = c("items", "workers"), VERBOSE = FALSE)
   ci <- confint(fit, level = 0.95)
-  expect_type(ci, "list")
-  expect_true(is.finite(ci$agreement_est))
-  expect_true(ci$agreement_se > 0)
-  expect_true(ci$agreement_ci[1] >= 0 && ci$agreement_ci[2] <= 1)
+  expect_named(ci, c("parameters", "agreement"))
+  expect_true(is.finite(ci$agreement["agreement", "Estimate"]))
+  expect_true(ci$agreement["agreement", "Std. Error"] > 0)
+  expect_true(ci$agreement["agreement", "2.5 %"] >= 0)
+  expect_true(ci$agreement["agreement", "97.5 %"] <= 1)
 })
 
-test_that("get_ci works for ordinal one-way model", {
+test_that("confint works for ordinal one-way model", {
   skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
@@ -181,29 +167,21 @@ test_that("get_ci works for ordinal one-way model", {
   )
   rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 
-  fit <- agreement(
-    rd,
-    METHOD = "modified",
-    NUISANCE = c("items"),
-    VERBOSE = FALSE
-  )
+  fit <- agreement(rd, METHOD = "modified", NUISANCE = c("items"), VERBOSE = FALSE)
   ci <- confint(fit, level = 0.95)
-  expect_type(ci, "list")
-  expect_true(is.finite(ci$agreement_est))
-  expect_true(ci$agreement_se > 0)
-  expect_true(ci$agreement_ci[1] >= 0 && ci$agreement_ci[2] <= 1)
+  expect_named(ci, c("parameters", "agreement"))
+  expect_true(is.finite(ci$agreement["agreement", "Estimate"]))
+  expect_true(ci$agreement["agreement", "Std. Error"] > 0)
+  expect_true(ci$agreement["agreement", "2.5 %"] >= 0)
+  expect_true(ci$agreement["agreement", "97.5 %"] <= 1)
 
-  fit <- agreement(
-    rd,
-    METHOD = "profile",
-    NUISANCE = c("items"),
-    VERBOSE = FALSE
-  )
+  fit <- agreement(rd, METHOD = "profile", NUISANCE = c("items"), VERBOSE = FALSE)
   ci <- confint(fit, level = 0.95)
-  expect_type(ci, "list")
-  expect_true(is.finite(ci$agreement_est))
-  expect_true(ci$agreement_se > 0)
-  expect_true(ci$agreement_ci[1] >= 0 && ci$agreement_ci[2] <= 1)
+  expect_named(ci, c("parameters", "agreement"))
+  expect_true(is.finite(ci$agreement["agreement", "Estimate"]))
+  expect_true(ci$agreement["agreement", "Std. Error"] > 0)
+  expect_true(ci$agreement["agreement", "2.5 %"] >= 0)
+  expect_true(ci$agreement["agreement", "97.5 %"] <= 1)
 })
 
 test_that("wider confidence intervals for higher confidence levels", {
@@ -222,27 +200,25 @@ test_that("wider confidence intervals for higher confidence levels", {
   )
   rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 
-  fit <- agreement(
-    rd,
-    METHOD = "modified",
-    NUISANCE = c("items"),
-    VERBOSE = FALSE
-  )
+  fit <- agreement(rd, METHOD = "modified", NUISANCE = c("items"), VERBOSE = FALSE)
   ci_90 <- confint(fit, level = 0.90)
   ci_95 <- confint(fit, level = 0.95)
   ci_99 <- confint(fit, level = 0.99)
 
-  width_90 <- ci_90$agreement_ci[2] - ci_90$agreement_ci[1]
-  width_95 <- ci_95$agreement_ci[2] - ci_95$agreement_ci[1]
-  width_99 <- ci_99$agreement_ci[2] - ci_99$agreement_ci[1]
-
-  expect_true(width_90 < width_95)
-  expect_true(width_95 < width_99)
-  expect_equal(ci_90$agreement_est, ci_95$agreement_est)
-  expect_equal(ci_95$agreement_est, ci_99$agreement_est)
+  width <- function(ci) ci$agreement["agreement", 4] - ci$agreement["agreement", 3]
+  expect_true(width(ci_90) < width(ci_95))
+  expect_true(width(ci_95) < width(ci_99))
+  expect_equal(
+    ci_90$agreement["agreement", "Estimate"],
+    ci_95$agreement["agreement", "Estimate"]
+  )
+  expect_equal(
+    ci_95$agreement["agreement", "Estimate"],
+    ci_99$agreement["agreement", "Estimate"]
+  )
 })
 
-test_that("get_ci rejects invalid CONFIDENCE values", {
+test_that("confint rejects invalid level values", {
   skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
@@ -258,12 +234,7 @@ test_that("get_ci rejects invalid CONFIDENCE values", {
   )
   rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 
-  fit <- agreement(
-    rd,
-    METHOD = "modified",
-    NUISANCE = c("items"),
-    VERBOSE = FALSE
-  )
+  fit <- agreement(rd, METHOD = "modified", NUISANCE = c("items"), VERBOSE = FALSE)
 
   expect_error(confint(fit, level = 0))
   expect_error(confint(fit, level = 1))

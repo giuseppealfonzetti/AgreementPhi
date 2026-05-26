@@ -349,19 +349,14 @@ test_that("get_ci inflated returns correct structure", {
   rd <- rating_data(dt$rating, dt$id_item, VERBOSE = FALSE)
   fit <- agreement(rd, METHOD = "modified")
   ci <- confint(fit)
-  expected_names <- c(
-    "phi_est",
-    "phi_se",
-    "phi_ci",
-    "k0_est",
-    "k0_se",
-    "k0_ci",
-    "k1_est",
-    "k1_se",
-    "k1_ci"
-  )
-  expect_true(all(expected_names %in% names(ci)))
-  expect_true(all(is.finite(unlist(ci))))
+  expect_named(ci, c("parameters", "agreement"))
+  expect_true(is.matrix(ci$parameters))
+  expect_equal(rownames(ci$parameters), c("phi", "k0", "k1"))
+  expect_equal(colnames(ci$parameters), c("Estimate", "Std. Error", "2.5 %", "97.5 %"))
+  expect_true(is.matrix(ci$agreement))
+  expect_equal(rownames(ci$agreement), "agreement")
+  expect_true(all(is.finite(ci$parameters)))
+  expect_true(all(is.finite(ci$agreement)))
 })
 
 test_that("get_ci inflated CI contains estimate", {
@@ -378,9 +373,10 @@ test_that("get_ci inflated CI contains estimate", {
   rd <- rating_data(dt$rating, dt$id_item, VERBOSE = FALSE)
   fit <- agreement(rd, METHOD = "modified")
   ci <- confint(fit)
-  expect_true(ci$phi_ci[1] <= ci$phi_est && ci$phi_est <= ci$phi_ci[2])
-  expect_true(ci$k0_ci[1] <= ci$k0_est && ci$k0_est <= ci$k0_ci[2])
-  expect_true(ci$k1_ci[1] <= ci$k1_est && ci$k1_est <= ci$k1_ci[2])
+  p <- ci$parameters
+  expect_true(p["phi", "2.5 %"] <= p["phi", "Estimate"] && p["phi", "Estimate"] <= p["phi", "97.5 %"])
+  expect_true(p["k0", "2.5 %"] <= p["k0", "Estimate"] && p["k0", "Estimate"] <= p["k0", "97.5 %"])
+  expect_true(p["k1", "2.5 %"] <= p["k1", "Estimate"] && p["k1", "Estimate"] <= p["k1", "97.5 %"])
 })
 
 test_that("get_ci one-sided has zero SE for the pinned cutpoint", {
@@ -397,9 +393,9 @@ test_that("get_ci one-sided has zero SE for the pinned cutpoint", {
   rd_fk1 <- rating_data(dt_fk1$rating, dt_fk1$id_item, VERBOSE = FALSE)
   fit_fk1 <- agreement(rd_fk1, METHOD = "modified")
   ci_fk1 <- confint(fit_fk1)
-  expect_equal(ci_fk1$k1_se, 0)
-  expect_true(ci_fk1$phi_se > 0)
-  expect_true(ci_fk1$k0_se > 0)
+  expect_equal(ci_fk1$parameters["k1", "Std. Error"], 0)
+  expect_true(ci_fk1$parameters["phi", "Std. Error"] > 0)
+  expect_true(ci_fk1$parameters["k0", "Std. Error"] > 0)
 
   dt_fk0 <- sim_data(
     J = J,
@@ -414,9 +410,9 @@ test_that("get_ci one-sided has zero SE for the pinned cutpoint", {
   rd_fk0 <- rating_data(dt_fk0$rating, dt_fk0$id_item, VERBOSE = FALSE)
   fit_fk0 <- agreement(rd_fk0, METHOD = "modified")
   ci_fk0 <- confint(fit_fk0)
-  expect_equal(ci_fk0$k0_se, 0)
-  expect_true(ci_fk0$phi_se > 0)
-  expect_true(ci_fk0$k1_se > 0)
+  expect_equal(ci_fk0$parameters["k0", "Std. Error"], 0)
+  expect_true(ci_fk0$parameters["phi", "Std. Error"] > 0)
+  expect_true(ci_fk0$parameters["k1", "Std. Error"] > 0)
 })
 
 # recovery ----------------------------------------------------------------
