@@ -1,4 +1,5 @@
 test_that("get_ci returns list with correct structure", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
   alphas <- runif(n_items, -2, 2)
@@ -36,6 +37,7 @@ test_that("get_ci returns list with correct structure", {
 })
 
 test_that("get_ci works for continuous one-way model with low agreement", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
   alphas <- runif(n_items, -2, 2)
@@ -76,6 +78,7 @@ test_that("get_ci works for continuous one-way model with low agreement", {
 })
 
 test_that("get_ci works for continuous one-way model with high agreement", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
   alphas <- runif(n_items, -2, 2)
@@ -104,6 +107,7 @@ test_that("get_ci works for continuous one-way model with high agreement", {
 })
 
 test_that("get_ci works for continuous two-way model with low agreement", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 60
   alphas <- runif(n_items, -1.5, 1.5)
@@ -132,6 +136,7 @@ test_that("get_ci works for continuous two-way model with low agreement", {
 })
 
 test_that("get_ci works for continuous two-way model with high agreement", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
   alphas <- runif(n_items, -2, 2)
@@ -160,6 +165,7 @@ test_that("get_ci works for continuous two-way model with high agreement", {
 })
 
 test_that("get_ci works for ordinal one-way model", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
   alphas <- runif(n_items, -2, 2)
@@ -201,6 +207,7 @@ test_that("get_ci works for ordinal one-way model", {
 })
 
 test_that("wider confidence intervals for higher confidence levels", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
   alphas <- runif(n_items, -2, 2)
@@ -236,6 +243,7 @@ test_that("wider confidence intervals for higher confidence levels", {
 })
 
 test_that("get_ci rejects invalid CONFIDENCE values", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
   alphas <- runif(n_items, -2, 2)

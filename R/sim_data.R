@@ -15,10 +15,9 @@
 #' @return Returns a dataframe with columns id_items, id_worker and rating
 #'
 #' @examples
+#' \donttest{
 #' set.seed(123)
 #'
-#' # generate from one-way model
-#' # (varying item effects, worker effects fixed to zero)
 #' dt1way <- sim_data(
 #'  J = 50,
 #'  B = 5,
@@ -27,8 +26,6 @@
 #'  DATA_TYPE = "continuous",
 #'  SEED = 123
 #' )
-#' # generate from two-way model
-#' # (varying item effects, varying worker effects)
 #' dt2way <- sim_data(
 #'  J = 50,
 #'  W = 40,
@@ -39,8 +36,7 @@
 #'  DATA_TYPE = "continuous",
 #'  SEED = 123
 #' )
-#'
-#' @importFrom AlgDesign optFederov
+#' }
 #' @export
 sim_data <- function(
   J,
@@ -55,6 +51,8 @@ sim_data <- function(
   K1 = 2,
   SEED = 123
 ) {
+  if (!requireNamespace("AlgDesign", quietly = TRUE))
+    stop("Package 'AlgDesign' is needed for sim_data(). Install it with install.packages('AlgDesign').")
   set.seed(SEED)
   stopifnot(J > 0)
   stopifnot(AGREEMENT >= 0)
@@ -81,7 +79,7 @@ sim_data <- function(
     worker_id = factor(1:W)
   )
 
-  design <- optFederov(
+  design <- AlgDesign::optFederov(
     ~1,
     data = candidates,
     nTrials = n_obs

@@ -1,4 +1,5 @@
 test_that("sim_data generates correct ordinal data type", {
+  skip_if_not_installed("AlgDesign")
   dt <- sim_data(
     J = 5,
     B = 3,
@@ -14,6 +15,7 @@ test_that("sim_data generates correct ordinal data type", {
 })
 
 test_that("sim_data generates correct continuous data type", {
+  skip_if_not_installed("AlgDesign")
   dt <- sim_data(
     J = 5,
     B = 3,
@@ -28,6 +30,7 @@ test_that("sim_data generates correct continuous data type", {
 })
 
 test_that("sim_data produces correct dataset dimensions", {
+  skip_if_not_installed("AlgDesign")
   J <- 10
   B <- 5
   dt <- sim_data(
@@ -46,6 +49,7 @@ test_that("sim_data produces correct dataset dimensions", {
 })
 
 test_that("sim_data allocates items correctly", {
+  skip_if_not_installed("AlgDesign")
   J <- 100
   B <- 4
   dt <- sim_data(
@@ -63,6 +67,7 @@ test_that("sim_data allocates items correctly", {
 })
 
 test_that("sim_data allocates workers correctly (one-way: BETA = NULL)", {
+  skip_if_not_installed("AlgDesign")
   J <- 5
   B <- 3
   W <- 10
@@ -86,6 +91,7 @@ test_that("sim_data allocates workers correctly (one-way: BETA = NULL)", {
 })
 
 test_that("sim_data allocates workers correctly (two-way: BETA specified)", {
+  skip_if_not_installed("AlgDesign")
   J <- 5
   B <- 3
   W <- 10
@@ -109,6 +115,7 @@ test_that("sim_data allocates workers correctly (two-way: BETA specified)", {
 })
 
 test_that("sim_data ALPHA affects mean ratings correctly", {
+  skip_if_not_installed("AlgDesign")
   J <- 2
   B <- 50
   dt_low <- sim_data(
@@ -133,6 +140,7 @@ test_that("sim_data ALPHA affects mean ratings correctly", {
 })
 
 test_that("sim_data AGREEMENT affects variance correctly", {
+  skip_if_not_installed("AlgDesign")
   J <- 5
   B <- 50
   dt_low_agr <- sim_data(
@@ -164,6 +172,7 @@ test_that("sim_data AGREEMENT affects variance correctly", {
 })
 
 test_that("sim_data is reproducible with same SEED", {
+  skip_if_not_installed("AlgDesign")
   dt1 <- sim_data(
     J = 5,
     B = 3,
@@ -190,6 +199,7 @@ test_that("sim_data is reproducible with same SEED", {
 })
 
 test_that("sim_data respects K parameter for ordinal data", {
+  skip_if_not_installed("AlgDesign")
   K <- 4
   dt <- sim_data(
     J = 5,
@@ -207,6 +217,7 @@ test_that("sim_data respects K parameter for ordinal data", {
 })
 
 test_that("sim_data BETA affects two-way model correctly", {
+  skip_if_not_installed("AlgDesign")
   J <- 3
   B <- 5
   W <- 10

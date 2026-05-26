@@ -14,6 +14,13 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r check-algdesign, include=FALSE}
+if (!requireNamespace("AlgDesign", quietly = TRUE)) {
+  knitr::opts_chunk$set(eval = FALSE)
+  message("AlgDesign not installed; vignette chunks will not be evaluated.")
+}
+```
+
 ## Basic usage
 
 The `AgreementPhi` package exports a utility function to simulate data by providing the true agreement and item effects. Consider for example to simulate continuous ratings for 200 items, collecting 8 relevance assessments per item, for a total of 1600 responses. We set the true agreement at $\Phi=0.4$

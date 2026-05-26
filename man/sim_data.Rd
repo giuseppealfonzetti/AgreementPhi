@@ -48,10 +48,9 @@ Returns a dataframe with columns id_items, id_worker and rating
 Simulate ordinal or continuous (0,1) ratings
 }
 \examples{
+\donttest{
 set.seed(123)
 
-# generate from one-way model
-# (varying item effects, worker effects fixed to zero)
 dt1way <- sim_data(
  J = 50,
  B = 5,
@@ -60,8 +59,6 @@ dt1way <- sim_data(
  DATA_TYPE = "continuous",
  SEED = 123
 )
-# generate from two-way model
-# (varying item effects, varying worker effects)
 dt2way <- sim_data(
  J = 50,
  W = 40,
@@ -72,5 +69,5 @@ dt2way <- sim_data(
  DATA_TYPE = "continuous",
  SEED = 123
 )
-
+}
 }

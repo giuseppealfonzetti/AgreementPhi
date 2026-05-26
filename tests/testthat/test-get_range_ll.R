@@ -1,4 +1,5 @@
 test_that("get_range_ll returns data.frame with correct structure", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
   alphas <- runif(n_items, -2, 2)
@@ -38,6 +39,7 @@ test_that("get_range_ll returns data.frame with correct structure", {
 })
 
 test_that("get_range_ll works for continuous one-way model", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
   alphas <- runif(n_items, -2, 2)
@@ -67,6 +69,7 @@ test_that("get_range_ll works for continuous one-way model", {
 })
 
 test_that("get_range_ll works for continuous two-way model", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 50
   alphas <- runif(n_items, -2, 2)
@@ -96,6 +99,7 @@ test_that("get_range_ll works for continuous two-way model", {
 })
 
 test_that("get_range_ll works for ordinal one-way model", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
   alphas <- runif(n_items, -2, 2)
@@ -126,6 +130,7 @@ test_that("get_range_ll works for ordinal one-way model", {
 })
 
 test_that("different RANGE values produce different grid spans", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
   alphas <- runif(n_items, -2, 2)
@@ -155,6 +160,7 @@ test_that("different RANGE values produce different grid spans", {
 })
 
 test_that("different GRID_LENGTH values produce different row counts", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
   alphas <- runif(n_items, -2, 2)
@@ -183,6 +189,7 @@ test_that("different GRID_LENGTH values produce different row counts", {
 })
 
 test_that("get_range_ll rejects invalid RANGE values", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
   alphas <- runif(n_items, -2, 2)
@@ -210,6 +217,7 @@ test_that("get_range_ll rejects invalid RANGE values", {
 })
 
 test_that("get_range_ll rejects invalid GRID_LENGTH values", {
+  skip_if_not_installed("AlgDesign")
   set.seed(321)
   n_items <- 40
   alphas <- runif(n_items, -2, 2)

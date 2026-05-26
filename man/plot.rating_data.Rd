@@ -18,9 +18,10 @@ Invisibly returns \code{x}. Called for its side effect (a rating matrix plot).
 Plot a rating_data object
 }
 \examples{
+\donttest{
 dt <- sim_data(J = 20, B = 5, AGREEMENT = 0.6,
                ALPHA = rep(0, 20), DATA_TYPE = "continuous", SEED = 1)
 rd <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
 plot(rd)
-
+}
 }

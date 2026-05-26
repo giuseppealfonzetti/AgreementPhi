@@ -69,6 +69,7 @@
 #' }
 #'
 #' @examples
+#' \donttest{
 #' set.seed(321)
 #'
 #' items <- 50
@@ -92,7 +93,7 @@
 #' rd_inf <- rating_data(dt_inflated$rating, dt_inflated$id_item)
 #' fit_inf <- agreement(rd_inf, METHOD = "modified")
 #' confint(fit_inf)
-#'
+#' }
 #' @export
 agreement <- function(
   DATA,
