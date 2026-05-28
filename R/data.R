@@ -1,0 +1,26 @@
+#' Roitero et al. (2021) crowdsourced relevance assessments (S100 scale)
+#'
+#' A subset of the crowdsourcing experiment in Roitero et al. (2021),
+#' restricted to assessments collected on the 100-point continuous relevance
+#' scale (S100).
+#'
+#' @format A data frame with columns:
+#' \describe{
+#'   \item{topic_id}{The ID of the topic.}
+#'   \item{unit_id}{The ID of the HIT.}
+#'   \item{document_id}{The name of the document.}
+#'   \item{gold}{Whether the document is a gold one.}
+#'   \item{doc_pos}{Position of the document in the set as seen by the worker.}
+#'   \item{worker_id}{Encrypted worker ID (to allow anonymity).}
+#'   \item{relevance_score}{Score as submitted by the worker.}
+#'   \item{cumulative_time}{Time spent by the worker to assess the statement.}
+#'   \item{comment}{Comment left by the worker as justification for the score.}
+#'   \item{trec}{Score as submitted by TREC (if available).}
+#'   \item{sormunen}{Score as submitted by Sormunen (if available).}
+#' }
+#' @source \url{https://github.com/KevinRoitero/CrowdsourcingRelevanceScales}
+#' @references Roitero, K., Maddalena, E., Mizzaro, S., and Scholer, F. (2021).
+#'   On the Effect of Relevance Scales in Crowdsourcing Relevance Assessments
+#'   for Information Retrieval Evaluation. *Information Processing and
+#'   Management*, 58(6).
+"roitero2021"
