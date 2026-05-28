@@ -122,7 +122,7 @@ get_range_ll <- function(X, RANGE = .2, GRID_LENGTH = 15) {
   )
   phi_range <- sapply(agreement_range, agr2prec)
 
-  d <- X$data
+  d <- X$fit_data
   ctl <- X$control
   worker_inds <- if (!is.null(d$worker_ids)) {
     as.integer(d$worker_ids)
@@ -235,8 +235,8 @@ confint.agreement_fit <- function(object, parm = NULL, level = 0.95, ...) {
     }
     se <- object$se
 
-    n_degen <- if (!is.null(object$data$n_degen)) object$data$n_degen else 0L
-    adj_factor <- object$data$n_items / (object$data$n_items + n_degen)
+    n_degen <- length(object$data$degen_ids)
+    adj_factor <- (object$data$n_items - n_degen) / object$data$n_items
 
     h <- sqrt(.Machine$double.eps)
     par2agr_agr <- function(phi, k0, k1) {
@@ -275,7 +275,7 @@ confint.agreement_fit <- function(object, parm = NULL, level = 0.95, ...) {
     ))
   }
 
-  d <- object$data
+  d <- object$fit_data
   ctl <- object$control
   phi_mle <- object$profile$precision
 

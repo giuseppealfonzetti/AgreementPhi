@@ -63,7 +63,7 @@ test_that("coef.agreement_fit inflated: includes k0 and k1, no beta", {
     SEED = 1
   )
   rd <- rating_data(dt$rating, dt$id_item, VERBOSE = FALSE)
-  fit <- agreement(rd, METHOD = "modified")
+  fit <- agreement(rd, METHOD = "modified", NUISANCE = "items")
   cf <- coef(fit)
 
   expect_equal(names(cf)[1], "phi")

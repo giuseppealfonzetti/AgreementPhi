@@ -252,3 +252,68 @@ test_that("agreement handles ordinal data with missing boundary categories", {
   expect_true(fit$profile$agreement >= 0 && fit$profile$agreement <= 1)
   expect_equal(fit$data$K, 10L)
 })
+
+# Fixture: 3 continuous items, item 1 degenerate (all 0.5)
+.degen_ratings  <- c(0.5, 0.5, 0.5,  0.2, 0.7, 0.4,  0.3, 0.8, 0.6)
+.degen_item_ids <- c(1L,  1L,  1L,    2L,  2L,  2L,   3L,  3L,  3L )
+.degen_worker_ids <- c(1L, 2L, 3L,   1L,  2L,  3L,   1L,  2L,  3L )
+
+test_that("one-way: phi unaffected by degenerate items", {
+  rd <- rating_data(.degen_ratings, .degen_item_ids, VERBOSE = FALSE)
+  rd_clean <- rating_data(
+    .degen_ratings[.degen_item_ids != 1],
+    .degen_item_ids[.degen_item_ids != 1],
+    VERBOSE = FALSE
+  )
+  fit       <- agreement(rd,       NUISANCE = "items", METHOD = "profile")
+  fit_clean <- agreement(rd_clean, NUISANCE = "items", METHOD = "profile")
+  expect_equal(fit$profile$precision, fit_clean$profile$precision, tolerance = 1e-6)
+})
+
+test_that("one-way: fit$data is original; fit$fit_data is filtered", {
+  rd  <- rating_data(.degen_ratings, .degen_item_ids, VERBOSE = FALSE)
+  fit <- agreement(rd, NUISANCE = "items", METHOD = "profile")
+  expect_equal(fit$data$n_items,         3L)
+  expect_equal(length(fit$data$ratings), 9L)
+  expect_equal(fit$data$degen_ids,       1L)
+  expect_equal(fit$fit_data$n_items,         2L)
+  expect_equal(length(fit$fit_data$ratings), 6L)
+  expect_equal(fit$fit_data$degen_ids,       integer(0))
+})
+
+test_that("two-way: degenerate items are passed to C++ (all items present)", {
+  skip_if_not_installed("AlgDesign")
+  dt <- sim_data(
+    J = 20, B = 5, AGREEMENT = 0.6, ALPHA = rep(0, 20),
+    DATA_TYPE = "continuous", SEED = 42
+  )
+  dt$rating[dt$id_item == 1] <- 0.5
+  rd_tw <- rating_data(dt$rating, dt$id_item, dt$id_worker, VERBOSE = FALSE)
+  expect_true(1L %in% rd_tw$degen_ids)
+  expect_no_error(
+    fit_tw <- agreement(rd_tw, NUISANCE = c("items", "workers"), METHOD = "profile")
+  )
+  expect_equal(fit_tw$data$n_items, 20L)
+  expect_equal(length(fit_tw$alpha), 20L)
+})
+
+test_that("inflated one-way: agreement adjusted upward by degenerate items", {
+  skip_if_not_installed("AlgDesign")
+  dt <- sim_data(
+    J = 20, B = 5, AGREEMENT = 0.6, ALPHA = rep(0, 20),
+    DATA_TYPE = "inflated", K0 = -2, K1 = 2, SEED = 1
+  )
+  dt$rating[dt$id_item == 1] <- 0
+  rd_inf <- rating_data(dt$rating, dt$id_item, VERBOSE = FALSE)
+  expect_equal(rd_inf$degen_ids, 1L)
+  n_degen <- length(rd_inf$degen_ids)
+  fit_inf <- agreement(rd_inf, METHOD = "profile", NUISANCE = "items")
+  fit_clean <- agreement(
+    rating_data(dt$rating[dt$id_item != 1], dt$id_item[dt$id_item != 1],
+                VERBOSE = FALSE),
+    METHOD = "profile", NUISANCE = "items"
+  )
+  expected <- (fit_clean$data$n_items * fit_clean$profile$agreement + n_degen) /
+    rd_inf$n_items
+  expect_equal(fit_inf$profile$agreement, expected, tolerance = 1e-6)
+})

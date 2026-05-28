@@ -79,7 +79,7 @@ test_that("agreement detects inflated data type", {
     SEED = 1
   )
   rd <- rating_data(dt$rating, dt$id_item, VERBOSE = FALSE)
-  fit <- agreement(rd)
+  fit <- agreement(rd, NUISANCE = "items")
   expect_equal(fit$data_type, "inflated")
 })
 
@@ -110,8 +110,8 @@ test_that("agreement stores method correctly for inflated data", {
     SEED = 1
   )
   rd <- rating_data(dt$rating, dt$id_item, VERBOSE = FALSE)
-  fit_p <- agreement(rd, METHOD = "profile")
-  fit_m <- agreement(rd, METHOD = "modified")
+  fit_p <- agreement(rd, METHOD = "profile", NUISANCE = "items")
+  fit_m <- agreement(rd, METHOD = "modified", NUISANCE = "items")
   expect_equal(fit_p$method, "profile")
   expect_equal(fit_m$method, "modified")
 })
@@ -347,7 +347,7 @@ test_that("get_ci inflated returns correct structure", {
     SEED = 1
   )
   rd <- rating_data(dt$rating, dt$id_item, VERBOSE = FALSE)
-  fit <- agreement(rd, METHOD = "modified")
+  fit <- agreement(rd, METHOD = "modified", NUISANCE = "items")
   ci <- confint(fit)
   expect_named(ci, c("parameters", "agreement"))
   expect_true(is.matrix(ci$parameters))
@@ -371,7 +371,7 @@ test_that("get_ci inflated CI contains estimate", {
     SEED = 1
   )
   rd <- rating_data(dt$rating, dt$id_item, VERBOSE = FALSE)
-  fit <- agreement(rd, METHOD = "modified")
+  fit <- agreement(rd, METHOD = "modified", NUISANCE = "items")
   ci <- confint(fit)
   p <- ci$parameters
   expect_true(p["phi", "2.5 %"] <= p["phi", "Estimate"] && p["phi", "Estimate"] <= p["phi", "97.5 %"])
@@ -391,7 +391,7 @@ test_that("get_ci one-sided has zero SE for the pinned cutpoint", {
     SEED = 1
   )
   rd_fk1 <- rating_data(dt_fk1$rating, dt_fk1$id_item, VERBOSE = FALSE)
-  fit_fk1 <- agreement(rd_fk1, METHOD = "modified")
+  fit_fk1 <- agreement(rd_fk1, METHOD = "modified", NUISANCE = "items")
   ci_fk1 <- confint(fit_fk1)
   expect_equal(ci_fk1$parameters["k1", "Std. Error"], 0)
   expect_true(ci_fk1$parameters["phi", "Std. Error"] > 0)
@@ -408,7 +408,7 @@ test_that("get_ci one-sided has zero SE for the pinned cutpoint", {
     SEED = 1
   )
   rd_fk0 <- rating_data(dt_fk0$rating, dt_fk0$id_item, VERBOSE = FALSE)
-  fit_fk0 <- agreement(rd_fk0, METHOD = "modified")
+  fit_fk0 <- agreement(rd_fk0, METHOD = "modified", NUISANCE = "items")
   ci_fk0 <- confint(fit_fk0)
   expect_equal(ci_fk0$parameters["k0", "Std. Error"], 0)
   expect_true(ci_fk0$parameters["phi", "Std. Error"] > 0)
@@ -441,13 +441,13 @@ test_that("inflated agreement estimate is in the right ballpark", {
     SEED = 7
   )
   rd <- rating_data(dt$rating, dt$id_item, VERBOSE = FALSE)
-  fit <- agreement(rd, METHOD = "modified")
+  fit <- agreement(rd, METHOD = "modified", NUISANCE = "items")
   expect_equal(fit$modified$agreement, agr_true, tolerance = 0.15)
 })
 
 # degenerate item handling -----------------------------------------------
 
-test_that("degenerate items are pre-screened before fitting", {
+test_that("rating_data detects degenerate items; agreement() pre-screens before fitting", {
   dt <- sim_data(
     J = J,
     B = B,
@@ -460,13 +460,12 @@ test_that("degenerate items are pre-screened before fitting", {
   )
   all_zero <- as.logical(tapply(dt$rating, dt$id_item, function(x) all(x == 0)))
   n_informative <- sum(!all_zero)
+  n_degen <- sum(all_zero)
   rd <- rating_data(dt$rating, dt$id_item, VERBOSE = FALSE)
-  expect_equal(rd$n_items, n_informative)
-  fit <- fit_inflated_profile(
-    Y = rd$ratings,
-    ITEM_INDS = rd$item_ids,
-    J = rd$n_items
-  )
+  expect_equal(rd$n_items, J)
+  expect_equal(length(rd$degen_ids), n_degen)
+  fit <- agreement(rd, METHOD = "profile", NUISANCE = "items")
+  expect_equal(fit$fit_data$n_items, n_informative)
   expect_equal(length(fit$alpha), n_informative)
 })
 
@@ -482,15 +481,18 @@ test_that("agreement over inflated data uses only non-degenerate items", {
     SEED = 1
   )
   rd <- rating_data(dt$rating, dt$id_item, VERBOSE = FALSE)
-  fit <- agreement(rd, METHOD = "profile")
+  n_degen <- length(rd$degen_ids)
+  keep <- !(rd$item_ids %in% rd$degen_ids)
+  fit_iids <- match(rd$item_ids[keep], sort(unique(rd$item_ids[keep])))
+  fit_J <- rd$n_items - n_degen
   pf <- fit_inflated_profile(
-    Y = rd$ratings,
-    ITEM_INDS = rd$item_ids,
-    J = rd$n_items
+    Y = rd$ratings[keep],
+    ITEM_INDS = fit_iids,
+    J = fit_J
   )
-  n_degen <- rd$n_degen
   raw_agr <- par2agr(pf$phi, ALPHA = pf$alpha, K0 = pf$k0, K1 = pf$k1)$agreement
-  expected <- (rd$n_items * raw_agr + n_degen) / (rd$n_items + n_degen)
+  expected <- (fit_J * raw_agr + n_degen) / rd$n_items
+  fit <- agreement(rd, METHOD = "profile", NUISANCE = "items")
   expect_equal(fit$profile$agreement, expected, tolerance = 1e-8)
 })
 
@@ -509,7 +511,7 @@ test_that("optimHess vcov matches numDeriv hessian", {
     SEED = 1
   )
   rd <- rating_data(dt$rating, dt$id_item, VERBOSE = FALSE)
-  fit <- agreement(rd, METHOD = "profile")
+  fit <- agreement(rd, METHOD = "profile", NUISANCE = "items")
   expect_equal(fit$vcov, fit$vcov, tolerance = 1e-4)
 
   pf <- AgreementPhi:::fit_inflated_profile(

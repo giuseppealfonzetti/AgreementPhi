@@ -20,7 +20,7 @@ reals in \verb{(0,1)}. Inflated interval: reals in \verb{[0,1]} with exact 0s or
 
 \item{ITEM_INDS}{Integer index vector of item allocations (same length as \code{RATINGS}).}
 
-\item{WORKER_INDS}{Integer index vector of worker allocations. \code{NULL} for one-way models.}
+\item{WORKER_INDS}{Integer index vector of worker allocations.}
 
 \item{ITEM_LABELS}{Optional character vector of item labels (same length as \code{RATINGS}).
 Each unique item index must map to exactly one label. When provided, label names
@@ -40,8 +40,9 @@ An S3 object of class \code{rating_data}.
 \description{
 Validates and preprocesses a raw ratings dataset. Returns a \code{rating_data}
 S3 object that can be passed to \code{\link[=agreement]{agreement()}}, \code{\link[=plot]{plot()}}, and \code{\link[=print]{print()}}.
-Degenerate items (all ratings identical) are automatically dropped in
-one-way models.
+Degenerate items (all ratings identical) are detected and their recoded
+indices stored in \verb{$degen_ids}; no observations are removed here.
+The decision to drop degenerate items before fitting is delegated to \code{\link[=agreement]{agreement()}}.
 }
 \examples{
 dt <- sim_data(J = 20, B = 5, AGREEMENT = 0.6,

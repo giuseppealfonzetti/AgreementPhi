@@ -69,21 +69,22 @@ test_that("rating_data detects continuous data correctly", {
   expect_equal(result$K, 1)
 })
 
-test_that("rating_data removes degenerate items", {
+test_that("rating_data detects degenerate items without removing them", {
   ratings <- c(1, 1, 2, 2, 3, 4, 5, 5, 5, 5, 3, 4)
   item_inds <- c(1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4)
   result <- rating_data(ratings, item_inds, VERBOSE = FALSE)
-  expect_equal(result$n_items, 3)
-  expect_equal(length(result$ratings), 9)
-  expect_true(all(result$item_ids == c(1, 1, 1, 2, 2, 2, 3, 3, 3)))
+  expect_equal(result$n_items, 4)
+  expect_equal(length(result$ratings), 12)
+  expect_equal(result$degen_ids, 3L)
 })
 
-test_that("rating_data drops all-zero items for inflated data", {
+test_that("rating_data detects all-zero inflated items without removing them", {
   ratings <- c(0, 0, 0, 0.3, 0.7, 0, 0, 0)
   item_inds <- c(1, 1, 1, 2, 2, 3, 3, 3)
   result <- rating_data(ratings, item_inds, VERBOSE = FALSE)
-  expect_equal(result$n_items, 1)
-  expect_equal(length(result$ratings), 2)
+  expect_equal(result$n_items, 3)
+  expect_equal(length(result$ratings), 8)
+  expect_equal(sort(result$degen_ids), c(1L, 3L))
 })
 
 test_that("rating_data computes average ratings per item correctly", {
@@ -123,10 +124,7 @@ test_that("rating_data VERBOSE produces messages", {
   ratings <- c(1, 2, 3, 4, 5, 6)
   item_inds <- c(1, 1, 2, 2, 3, 3)
   expect_message(rating_data(ratings, item_inds, VERBOSE = TRUE), "Detected")
-  expect_message(
-    rating_data(ratings, item_inds, VERBOSE = TRUE),
-    "non-degenerate items"
-  )
+  expect_message(rating_data(ratings, item_inds, VERBOSE = TRUE), "3 items")
 })
 
 test_that("rating_data requires numeric worker indices", {
@@ -263,7 +261,7 @@ test_that("rating_data errors on WORKER_LABELS without WORKER_INDS", {
   )
 })
 
-test_that("rating_data drops labels for degenerate items", {
+test_that("rating_data retains labels for degenerate items", {
   ratings <- c(0.5, 0.5, 0.1, 0.9, 0.3, 0.7)
   item_inds <- c(1, 1, 2, 2, 3, 3)
   labels <- c("Degen", "Degen", "B", "B", "C", "C")
@@ -273,6 +271,7 @@ test_that("rating_data drops labels for degenerate items", {
     ITEM_LABELS = labels,
     VERBOSE = FALSE
   )
-  expect_equal(result$n_items, 2)
-  expect_equal(result$item_labels, c("B", "C"))
+  expect_equal(result$n_items, 3)
+  expect_equal(result$item_labels, c("Degen", "B", "C"))
+  expect_equal(result$degen_ids, 1L)
 })
