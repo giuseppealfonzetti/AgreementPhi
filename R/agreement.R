@@ -112,27 +112,69 @@ agreement <- function(
   params_type <- validate_params_type(NUISANCE, "phi")
   CONTROL <- validate_cpp_control(CONTROL)
 
+  if (DATA$ave_ratings_per_item^3 < DATA$n_items && VERBOSE) {
+    message("Average number of ratings per item is lower than recommended")
+  }
+
+  if (VERBOSE) {
+    message("\nMODEL PARAMETERS")
+    message(
+      " - Constant effects: ",
+      paste(params_type$constant, collapse = ", ")
+    )
+    message(
+      " - Nuisance effects: ",
+      paste(params_type$nuisance, collapse = ", ")
+    )
+  }
+
+  is_oneway <- !("workers" %in% params_type$nuisance)
+  n_degen <- length(DATA$degen_ids)
   if (DATA$data_type == "inflated") {
     if (!is.null(DATA$worker_ids)) {
       stop(
-        "Inflated interval model is one-way only; DATA must have no worker indices."
+        "Inflated interval model is one-way only."
       )
+    }
+
+    if (n_degen > 0) {
+      keep <- !(DATA$item_ids %in% DATA$degen_ids)
+      fit_ratings <- DATA$ratings[keep]
+      old_iids <- DATA$item_ids[keep]
+      fit_item_ids <- match(old_iids, sort(unique(old_iids)))
+      fit_J <- DATA$n_items - n_degen
+      fit_data_inf <- DATA
+      fit_data_inf$ratings <- fit_ratings
+      fit_data_inf$item_ids <- fit_item_ids
+      fit_data_inf$n_items <- fit_J
+      fit_data_inf$degen_ids <- integer(0)
+      fit_data_inf$ave_ratings_per_item <- mean(table(fit_item_ids))
+      if (!is.null(DATA$item_labels)) {
+        fit_data_inf$item_labels <- DATA$item_labels[
+          setdiff(seq_len(DATA$n_items), DATA$degen_ids)
+        ]
+      }
+    } else {
+      fit_ratings <- DATA$ratings
+      fit_item_ids <- DATA$item_ids
+      fit_J <- DATA$n_items
+      fit_data_inf <- DATA
     }
 
     if (METHOD == "modified") {
       inflated_fit <- fit_inflated_mpl(
-        Y = DATA$ratings,
-        ITEM_INDS = DATA$item_ids,
-        J = DATA$n_items,
+        Y = fit_ratings,
+        ITEM_INDS = fit_item_ids,
+        J = fit_J,
         PROF_SEARCH_RANGE = CONTROL$PROF_SEARCH_RANGE,
         PROF_MAX_ITER = CONTROL$PROF_MAX_ITER,
         BOUNDARY = CONTROL$BOUNDARY
       )
     } else {
       inflated_fit <- fit_inflated_profile(
-        Y = DATA$ratings,
-        ITEM_INDS = DATA$item_ids,
-        J = DATA$n_items,
+        Y = fit_ratings,
+        ITEM_INDS = fit_item_ids,
+        J = fit_J,
         PROF_SEARCH_RANGE = CONTROL$PROF_SEARCH_RANGE,
         PROF_MAX_ITER = CONTROL$PROF_MAX_ITER,
         BOUNDARY = CONTROL$BOUNDARY
@@ -140,14 +182,12 @@ agreement <- function(
     }
 
     ref <- if (METHOD == "modified") inflated_fit$ref_fit else inflated_fit
-    n_degen <- if (!is.null(DATA$n_degen)) DATA$n_degen else 0L
-    adj_agr <- function(agr) {
-      (DATA$n_items * agr + n_degen) / (DATA$n_items + n_degen)
-    }
+    adj_agr <- function(agr) (fit_J * agr + n_degen) / DATA$n_items
 
     out <- structure(
       list(
         data = DATA,
+        fit_data = fit_data_inf,
         data_type = "inflated",
         method = METHOD,
         params_type = params_type,
@@ -168,7 +208,7 @@ agreement <- function(
           )
         ),
         modified = list(
-          precision = if (METHOD == "modified") inflated_fit$phi else NA_real_,
+          precision = if (METHOD == "modified") inflated_fit$phi else NA,
           agreement = if (METHOD == "modified") {
             adj_agr(
               par2agr(
@@ -179,7 +219,7 @@ agreement <- function(
               )$agreement
             )
           } else {
-            NA_real_
+            NA
           }
         ),
         loglik = inflated_fit$loglik,
@@ -197,27 +237,50 @@ agreement <- function(
     return(out)
   }
 
-  if (DATA$ave_ratings_per_item^3 < DATA$n_items && VERBOSE) {
-    message("Average number of ratings per item is lower than recommended")
-  }
-
-  if (VERBOSE) {
-    message("\nMODEL PARAMETERS")
-    message(
-      " - Constant effects: ",
-      paste(params_type$constant, collapse = ", ")
-    )
-    message(
-      " - Nuisance effects: ",
-      paste(params_type$nuisance, collapse = ", ")
-    )
+  if (is_oneway && n_degen > 0) {
+    keep <- !(DATA$item_ids %in% DATA$degen_ids)
+    fit_ratings <- DATA$ratings[keep]
+    old_iids <- DATA$item_ids[keep]
+    fit_item_ids <- match(old_iids, sort(unique(old_iids)))
+    fit_J <- DATA$n_items - n_degen
+    if (!is.null(DATA$worker_ids)) {
+      old_wids <- DATA$worker_ids[keep]
+      fit_worker_ids <- match(old_wids, sort(unique(old_wids)))
+      fit_W <- length(unique(fit_worker_ids))
+    } else {
+      fit_worker_ids <- NULL
+      fit_W <- NULL
+    }
+    fit_data <- DATA
+    fit_data$ratings <- fit_ratings
+    fit_data$item_ids <- fit_item_ids
+    fit_data$n_items <- fit_J
+    fit_data$degen_ids <- integer(0)
+    fit_data$ave_ratings_per_item <- mean(table(fit_item_ids))
+    fit_data$worker_ids <- fit_worker_ids
+    fit_data$n_workers <- fit_W
+    if (!is.null(fit_W)) {
+      fit_data$ave_ratings_per_worker <- mean(table(fit_worker_ids))
+    }
+    if (!is.null(DATA$item_labels)) {
+      fit_data$item_labels <- DATA$item_labels[
+        setdiff(seq_len(DATA$n_items), DATA$degen_ids)
+      ]
+    }
+  } else {
+    fit_ratings <- DATA$ratings
+    fit_item_ids <- DATA$item_ids
+    fit_J <- DATA$n_items
+    fit_worker_ids <- DATA$worker_ids
+    fit_W <- DATA$n_workers
+    fit_data <- DATA
   }
 
   if (is.null(ALPHA_START)) {
-    ALPHA_START <- init_alpha(DATA$ratings, DATA$item_ids, DATA$n_items, -5, 5)
+    ALPHA_START <- init_alpha(fit_ratings, fit_item_ids, fit_J, -5, 5)
   }
   if (is.null(BETA_START)) {
-    BETA_START <- rep(0, DATA$n_workers - 1)
+    BETA_START <- if (is.null(fit_W)) numeric(0) else rep(0, fit_W - 1)
   }
   if (is.null(PHI_START)) {
     PHI_START <- agr2prec(.5)
@@ -236,16 +299,16 @@ agreement <- function(
   )]
   args <- c(
     list(
-      Y = DATA$ratings * 1.0,
-      ITEM_INDS = DATA$item_ids,
-      WORKER_INDS = DATA$worker_ids,
+      Y = fit_ratings * 1.0,
+      ITEM_INDS = fit_item_ids,
+      WORKER_INDS = if (is.null(fit_worker_ids)) rep(1L, length(fit_ratings)) else fit_worker_ids,
       ALPHA_START = ALPHA_START,
       BETA_START = c(0, BETA_START),
       TAU_START = TAU,
       PHI_START = PHI_START,
       K = DATA$K,
-      J = DATA$n_items,
-      W = DATA$n_workers,
+      J = fit_J,
+      W = if (is.null(fit_W)) 1L else fit_W,
       METHOD = METHOD,
       DATA_TYPE = DATA$data_type,
       ITEMS_NUISANCE = "items" %in% params_type$nuisance,
@@ -260,6 +323,7 @@ agreement <- function(
   out <- structure(
     list(
       data = DATA,
+      fit_data = fit_data,
       data_type = DATA$data_type,
       method = METHOD,
       params_type = params_type,

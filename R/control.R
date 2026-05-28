@@ -3,13 +3,14 @@
 #' @description
 #' Validates and preprocesses a raw ratings dataset. Returns a `rating_data`
 #' S3 object that can be passed to [agreement()], [plot()], and [print()].
-#' Degenerate items (all ratings identical) are automatically dropped in
-#' one-way models.
+#' Degenerate items (all ratings identical) are detected and their recoded
+#' indices stored in `$degen_ids`; no observations are removed here.
+#' The decision to drop degenerate items before fitting is delegated to [agreement()].
 #'
 #' @param RATINGS Ratings vector. Ordinal: integers in \{1,...,K\}. Continuous:
 #'   reals in `(0,1)`. Inflated interval: reals in `[0,1]` with exact 0s or 1s.
 #' @param ITEM_INDS Integer index vector of item allocations (same length as `RATINGS`).
-#' @param WORKER_INDS Integer index vector of worker allocations. `NULL` for one-way models.
+#' @param WORKER_INDS Integer index vector of worker allocations.
 #' @param ITEM_LABELS Optional character vector of item labels (same length as `RATINGS`).
 #'   Each unique item index must map to exactly one label. When provided, label names
 #'   are used for `alpha` coefficients in [coef()].
@@ -36,8 +37,9 @@ rating_data <- function(
   ITEM_LABELS = NULL,
   WORKER_LABELS = NULL,
   K = NULL,
-  VERBOSE = TRUE
+  VERBOSE = FALSE
 ) {
+  # internal function to detect data type (ordinal, interval, interval with inflation)
   detect_type <- function(r) {
     if (all(r == as.integer(r))) {
       if (min(r) != 1) {
@@ -63,6 +65,7 @@ rating_data <- function(
     "continuous"
   }
 
+  # check args
   stopifnot(is.numeric(RATINGS))
   stopifnot(is.numeric(ITEM_INDS))
   stopifnot(all(ITEM_INDS == as.integer(ITEM_INDS)))
@@ -112,40 +115,39 @@ rating_data <- function(
   }
 
   out <- list()
-
-  if (is.null(WORKER_INDS)) {
-    degen <- as.numeric(which(sapply(split(RATINGS, ITEM_INDS), function(x) {
-      all(x == x[1])
-    })))
-    keep <- !(ITEM_INDS %in% degen)
-    out$ratings <- RATINGS[keep] * 1.0
-    out$item_ids <- recode(ITEM_INDS[keep])
-    out$n_degen <- length(degen)
-    if (!is.null(ITEM_LABELS)) {
-      out$item_labels <- extract_labels(ITEM_INDS[keep], ITEM_LABELS[keep])
-    }
-  } else {
-    out$ratings <- RATINGS * 1.0
-    out$item_ids <- recode(ITEM_INDS)
+  out$ratings <- RATINGS * 1.0
+  out$item_ids <- recode(ITEM_INDS)
+  if (!is.null(WORKER_INDS)) {
     out$worker_ids <- recode(WORKER_INDS)
-    if (!is.null(ITEM_LABELS)) {
-      out$item_labels <- extract_labels(ITEM_INDS, ITEM_LABELS)
-    }
-    if (!is.null(WORKER_LABELS)) {
-      out$worker_labels <- extract_labels(WORKER_INDS, WORKER_LABELS)
-    }
   }
 
-  out$n_items <- length(unique(out$item_ids))
+  out$degen_ids <- as.integer(which(sapply(
+    split(out$ratings, out$item_ids),
+    function(x) all(x == x[1])
+  )))
 
-  if (is.null(WORKER_INDS)) {
-    if (VERBOSE) message(" - Detected ", out$n_items, " non-degenerate items.")
-  } else {
+  out$n_items <- length(unique(out$item_ids))
+  if (!is.null(WORKER_INDS)) {
     out$n_workers <- length(unique(out$worker_ids))
-    if (VERBOSE) {
+  }
+
+  if (!is.null(ITEM_LABELS)) {
+    out$item_labels <- extract_labels(ITEM_INDS, ITEM_LABELS)
+  }
+  if (!is.null(WORKER_LABELS)) {
+    out$worker_labels <- extract_labels(WORKER_INDS, WORKER_LABELS)
+  }
+
+  if (VERBOSE) {
+    n_degen <- length(out$degen_ids)
+    degen_note <- if (n_degen > 0) paste0(" (", n_degen, " degenerate)") else ""
+    if (is.null(WORKER_INDS)) {
+      message(" - Detected ", out$n_items, degen_note, " items.")
+    } else {
       message(
         " - Detected ",
         out$n_items,
+        degen_note,
         " items and ",
         out$n_workers,
         " workers."
@@ -181,7 +183,7 @@ rating_data <- function(
     out$K <- switch(
       data_type_early,
       ordinal = max(out$ratings),
-      inflated = NA_integer_,
+      inflated = NA,
       continuous = 1L
     )
     if (VERBOSE) {
@@ -205,15 +207,15 @@ rating_data <- function(
 
   if (VERBOSE) {
     message(
-      " - Average number of observed ratings per item is ",
+      " - Average budget per item is ",
       round(out$ave_ratings_per_item, 2),
-      "."
+      " ratings."
     )
     if (!is.null(out$worker_ids)) {
       message(
-        " - Average number of observed ratings per worker is ",
+        " - Average workload per worker is ",
         round(out$ave_ratings_per_worker, 2),
-        "."
+        " items."
       )
     }
   }

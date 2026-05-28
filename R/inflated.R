@@ -56,7 +56,13 @@ inflated_add_vcov <- function(
     val <- tryCatch(OBJ(x), error = function(e) NA_real_)
     if (is.finite(val)) val else NA_real_
   }
-  H <- stats::optimHess(par, safe_obj)
+  H <- tryCatch(
+    stats::optimHess(par, safe_obj),
+    error = function(e) tryCatch(
+      stats::optimHess(par, safe_obj, control = list(ndeps = rep(1e-5, p))),
+      error = function(e2) matrix(NA_real_, p, p)
+    )
+  )
   V_un <- tryCatch(
     solve(H),
     error = function(e) {
@@ -278,10 +284,22 @@ fit_inflated_mpl <- function(
   k0 <- p$k0
   k1 <- p$k1
 
-  final <- cpp_inflated_mpl(
+  alpha_synced <- cpp_inflated_profile(
     as.numeric(Y),
     as.integer(ITEM_INDS),
     as.numeric(alpha_warm),
+    phi,
+    k0,
+    k1,
+    J,
+    PROF_SEARCH_RANGE,
+    as.integer(PROF_MAX_ITER)
+  )$alpha
+
+  final <- cpp_inflated_mpl(
+    as.numeric(Y),
+    as.integer(ITEM_INDS),
+    as.numeric(alpha_synced),
     as.numeric(REF_FIT$alpha),
     phi,
     k0,
@@ -295,23 +313,60 @@ fit_inflated_mpl <- function(
   )
   alpha_fixed <- final$alpha
 
-  frozen_obj <- function(par) {
-    p <- enc$decode(par)
-    -cpp_inflated_mpl(
-      as.numeric(Y),
-      as.integer(ITEM_INDS),
-      as.numeric(alpha_fixed),
-      as.numeric(REF_FIT$alpha),
-      p$phi,
-      p$k0,
-      p$k1,
-      REF_FIT$phi,
-      REF_FIT$k0,
-      REF_FIT$k1,
-      J,
-      PROF_SEARCH_RANGE,
-      as.integer(PROF_MAX_ITER)
-    )$ll
+  mpl_ok <- is.finite(final$ll)
+  if (!mpl_ok) {
+    warning(
+      "Modified profile likelihood is degenerate; ",
+      "falling back to profile likelihood estimates."
+    )
+    phi         <- REF_FIT$phi
+    k0          <- REF_FIT$k0
+    k1          <- REF_FIT$k1
+    alpha_fixed <- REF_FIT$alpha
+    final       <- list(
+      ll         = REF_FIT$loglik,
+      alpha      = REF_FIT$alpha,
+      profile_ll = REF_FIT$loglik,
+      correction = NA_real_
+    )
+    opt$par         <- REF_FIT$par
+    opt$convergence <- 1L
+  }
+
+  frozen_obj <- if (mpl_ok) {
+    function(par) {
+      p <- enc$decode(par)
+      -cpp_inflated_mpl(
+        as.numeric(Y),
+        as.integer(ITEM_INDS),
+        as.numeric(alpha_fixed),
+        as.numeric(REF_FIT$alpha),
+        p$phi,
+        p$k0,
+        p$k1,
+        REF_FIT$phi,
+        REF_FIT$k0,
+        REF_FIT$k1,
+        J,
+        PROF_SEARCH_RANGE,
+        as.integer(PROF_MAX_ITER)
+      )$ll
+    }
+  } else {
+    function(par) {
+      p <- enc$decode(par)
+      -cpp_inflated_profile(
+        as.numeric(Y),
+        as.integer(ITEM_INDS),
+        as.numeric(alpha_fixed),
+        p$phi,
+        p$k0,
+        p$k1,
+        J,
+        PROF_SEARCH_RANGE,
+        as.integer(PROF_MAX_ITER)
+      )$ll
+    }
   }
 
   fit <- structure(

@@ -1,11 +1,29 @@
 #' @export
 print.rating_data <- function(x, ...) {
-  cat("Input data:", x$data_type, "\n")
-  cat("  items:  ", x$n_items, "\n")
-  if (!is.null(x$n_workers)) {
-    cat("  workers:", x$n_workers, "\n")
+  cat("- Data type:", x$data_type, "\n")
+  if (identical(x$data_type, "inflated")) {
+    cat(
+      "- Inflation: zeros =",
+      paste0(round(100 * mean(x$ratings == 0), 1), "%"),
+      "/ ones =",
+      paste0(round(100 * mean(x$ratings == 1), 1), "%"),
+      "\n"
+    )
   }
-  cat("  n:      ", length(x$ratings), "\n")
+  n_degen <- length(x$degen_ids)
+  if (n_degen > 0) {
+    cat("- Items:", x$n_items, "(", n_degen, "degenerate )\n")
+  } else {
+    cat("- Items:", x$n_items, "\n")
+  }
+  if (!is.null(x$n_workers)) {
+    cat("- Workers:", x$n_workers, "\n")
+  }
+  cat("- Average budget per item:", round(x$ave_ratings_per_item, 2), "\n")
+  if (!is.null(x$ave_ratings_per_worker)) {
+    cat("- Average load per worker:", round(x$ave_ratings_per_worker, 2), "\n")
+  }
+  cat("- n:", length(x$ratings), "\n")
   invisible(x)
 }
 
@@ -99,16 +117,56 @@ coef.agreement_fit <- function(object, ...) {
     out <- c(out, k0 = unname(object$k0), k1 = unname(object$k1))
   }
 
-  alpha_names <- if (!is.null(object$data$item_labels)) {
-    paste0("alpha_", object$data$item_labels)
+  data_ref <- object$data
+  n_total <- data_ref$n_items
+  degen_ids <- data_ref$degen_ids
+
+  if (length(object$alpha) < n_total) {
+    alpha_full <- rep(NA_real_, n_total)
+    alpha_full[setdiff(seq_len(n_total), degen_ids)] <- object$alpha
+    if (object$data_type == "inflated") {
+      interior_degen <- integer(0)
+      for (di in degen_ids) {
+        vals <- data_ref$ratings[data_ref$item_ids == di]
+        if (all(vals == 0)) {
+          alpha_full[di] <- -Inf
+        } else if (all(vals == 1)) {
+          alpha_full[di] <- Inf
+        } else {
+          interior_degen <- c(interior_degen, di)
+        }
+      }
+      if (length(interior_degen) > 0) {
+        int_ratings <- data_ref$ratings[data_ref$item_ids %in% interior_degen]
+        int_item_ids <- match(data_ref$item_ids[data_ref$item_ids %in% interior_degen],
+                              interior_degen)
+        int_start <- tapply(int_ratings, int_item_ids, function(v) stats::qlogis(mean(v)))
+        int_alphas <- cpp_inflated_profile(
+          as.numeric(int_ratings),
+          as.integer(int_item_ids),
+          as.numeric(int_start),
+          phi,
+          object$k0,
+          object$k1,
+          length(interior_degen)
+        )$alpha
+        alpha_full[interior_degen] <- int_alphas
+      }
+    }
   } else {
-    paste0("alpha_", seq_along(object$alpha))
+    alpha_full <- object$alpha
   }
-  out <- c(out, setNames(object$alpha, alpha_names))
+
+  alpha_names <- if (!is.null(data_ref$item_labels)) {
+    paste0("alpha_", data_ref$item_labels)
+  } else {
+    paste0("alpha_", seq_len(n_total))
+  }
+  out <- c(out, setNames(alpha_full, alpha_names))
 
   if ("workers" %in% object$params_type$nuisance && !is.null(object$beta)) {
-    beta_names <- if (!is.null(object$data$worker_labels)) {
-      paste0("beta_", object$data$worker_labels)
+    beta_names <- if (!is.null(object$fit_data$worker_labels)) {
+      paste0("beta_", object$fit_data$worker_labels)
     } else {
       paste0("beta_", seq_along(object$beta))
     }

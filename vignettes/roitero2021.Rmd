@@ -1,0 +1,146 @@
+---
+title: "Analysing crowdsourced relevance assessments (Roitero et al. 2021)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{roitero2021}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## The data
+
+The `roitero2021` dataset bundled with `AgreementPhi` is a subset of the
+crowdsourcing experiment in Roitero et al. (2021), restricted to assessments
+collected on the 100-point continuous (S100) relevance scale. Each row is one
+worker's `relevance_score` for one `document_id` within a `topic_id`.
+
+```{r load}
+library(AgreementPhi)
+data(roitero2021)
+str(roitero2021)
+```
+
+For simplicity, here we focus on a single topic and look at how the related items were assessed.
+
+```{r topic}
+topic <- subset(roitero2021, topic_id == 403)
+nrow(topic)
+```
+
+We retain only workers who "correctly" responded to the gold items
+(high-relevance `"H"` above threshold and non-relevant `"N"` below threshold) and
+then keep only non-gold items.
+
+```{r filter}
+
+select_workers <- intersect(
+  unique(topic[topic$relevance_score > 75 & topic$gold == "H", ]$unit_id),
+  unique(topic[topic$relevance_score < 25 & topic$gold == "N", ]$unit_id)
+)
+
+topic <- subset(topic, unit_id %in% select_workers & gold == "null")
+nrow(topic)
+```
+
+
+As scores wer collected on a 0–100 scale, we map them onto `[0,1]` by simply dividing by 100. To build a `rating_data` object we use the `rating_data()` function.
+Since exact 0s and 100s are present in the data, the function automatically detects the inflated beta ratings.
+
+```{r rating_data}
+ratings <- topic$relevance_score / 100
+items <- as.integer(factor(topic$document_id))
+rd <- rating_data(ratings, items)
+rd
+```
+
+As printed, the checks detected two degenerate items. These correspond to documents where the same value is given by all raters
+
+```{r}
+degen_docs <- levels(factor(topic$document_id))[rd$degen_ids]
+d <- subset(topic, document_id %in% degen_docs, select = c(document_id, relevance_score))
+d[order(d$document_id), ]
+```
+
+
+
+## Fitting the agreement model
+
+The inflated interval model is a one-way model: the item effects are profiled
+out as nuisance parameters. The argument `METHOD = "modified"` uses the modified profile likelihood as objective function to optimize
+
+```{r fit}
+fit <- agreement(rd, NUISANCE = "items", METHOD = "modified")
+```
+
+We can extract coefficients with the familiar `coef()` method
+
+```{r}
+coef(fit)[1:10]
+```
+
+where alphas for degenrate items are reported with infinite values
+
+```{r}
+coef(fit)[paste0("alpha_", rd$degen_ids)]
+```
+
+
+## Confidence intervals
+
+The `confint()` method returns the parameter-scale estimates (`phi`, `k0`, `k1`)
+alongside the agreement-scale estimate.
+
+```{r confint}
+confint(fit)
+```
+
+
+
+## Item effects
+
+The original data also contain TREC labels, which correspond to evaluations given by experts on a binary scale (relevant = 1 / non-relevant = 0). We can plot the estimated $\alpha$ vector to visualise how the model captured the different relevance levels across items
+
+```{r item-effects, fig.width=6, fig.height=5}
+doc_levels <- levels(factor(topic$document_id))
+alphas <- coef(fit)[grep("^alpha", names(coef(fit)))]
+trec <- tapply(topic$trec, topic$document_id, function(x) x[!is.na(x)][1])
+boxplot(
+  alphas ~ factor(trec[doc_levels]),
+  xlab = "TREC", 
+  ylab = "Item effect",
+  col = c("#F28E2B", "#4E79A7"))
+```
+
+## Agreement across topics
+
+```{r all-topics, fig.width=7, fig.height=5}
+topics <- sort(unique(roitero2021$topic_id))
+res <- do.call(rbind, lapply(topics, function(tid) {
+  d <- subset(roitero2021, topic_id == tid)
+  gw <- intersect(
+    unique(d[d$relevance_score > 75 & d$gold == "H", ]$unit_id),
+    unique(d[d$relevance_score < 25 & d$gold == "N", ]$unit_id)
+  )
+  d <- subset(d, unit_id %in% gw & gold == "null")
+  ci <- confint(agreement(
+    rating_data(d$relevance_score / 100, as.integer(factor(d$document_id)), VERBOSE = FALSE),
+    NUISANCE = "items"
+  ))$agreement
+  c(agr = ci["agreement", "Estimate"], lo = ci["agreement", "2.5 %"], hi = ci["agreement", "97.5 %"])
+}))
+
+idx <- seq_along(topics)
+plot(idx, res[, "agr"],
+  ylim = range(res[, c("lo", "hi")]), xaxt = "n",
+  xlab = "Topic", ylab = "Agreement", pch = 19,
+  col = "#4E79A7", bty = "l")
+axis(1, at = idx, labels = topics, las = 2)
+segments(idx, res[, "lo"], idx, res[, "hi"], col = "#4E79A7")
+```
