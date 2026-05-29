@@ -11,7 +11,7 @@ agreement(
   BETA_START = NULL,
   TAU = NULL,
   PHI_START = NULL,
-  NUISANCE = c("items", "workers"),
+  NUISANCE = c("items"),
   CONTROL = list(),
   VERBOSE = FALSE
 )
