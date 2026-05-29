@@ -13,7 +13,6 @@ Suggests:
     knitr (>= 1.50),
     rmarkdown (>= 2.29),
     AlgDesign (>= 1.2.1.2)
-LazyData: true
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -27,5 +26,5 @@ Imports:
 URL: https://github.com/giuseppealfonzetti/AgreementPhi, https://giuseppealfonzetti.github.io/AgreementPhi/
 BugReports: https://github.com/giuseppealfonzetti/AgreementPhi/issues
 VignetteBuilder: knitr
-Depends: 
+Depends:
     R (>= 3.5)

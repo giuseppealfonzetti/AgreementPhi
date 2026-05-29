@@ -11,7 +11,7 @@ rating_data(
   ITEM_LABELS = NULL,
   WORKER_LABELS = NULL,
   K = NULL,
-  VERBOSE = TRUE
+  VERBOSE = FALSE
 )
 }
 \arguments{
