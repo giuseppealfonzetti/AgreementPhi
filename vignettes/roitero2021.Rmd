@@ -2,7 +2,7 @@
 title: "Analysing crowdsourced relevance assessments (Roitero et al. 2021)"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{roitero2021}
+  %\VignetteIndexEntry{Analysing crowdsourced relevance assessments (Roitero et al. 2021)}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -12,18 +12,25 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+library(AgreementPhi)
+roitero2021 <- tryCatch(
+  download_roitero2021(),
+  error = function(e) NULL
+)
+has_data <- !is.null(roitero2021)
+knitr::opts_chunk$set(eval = has_data)
 ```
 
 ## The data
 
-The `roitero2021` dataset bundled with `AgreementPhi` is a subset of the
-crowdsourcing experiment in Roitero et al. (2021), restricted to assessments
-collected on the 100-point continuous (S100) relevance scale. Each row is one
-worker's `relevance_score` for one `document_id` within a `topic_id`.
+The `roitero2021` dataset is a subset of the crowdsourcing experiment in
+Roitero et al. (2021), restricted to assessments collected on the 100-point
+continuous (S100) relevance scale. Each row is one worker's `relevance_score`
+for one `document_id` within a `topic_id`. The data are fetched on demand from
+the [upstream repository](https://github.com/KevinRoitero/CrowdsourcingRelevanceScales).
 
 ```{r load}
-library(AgreementPhi)
-data(roitero2021)
+roitero2021 <- download_roitero2021()
 str(roitero2021)
 ```
 
@@ -41,8 +48,8 @@ then keep only non-gold items.
 ```{r filter}
 
 select_workers <- intersect(
-  unique(topic[topic$relevance_score > 75 & topic$gold == "H", ]$unit_id),
-  unique(topic[topic$relevance_score < 25 & topic$gold == "N", ]$unit_id)
+  unique(topic[topic$relevance_score > 50 & topic$gold == "H", ]$unit_id),
+  unique(topic[topic$relevance_score < 50 & topic$gold == "N", ]$unit_id)
 )
 
 topic <- subset(topic, unit_id %in% select_workers & gold == "null")
@@ -50,7 +57,7 @@ nrow(topic)
 ```
 
 
-As scores wer collected on a 0–100 scale, we map them onto `[0,1]` by simply dividing by 100. To build a `rating_data` object we use the `rating_data()` function.
+As scores were collected on a 0–100 scale, we map them onto `[0,1]` by simply dividing by 100. To build a `rating_data` object we use the `rating_data()` function.
 Since exact 0s and 100s are present in the data, the function automatically detects the inflated beta ratings.
 
 ```{r rating_data}
@@ -73,13 +80,13 @@ d[order(d$document_id), ]
 ## Fitting the agreement model
 
 The inflated interval model is a one-way model: the item effects are profiled
-out as nuisance parameters. The argument `METHOD = "modified"` uses the modified profile likelihood as objective function to optimize
+out as nuisance parameters. The argument `METHOD = "modified"` denotes that the modified profile likelihood is used for estimation
 
 ```{r fit}
 fit <- agreement(rd, NUISANCE = "items", METHOD = "modified")
 ```
 
-We can extract coefficients with the familiar `coef()` method
+We can extract estimated coefficients with the familiar `coef()` method
 
 ```{r}
 coef(fit)[1:10]
@@ -91,11 +98,8 @@ where alphas for degenrate items are reported with infinite values
 coef(fit)[paste0("alpha_", rd$degen_ids)]
 ```
 
-
-## Confidence intervals
-
-The `confint()` method returns the parameter-scale estimates (`phi`, `k0`, `k1`)
-alongside the agreement-scale estimate.
+The `confint()` method returns the confidence intervals for parameter estimates (`phi`, `k0`, `k1`)
+as well as for agreement. Note that, for the latter, intervals are constructed via delta method
 
 ```{r confint}
 confint(fit)
@@ -118,29 +122,3 @@ boxplot(
   col = c("#F28E2B", "#4E79A7"))
 ```
 
-## Agreement across topics
-
-```{r all-topics, fig.width=7, fig.height=5}
-topics <- sort(unique(roitero2021$topic_id))
-res <- do.call(rbind, lapply(topics, function(tid) {
-  d <- subset(roitero2021, topic_id == tid)
-  gw <- intersect(
-    unique(d[d$relevance_score > 75 & d$gold == "H", ]$unit_id),
-    unique(d[d$relevance_score < 25 & d$gold == "N", ]$unit_id)
-  )
-  d <- subset(d, unit_id %in% gw & gold == "null")
-  ci <- confint(agreement(
-    rating_data(d$relevance_score / 100, as.integer(factor(d$document_id)), VERBOSE = FALSE),
-    NUISANCE = "items"
-  ))$agreement
-  c(agr = ci["agreement", "Estimate"], lo = ci["agreement", "2.5 %"], hi = ci["agreement", "97.5 %"])
-}))
-
-idx <- seq_along(topics)
-plot(idx, res[, "agr"],
-  ylim = range(res[, c("lo", "hi")]), xaxt = "n",
-  xlab = "Topic", ylab = "Agreement", pch = 19,
-  col = "#4E79A7", bty = "l")
-axis(1, at = idx, labels = topics, las = 2)
-segments(idx, res[, "lo"], idx, res[, "hi"], col = "#4E79A7")
-```

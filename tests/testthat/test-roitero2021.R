@@ -1,4 +1,6 @@
-data(roitero2021)
+skip_on_cran()
+skip_if_offline()
+roitero2021 <- download_roitero2021()
 
 for (tid in sort(unique(roitero2021$topic_id))) {
   local({
