@@ -17,8 +17,8 @@ namespace AgreementPhi{
             const double Y, 
             const double MU,
             const double PHI,
-            const std::vector<double> TAU,
-            double &DMU, 
+            const std::vector<double>& TAU,
+            double &DMU,
             double &DMU2, 
             const int GRADFLAG
         );
@@ -29,7 +29,7 @@ namespace AgreementPhi{
             const double PHI0,
             const double MU1,
             const double PHI1,
-            const std::vector<double> TAU,
+            const std::vector<double>& TAU,
             const int K
         );
 

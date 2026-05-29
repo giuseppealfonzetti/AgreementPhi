@@ -72,7 +72,7 @@ namespace AgreementPhi{
                 const std::vector<std::vector<int>> CAT_DICT,
                 const std::vector<double> ALPHA,
                 const std::vector<double> BETA,
-                const std::vector<double> TAU,
+                const std::vector<double>& TAU,
                 const double PHI,
                 const int J,
                 const int W,
