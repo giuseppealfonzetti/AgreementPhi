@@ -12,3 +12,4 @@
 ^docs$
 ^pkgdown$
 ^codecov\.yml$
+^tests/testthat/test-roitero2021\.R$

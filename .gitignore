@@ -12,3 +12,4 @@ docs
 ref/
 *.pdf
 data-raw/
+tests/testthat/test-roitero2021.R
