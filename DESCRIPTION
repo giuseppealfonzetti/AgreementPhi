@@ -26,3 +26,5 @@ Imports:
 URL: https://github.com/giuseppealfonzetti/AgreementPhi, https://giuseppealfonzetti.github.io/AgreementPhi/
 BugReports: https://github.com/giuseppealfonzetti/AgreementPhi/issues
 VignetteBuilder: knitr
+Depends:
+    R (>= 3.5)

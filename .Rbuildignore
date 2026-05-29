@@ -1,3 +1,4 @@
+^data-raw$
 ^AgreementPhi\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
@@ -11,3 +12,4 @@
 ^docs$
 ^pkgdown$
 ^codecov\.yml$
+^tests/testthat/test-roitero2021\.R$

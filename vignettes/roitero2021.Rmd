@@ -1,0 +1,124 @@
+---
+title: "Analysing crowdsourced relevance assessments (Roitero et al. 2021)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Analysing crowdsourced relevance assessments (Roitero et al. 2021)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(AgreementPhi)
+roitero2021 <- tryCatch(
+  download_roitero2021(),
+  error = function(e) NULL
+)
+has_data <- !is.null(roitero2021)
+knitr::opts_chunk$set(eval = has_data)
+```
+
+## The data
+
+The `roitero2021` dataset is a subset of the crowdsourcing experiment in
+Roitero et al. (2021), restricted to assessments collected on the 100-point
+continuous (S100) relevance scale. Each row is one worker's `relevance_score`
+for one `document_id` within a `topic_id`. The data are fetched on demand from
+the [upstream repository](https://github.com/KevinRoitero/CrowdsourcingRelevanceScales).
+
+```{r load}
+roitero2021 <- download_roitero2021()
+str(roitero2021)
+```
+
+For simplicity, here we focus on a single topic and look at how the related items were assessed.
+
+```{r topic}
+topic <- subset(roitero2021, topic_id == 403)
+nrow(topic)
+```
+
+We retain only workers who "correctly" responded to the gold items
+(high-relevance `"H"` above threshold and non-relevant `"N"` below threshold) and
+then keep only non-gold items.
+
+```{r filter}
+
+select_workers <- intersect(
+  unique(topic[topic$relevance_score > 50 & topic$gold == "H", ]$unit_id),
+  unique(topic[topic$relevance_score < 50 & topic$gold == "N", ]$unit_id)
+)
+
+topic <- subset(topic, unit_id %in% select_workers & gold == "null")
+nrow(topic)
+```
+
+
+As scores were collected on a 0–100 scale, we map them onto `[0,1]` by simply dividing by 100. To build a `rating_data` object we use the `rating_data()` function.
+Since exact 0s and 100s are present in the data, the function automatically detects the inflated beta ratings.
+
+```{r rating_data}
+ratings <- topic$relevance_score / 100
+items <- as.integer(factor(topic$document_id))
+rd <- rating_data(ratings, items)
+rd
+```
+
+As printed, the checks detected two degenerate items. These correspond to documents where the same value is given by all raters
+
+```{r}
+degen_docs <- levels(factor(topic$document_id))[rd$degen_ids]
+d <- subset(topic, document_id %in% degen_docs, select = c(document_id, relevance_score))
+d[order(d$document_id), ]
+```
+
+
+
+## Fitting the agreement model
+
+The inflated interval model is a one-way model: the item effects are profiled
+out as nuisance parameters. The argument `METHOD = "modified"` denotes that the modified profile likelihood is used for estimation
+
+```{r fit}
+fit <- agreement(rd, NUISANCE = "items", METHOD = "modified")
+```
+
+We can extract estimated coefficients with the familiar `coef()` method
+
+```{r}
+coef(fit)[1:10]
+```
+
+where alphas for degenrate items are reported with infinite values
+
+```{r}
+coef(fit)[paste0("alpha_", rd$degen_ids)]
+```
+
+The `confint()` method returns the confidence intervals for parameter estimates (`phi`, `k0`, `k1`)
+as well as for agreement. Note that, for the latter, intervals are constructed via delta method
+
+```{r confint}
+confint(fit)
+```
+
+
+
+## Item effects
+
+The original data also contain TREC labels, which correspond to evaluations given by experts on a binary scale (relevant = 1 / non-relevant = 0). We can plot the estimated $\alpha$ vector to visualise how the model captured the different relevance levels across items
+
+```{r item-effects, fig.width=6, fig.height=5}
+doc_levels <- levels(factor(topic$document_id))
+alphas <- coef(fit)[grep("^alpha", names(coef(fit)))]
+trec <- tapply(topic$trec, topic$document_id, function(x) x[!is.na(x)][1])
+boxplot(
+  alphas ~ factor(trec[doc_levels]),
+  xlab = "TREC", 
+  ylab = "Item effect",
+  col = c("#F28E2B", "#4E79A7"))
+```
+
