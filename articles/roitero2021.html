@@ -93,9 +93,9 @@ repository</a>.</p>
 <p>For simplicity, here we focus on a single topic and look at how the
 related items were assessed.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">topic</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">roitero2021</span>, <span class="va">topic_id</span> <span class="op">==</span> <span class="fl">403</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">topic</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">roitero2021</span>, <span class="va">topic_id</span> <span class="op">==</span> <span class="fl">418</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">topic</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 1456</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 3216</span></span></code></pre></div>
 <p>We retain only workers who “correctly” responded to the gold items
 (high-relevance <code>"H"</code> above threshold and non-relevant
 <code>"N"</code> below threshold) and then keep only non-gold items.</p>
@@ -108,7 +108,7 @@ related items were assessed.</p>
 <span></span>
 <span><span class="va">topic</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">topic</span>, <span class="va">unit_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">select_workers</span> <span class="op">&amp;</span> <span class="va">gold</span> <span class="op">==</span> <span class="st">"null"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">topic</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 432</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 2088</span></span></code></pre></div>
 <p>As scores were collected on a 0–100 scale, we map them onto
 <code>[0,1]</code> by simply dividing by 100. To build a
 <code>rating_data</code> object we use the <code><a href="../reference/rating_data.html">rating_data()</a></code>
@@ -120,60 +120,23 @@ automatically detects the inflated beta ratings.</p>
 <span><span class="va">rd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rating_data.html">rating_data</a></span><span class="op">(</span><span class="va">ratings</span>, <span class="va">items</span><span class="op">)</span></span>
 <span><span class="va">rd</span></span>
 <span><span class="co">#&gt; - Data type: inflated </span></span>
-<span><span class="co">#&gt; - Inflation: zeros = 45.8% / ones = 4.6% </span></span>
-<span><span class="co">#&gt; - Items: 108 ( 16 degenerate )</span></span>
-<span><span class="co">#&gt; - Average budget per item: 4 </span></span>
-<span><span class="co">#&gt; - n: 432</span></span></code></pre></div>
+<span><span class="co">#&gt; - Inflation: zeros = 46.1% / ones = 2.4% </span></span>
+<span><span class="co">#&gt; - Items: 241 ( 1 degenerate )</span></span>
+<span><span class="co">#&gt; - Average budget per item: 8.66 </span></span>
+<span><span class="co">#&gt; - n: 2088</span></span></code></pre></div>
 <p>As printed, the checks detected two degenerate items. These
 correspond to documents where the same value is given by all raters</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">degen_docs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">topic</span><span class="op">$</span><span class="va">document_id</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="va">rd</span><span class="op">$</span><span class="va">degen_ids</span><span class="op">]</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">topic</span>, <span class="va">document_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">degen_docs</span>, select <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">document_id</span>, <span class="va">relevance_score</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">d</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">document_id</span><span class="op">)</span>, <span class="op">]</span></span>
-<span><span class="co">#&gt;             document_id relevance_score</span></span>
-<span><span class="co">#&gt; 157105      FBIS4-20504               0</span></span>
-<span><span class="co">#&gt; 157767      FBIS4-20504               0</span></span>
-<span><span class="co">#&gt; 158383      FBIS4-20504               0</span></span>
-<span><span class="co">#&gt; 157161      FBIS4-44913               0</span></span>
-<span><span class="co">#&gt; 157331      FBIS4-44913               0</span></span>
-<span><span class="co">#&gt; 157468      FBIS4-44913               0</span></span>
-<span><span class="co">#&gt; 158122      FBIS4-44913               0</span></span>
-<span><span class="co">#&gt; 157747      FBIS4-46649               0</span></span>
-<span><span class="co">#&gt; 157972      FBIS4-46649               0</span></span>
-<span><span class="co">#&gt; 157133 FR940525-1-00086               0</span></span>
-<span><span class="co">#&gt; 157335 FR940525-1-00086               0</span></span>
-<span><span class="co">#&gt; 158314 FR940525-1-00086               0</span></span>
-<span><span class="co">#&gt; 157823 FR940603-0-00134               0</span></span>
-<span><span class="co">#&gt; 158271 FR940603-0-00134               0</span></span>
-<span><span class="co">#&gt; 157455 FR940603-0-00153               0</span></span>
-<span><span class="co">#&gt; 157442 FR940725-2-00141               8</span></span>
-<span><span class="co">#&gt; 157251 FR940902-1-00048               0</span></span>
-<span><span class="co">#&gt; 157368 FR940902-1-00048               0</span></span>
-<span><span class="co">#&gt; 157806 FR940902-1-00048               0</span></span>
-<span><span class="co">#&gt; 157988 FR940902-1-00048               0</span></span>
-<span><span class="co">#&gt; 158406 FR940902-1-00048               0</span></span>
-<span><span class="co">#&gt; 157206 FR940913-2-00004               0</span></span>
-<span><span class="co">#&gt; 158281 FR940913-2-00004               0</span></span>
-<span><span class="co">#&gt; 157822 FR941130-0-00122               0</span></span>
-<span><span class="co">#&gt; 157255        FT911-805               0</span></span>
-<span><span class="co">#&gt; 157390        FT911-805               0</span></span>
-<span><span class="co">#&gt; 157970        FT911-805               0</span></span>
-<span><span class="co">#&gt; 158184        FT911-805               0</span></span>
-<span><span class="co">#&gt; 158237        FT911-805               0</span></span>
-<span><span class="co">#&gt; 158388        FT911-805               0</span></span>
-<span><span class="co">#&gt; 157163       FT944-2249               0</span></span>
-<span><span class="co">#&gt; 158261       FT944-2249               0</span></span>
-<span><span class="co">#&gt; 158385       FT944-2249               0</span></span>
-<span><span class="co">#&gt; 157123       FT944-2266               0</span></span>
-<span><span class="co">#&gt; 157638       FT944-2266               0</span></span>
-<span><span class="co">#&gt; 157967       FT944-2266               0</span></span>
-<span><span class="co">#&gt; 158269       FT944-2266               0</span></span>
-<span><span class="co">#&gt; 157152       FT944-2690               0</span></span>
-<span><span class="co">#&gt; 157433       FT944-2690               0</span></span>
-<span><span class="co">#&gt; 157966       FT944-2690               0</span></span>
-<span><span class="co">#&gt; 158318       FT944-2690               0</span></span>
-<span><span class="co">#&gt; 158127    LA091489-0031               0</span></span>
-<span><span class="co">#&gt; 157729    LA120689-0083               3</span></span></code></pre></div>
+<span><span class="co">#&gt;        document_id relevance_score</span></span>
+<span><span class="co">#&gt; 141537 FBIS3-26358               0</span></span>
+<span><span class="co">#&gt; 141872 FBIS3-26358               0</span></span>
+<span><span class="co">#&gt; 142406 FBIS3-26358               0</span></span>
+<span><span class="co">#&gt; 143087 FBIS3-26358               0</span></span>
+<span><span class="co">#&gt; 143612 FBIS3-26358               0</span></span>
+<span><span class="co">#&gt; 143936 FBIS3-26358               0</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="fitting-the-agreement-model">Fitting the agreement model<a class="anchor" aria-label="anchor" href="#fitting-the-agreement-model"></a>
@@ -188,18 +151,16 @@ likelihood is used for estimation</p>
 <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code> method</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span>
-<span><span class="co">#&gt;        phi         k0         k1    alpha_1    alpha_2    alpha_3    alpha_4 </span></span>
-<span><span class="co">#&gt;  2.7809964 -1.2809263  2.5849451 -1.7610438 -0.8840457 -0.8055866 -1.4486444 </span></span>
-<span><span class="co">#&gt;    alpha_5    alpha_6    alpha_7 </span></span>
-<span><span class="co">#&gt; -1.2831001 -2.1263205 -0.5893108</span></span></code></pre></div>
+<span><span class="co">#&gt;       phi        k0        k1   alpha_1   alpha_2   alpha_3   alpha_4   alpha_5 </span></span>
+<span><span class="co">#&gt;  2.841631 -1.328231  2.974278 -1.597678 -1.382612 -1.729650 -1.646931 -1.248158 </span></span>
+<span><span class="co">#&gt;   alpha_6   alpha_7 </span></span>
+<span><span class="co">#&gt; -1.330361 -1.540069</span></span></code></pre></div>
 <p>where alphas for degenrate items are reported with infinite
 values</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"alpha_"</span>, <span class="va">rd</span><span class="op">$</span><span class="va">degen_ids</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt;   alpha_8  alpha_11  alpha_13  alpha_29  alpha_32  alpha_34  alpha_37  alpha_40 </span></span>
-<span><span class="co">#&gt;      -Inf      -Inf      -Inf      -Inf      -Inf      -Inf -1.064533      -Inf </span></span>
-<span><span class="co">#&gt;  alpha_44  alpha_48  alpha_53  alpha_62  alpha_64  alpha_65 alpha_100 alpha_108 </span></span>
-<span><span class="co">#&gt;      -Inf      -Inf      -Inf      -Inf      -Inf      -Inf      -Inf -1.405803</span></span></code></pre></div>
+<span><span class="co">#&gt; alpha_12 </span></span>
+<span><span class="co">#&gt;     -Inf</span></span></code></pre></div>
 <p>The <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> method returns the confidence intervals
 for parameter estimates (<code>phi</code>, <code>k0</code>,
 <code>k1</code>) as well as for agreement. Note that, for the latter,
@@ -207,14 +168,14 @@ intervals are constructed via delta method</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $parameters</span></span>
-<span><span class="co">#&gt;      Estimate Std. Error     2.5 %     97.5 %</span></span>
-<span><span class="co">#&gt; phi  2.780996  0.2943545  2.204072  3.3579206</span></span>
-<span><span class="co">#&gt; k0  -1.280926  0.1440354 -1.563230 -0.9986222</span></span>
-<span><span class="co">#&gt; k1   2.584945  0.2596668  2.076008  3.0938826</span></span>
+<span><span class="co">#&gt;      Estimate Std. Error     2.5 %    97.5 %</span></span>
+<span><span class="co">#&gt; phi  2.841631 0.12506931  2.596500  3.086763</span></span>
+<span><span class="co">#&gt; k0  -1.328231 0.06043951 -1.446690 -1.209772</span></span>
+<span><span class="co">#&gt; k1   2.974278 0.15372395  2.672985  3.275572</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $agreement</span></span>
 <span><span class="co">#&gt;            Estimate Std. Error     2.5 %    97.5 %</span></span>
-<span><span class="co">#&gt; agreement 0.3562843 0.02045248 0.3161982 0.3963704</span></span></code></pre></div>
+<span><span class="co">#&gt; agreement 0.2828532 0.01201713 0.2593001 0.3064064</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="item-effects">Item effects<a class="anchor" aria-label="anchor" href="#item-effects"></a>

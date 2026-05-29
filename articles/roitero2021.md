@@ -32,9 +32,9 @@ related items were assessed.
 
 ``` r
 
-topic <- subset(roitero2021, topic_id == 403)
+topic <- subset(roitero2021, topic_id == 418)
 nrow(topic)
-#> [1] 1456
+#> [1] 3216
 ```
 
 We retain only workers who “correctly” responded to the gold items
@@ -51,7 +51,7 @@ select_workers <- intersect(
 
 topic <- subset(topic, unit_id %in% select_workers & gold == "null")
 nrow(topic)
-#> [1] 432
+#> [1] 2088
 ```
 
 As scores were collected on a 0–100 scale, we map them onto `[0,1]` by
@@ -67,10 +67,10 @@ items <- as.integer(factor(topic$document_id))
 rd <- rating_data(ratings, items)
 rd
 #> - Data type: inflated 
-#> - Inflation: zeros = 45.8% / ones = 4.6% 
-#> - Items: 108 ( 16 degenerate )
-#> - Average budget per item: 4 
-#> - n: 432
+#> - Inflation: zeros = 46.1% / ones = 2.4% 
+#> - Items: 241 ( 1 degenerate )
+#> - Average budget per item: 8.66 
+#> - n: 2088
 ```
 
 As printed, the checks detected two degenerate items. These correspond
@@ -81,50 +81,13 @@ to documents where the same value is given by all raters
 degen_docs <- levels(factor(topic$document_id))[rd$degen_ids]
 d <- subset(topic, document_id %in% degen_docs, select = c(document_id, relevance_score))
 d[order(d$document_id), ]
-#>             document_id relevance_score
-#> 157105      FBIS4-20504               0
-#> 157767      FBIS4-20504               0
-#> 158383      FBIS4-20504               0
-#> 157161      FBIS4-44913               0
-#> 157331      FBIS4-44913               0
-#> 157468      FBIS4-44913               0
-#> 158122      FBIS4-44913               0
-#> 157747      FBIS4-46649               0
-#> 157972      FBIS4-46649               0
-#> 157133 FR940525-1-00086               0
-#> 157335 FR940525-1-00086               0
-#> 158314 FR940525-1-00086               0
-#> 157823 FR940603-0-00134               0
-#> 158271 FR940603-0-00134               0
-#> 157455 FR940603-0-00153               0
-#> 157442 FR940725-2-00141               8
-#> 157251 FR940902-1-00048               0
-#> 157368 FR940902-1-00048               0
-#> 157806 FR940902-1-00048               0
-#> 157988 FR940902-1-00048               0
-#> 158406 FR940902-1-00048               0
-#> 157206 FR940913-2-00004               0
-#> 158281 FR940913-2-00004               0
-#> 157822 FR941130-0-00122               0
-#> 157255        FT911-805               0
-#> 157390        FT911-805               0
-#> 157970        FT911-805               0
-#> 158184        FT911-805               0
-#> 158237        FT911-805               0
-#> 158388        FT911-805               0
-#> 157163       FT944-2249               0
-#> 158261       FT944-2249               0
-#> 158385       FT944-2249               0
-#> 157123       FT944-2266               0
-#> 157638       FT944-2266               0
-#> 157967       FT944-2266               0
-#> 158269       FT944-2266               0
-#> 157152       FT944-2690               0
-#> 157433       FT944-2690               0
-#> 157966       FT944-2690               0
-#> 158318       FT944-2690               0
-#> 158127    LA091489-0031               0
-#> 157729    LA120689-0083               3
+#>        document_id relevance_score
+#> 141537 FBIS3-26358               0
+#> 141872 FBIS3-26358               0
+#> 142406 FBIS3-26358               0
+#> 143087 FBIS3-26358               0
+#> 143612 FBIS3-26358               0
+#> 143936 FBIS3-26358               0
 ```
 
 ## Fitting the agreement model
@@ -144,10 +107,10 @@ We can extract estimated coefficients with the familiar
 ``` r
 
 coef(fit)[1:10]
-#>        phi         k0         k1    alpha_1    alpha_2    alpha_3    alpha_4 
-#>  2.7809964 -1.2809263  2.5849451 -1.7610438 -0.8840457 -0.8055866 -1.4486444 
-#>    alpha_5    alpha_6    alpha_7 
-#> -1.2831001 -2.1263205 -0.5893108
+#>       phi        k0        k1   alpha_1   alpha_2   alpha_3   alpha_4   alpha_5 
+#>  2.841631 -1.328231  2.974278 -1.597678 -1.382612 -1.729650 -1.646931 -1.248158 
+#>   alpha_6   alpha_7 
+#> -1.330361 -1.540069
 ```
 
 where alphas for degenrate items are reported with infinite values
@@ -155,10 +118,8 @@ where alphas for degenrate items are reported with infinite values
 ``` r
 
 coef(fit)[paste0("alpha_", rd$degen_ids)]
-#>   alpha_8  alpha_11  alpha_13  alpha_29  alpha_32  alpha_34  alpha_37  alpha_40 
-#>      -Inf      -Inf      -Inf      -Inf      -Inf      -Inf -1.064533      -Inf 
-#>  alpha_44  alpha_48  alpha_53  alpha_62  alpha_64  alpha_65 alpha_100 alpha_108 
-#>      -Inf      -Inf      -Inf      -Inf      -Inf      -Inf      -Inf -1.405803
+#> alpha_12 
+#>     -Inf
 ```
 
 The [`confint()`](https://rdrr.io/r/stats/confint.html) method returns
@@ -170,14 +131,14 @@ constructed via delta method
 
 confint(fit)
 #> $parameters
-#>      Estimate Std. Error     2.5 %     97.5 %
-#> phi  2.780996  0.2943545  2.204072  3.3579206
-#> k0  -1.280926  0.1440354 -1.563230 -0.9986222
-#> k1   2.584945  0.2596668  2.076008  3.0938826
+#>      Estimate Std. Error     2.5 %    97.5 %
+#> phi  2.841631 0.12506931  2.596500  3.086763
+#> k0  -1.328231 0.06043951 -1.446690 -1.209772
+#> k1   2.974278 0.15372395  2.672985  3.275572
 #> 
 #> $agreement
 #>            Estimate Std. Error     2.5 %    97.5 %
-#> agreement 0.3562843 0.02045248 0.3161982 0.3963704
+#> agreement 0.2828532 0.01201713 0.2593001 0.3064064
 ```
 
 ## Item effects
