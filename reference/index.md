@@ -12,6 +12,8 @@
   : Confidence intervals for an agreement fit
 - [`cont2ord()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/cont2ord.md)
   : Discretise continuous data
+- [`download_roitero2021()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/download_roitero2021.md)
+  : Download Roitero et al. (2021) crowdsourced relevance assessments
 - [`get_range_ll()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/get_range_ll.md)
   : Get log-likelihood range
 - [`lemon()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/lemon.md)

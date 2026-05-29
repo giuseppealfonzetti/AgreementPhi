@@ -5,7 +5,10 @@ Validates and preprocesses a raw ratings dataset. Returns a
 [`agreement()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/agreement.md),
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html), and
 [`print()`](https://rdrr.io/r/base/print.html). Degenerate items (all
-ratings identical) are automatically dropped in one-way models.
+ratings identical) are detected and their recoded indices stored in
+`$degen_ids`; no observations are removed here. The decision to drop
+degenerate items before fitting is delegated to
+[`agreement()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/agreement.md).
 
 ## Usage
 
@@ -17,7 +20,7 @@ rating_data(
   ITEM_LABELS = NULL,
   WORKER_LABELS = NULL,
   K = NULL,
-  VERBOSE = TRUE
+  VERBOSE = FALSE
 )
 ```
 
@@ -34,7 +37,7 @@ rating_data(
 
 - WORKER_INDS:
 
-  Integer index vector of worker allocations. `NULL` for one-way models.
+  Integer index vector of worker allocations.
 
 - ITEM_LABELS:
 
@@ -69,13 +72,11 @@ An S3 object of class `rating_data`.
 dt <- sim_data(J = 20, B = 5, AGREEMENT = 0.6,
                ALPHA = rep(0, 20), DATA_TYPE = "continuous", SEED = 1)
 rd <- rating_data(dt$rating, dt$id_item, dt$id_worker)
-#>  - Detected 20 items and 20 workers.
-#>  - Detected continuous data on the (0,1) range.
-#>  - Average number of observed ratings per item is 5.
-#>  - Average number of observed ratings per worker is 5.
 print(rd)
-#> Input data: continuous 
-#>   items:   20 
-#>   workers: 20 
-#>   n:       100 
+#> - Data type: continuous 
+#> - Items: 20 
+#> - Workers: 20 
+#> - Average budget per item: 5 
+#> - Average load per worker: 5 
+#> - n: 100 
 ```

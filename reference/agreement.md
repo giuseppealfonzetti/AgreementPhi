@@ -199,10 +199,6 @@ dt_oneway <- sim_data(
   ALPHA = alphas, DATA_TYPE = "continuous", SEED = 123
 )
 rd <- rating_data(dt_oneway$rating, dt_oneway$id_item, dt_oneway$id_worker)
-#>  - Detected 50 items and 49 workers.
-#>  - Detected continuous data on the (0,1) range.
-#>  - Average number of observed ratings per item is 5.
-#>  - Average number of observed ratings per worker is 5.1.
 fit <- agreement(rd, METHOD = "modified", NUISANCE = c("items"))
 confint(fit)
 #> $parameters
@@ -221,20 +217,17 @@ dt_inflated <- sim_data(
   ALPHA = alphas, DATA_TYPE = "inflated", K0 = -2, K1 = 2, SEED = 123
 )
 rd_inf <- rating_data(dt_inflated$rating, dt_inflated$id_item)
-#>  - Detected 49 non-degenerate items.
-#>  - Detected inflated interval data on the [0,1] range.
-#>  - Average number of observed ratings per item is 5.04.
 fit_inf <- agreement(rd_inf, METHOD = "modified")
 confint(fit_inf)
 #> $parameters
 #>      Estimate Std. Error     2.5 %    97.5 %
-#> phi  5.168256  0.6335260  3.926568  6.409945
-#> k0  -1.891239  0.2105952 -2.303998 -1.478480
-#> k1   2.172110  0.2019442  1.776307  2.567914
+#> phi  5.168261  0.6335608  3.926504  6.410017
+#> k0  -1.891240  0.2105792 -2.303967 -1.478512
+#> k1   2.172107  0.2019449  1.776303  2.567912
 #> 
 #> $agreement
 #>            Estimate Std. Error     2.5 %    97.5 %
-#> agreement 0.3489285 0.03463438 0.2810463 0.4168106
+#> agreement 0.3489283 0.03463357 0.2810477 0.4168088
 #> 
 # }
 ```

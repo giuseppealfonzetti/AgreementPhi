@@ -53,10 +53,6 @@ reports diagnostics and supports a
 ``` r
 
 rd <- rating_data(dt$rating, dt$id_item, dt$id_worker)
-#>  - Detected 200 items and 200 workers.
-#>  - Detected continuous data on the (0,1) range.
-#>  - Average number of observed ratings per item is 8.
-#>  - Average number of observed ratings per worker is 8.
 ```
 
 ``` r
