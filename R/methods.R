@@ -48,40 +48,11 @@ print.agreement_fit <- function(x, ...) {
   cat("  data type:", x$data_type, "\n")
   cat("  method:   ", x$method, "\n")
 
-  if (x$data_type == "inflated") {
-    phi_est <- if (x$method == "modified") {
-      x$modified$precision
-    } else {
-      x$profile$precision
-    }
-    agr_est <- if (x$method == "modified") {
-      x$modified$agreement
-    } else {
-      x$profile$agreement
-    }
-    cat("  phi:      ", signif(phi_est, 6), "\n")
-    cat("  k0:       ", signif(x$k0, 6), "\n")
-    cat("  k1:       ", signif(x$k1, 6), "\n")
-    cat("  agreement:", signif(agr_est, 6), "\n")
-    if (!is.null(x$se) && all(is.finite(x$se))) {
-      cat(
-        "  se(phi):",
-        signif(x$se["phi"], 4),
-        " se(k0):",
-        signif(x$se["k0"], 4),
-        " se(k1):",
-        signif(x$se["k1"], 4),
-        "\n"
-      )
-    }
-    cat("  convergence:", x$convergence, "\n")
-  } else {
-    cat("  profile agreement: ", signif(x$profile$agreement, 6), "\n")
-    if (!is.na(x$modified$agreement)) {
-      cat("  modified agreement:", signif(x$modified$agreement, 6), "\n")
-    }
-    cat("  loglik:   ", signif(x$loglik, 8), "\n")
+  cat("  profile agreement: ", signif(x$profile$agreement, 6), "\n")
+  if (!is.na(x$modified$agreement)) {
+    cat("  modified agreement:", signif(x$modified$agreement, 6), "\n")
   }
+  cat("  loglik:   ", signif(x$loglik, 8), "\n")
 
   invisible(x)
 }
@@ -138,9 +109,13 @@ coef.agreement_fit <- function(object, ...) {
       }
       if (length(interior_degen) > 0) {
         int_ratings <- data_ref$ratings[data_ref$item_ids %in% interior_degen]
-        int_item_ids <- match(data_ref$item_ids[data_ref$item_ids %in% interior_degen],
-                              interior_degen)
-        int_start <- tapply(int_ratings, int_item_ids, function(v) stats::qlogis(mean(v)))
+        int_item_ids <- match(
+          data_ref$item_ids[data_ref$item_ids %in% interior_degen],
+          interior_degen
+        )
+        int_start <- tapply(int_ratings, int_item_ids, function(v) {
+          stats::qlogis(mean(v))
+        })
         int_alphas <- cpp_inflated_profile(
           as.numeric(int_ratings),
           as.integer(int_item_ids),

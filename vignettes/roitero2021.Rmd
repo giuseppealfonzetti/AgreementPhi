@@ -37,7 +37,7 @@ str(roitero2021)
 For simplicity, here we focus on a single topic and look at how the related items were assessed.
 
 ```{r topic}
-topic <- subset(roitero2021, topic_id == 403)
+topic <- subset(roitero2021, topic_id == 418)
 nrow(topic)
 ```
 

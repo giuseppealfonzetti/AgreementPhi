@@ -293,7 +293,7 @@ confint.agreement_fit <- function(object, parm = NULL, level = 0.95, ...) {
     WORKER_INDS = if (!is.null(d$worker_ids)) {
       as.integer(d$worker_ids)
     } else {
-      integer(0)
+      rep(1L, length(d$ratings))
     },
     ALPHA_MLE = object$alpha,
     BETA_MLE = object$beta,

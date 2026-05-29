@@ -102,7 +102,7 @@ agreement <- function(
   BETA_START = NULL,
   TAU = NULL,
   PHI_START = NULL,
-  NUISANCE = c("items", "workers"),
+  NUISANCE = c("items"),
   CONTROL = list(),
   VERBOSE = FALSE
 ) {
@@ -301,7 +301,11 @@ agreement <- function(
     list(
       Y = fit_ratings * 1.0,
       ITEM_INDS = fit_item_ids,
-      WORKER_INDS = if (is.null(fit_worker_ids)) rep(1L, length(fit_ratings)) else fit_worker_ids,
+      WORKER_INDS = if (is.null(fit_worker_ids)) {
+        rep(1L, length(fit_ratings))
+      } else {
+        fit_worker_ids
+      },
       ALPHA_START = ALPHA_START,
       BETA_START = c(0, BETA_START),
       TAU_START = TAU,
