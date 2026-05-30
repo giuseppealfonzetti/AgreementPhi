@@ -49,13 +49,13 @@ Must be a positive integer. Default: \code{100}.}
 \item{\code{PROF_SEARCH_RANGE}}{Search range for profiling out item intercepts (alpha).
 The algorithm searches in [alpha_j - PROF_SEARCH_RANGE, alpha_j + PROF_SEARCH_RANGE]
 for each item j. Applies to both continuous/ordinal and inflated interval data.
-Must be positive. Default: \code{10}.}
+Must be positive. Default: \code{10} (continuous/inflated), \code{3} (ordinal).}
 \item{\code{PROF_MAX_ITER}}{Maximum number of iterations for profiling optimization.
-Must be a positive integer. Default: \code{500}.}
+Must be a positive integer. Default: \code{500} (continuous/inflated), \code{10} (ordinal).}
 \item{\code{ALT_MAX_ITER}}{Maximum iterations for alternating profiling. Non-inflated only.
-Must be a positive integer. Default: \code{50}.}
+Must be a positive integer. Default: \code{50} (continuous), \code{10} (ordinal).}
 \item{\code{ALT_TOL}}{Relative convergence tolerance for alternating profiling. Non-inflated only.
-Must be positive. Default: \code{1e-3}.}
+Must be positive. Default: \code{1e-3} (continuous), \code{1e-2} (ordinal).}
 \item{\code{BOUNDARY}}{Boundary value for cutpoints when one boundary is absent. Inflated interval only.
 Must be positive. Default: \code{100}.}
 }}

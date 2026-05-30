@@ -240,7 +240,7 @@ validate_params_type <- function(NUISANCE, TARGET) {
   )
 }
 
-validate_cpp_control <- function(LIST = NULL) {
+validate_cpp_control <- function(LIST = NULL, DATA_TYPE = NULL) {
   default <- function(x, val) if (is.null(x)) val else x
   chk_pos <- function(x, nm) {
     stopifnot(is.numeric(x))
@@ -248,18 +248,26 @@ validate_cpp_control <- function(LIST = NULL) {
     x
   }
 
+  is_ordinal <- isTRUE(DATA_TYPE == "ordinal")
+
   LIST$SEARCH_RANGE <- chk_pos(default(LIST$SEARCH_RANGE, 8), "SEARCH_RANGE")
   LIST$MAX_ITER <- chk_pos(default(LIST$MAX_ITER, 100), "MAX_ITER")
   LIST$PROF_SEARCH_RANGE <- chk_pos(
-    default(LIST$PROF_SEARCH_RANGE, 10),
+    default(LIST$PROF_SEARCH_RANGE, if (is_ordinal) 3 else 10),
     "PROF_SEARCH_RANGE"
   )
   LIST$PROF_MAX_ITER <- chk_pos(
-    default(LIST$PROF_MAX_ITER, 500),
+    default(LIST$PROF_MAX_ITER, if (is_ordinal) 10 else 500),
     "PROF_MAX_ITER"
   )
-  LIST$ALT_MAX_ITER <- chk_pos(default(LIST$ALT_MAX_ITER, 50), "ALT_MAX_ITER")
-  LIST$ALT_TOL <- chk_pos(default(LIST$ALT_TOL, 1e-3), "ALT_TOL")
+  LIST$ALT_MAX_ITER <- chk_pos(
+    default(LIST$ALT_MAX_ITER, if (is_ordinal) 10 else 50),
+    "ALT_MAX_ITER"
+  )
+  LIST$ALT_TOL <- chk_pos(
+    default(LIST$ALT_TOL, if (is_ordinal) 1e-2 else 1e-3),
+    "ALT_TOL"
+  )
   LIST$BOUNDARY <- chk_pos(default(LIST$BOUNDARY, 100), "BOUNDARY")
 
   LIST[c(

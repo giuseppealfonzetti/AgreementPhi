@@ -40,13 +40,13 @@
 #'     \item{`PROF_SEARCH_RANGE`}{Search range for profiling out item intercepts (alpha).
 #'       The algorithm searches in \[alpha_j - PROF_SEARCH_RANGE, alpha_j + PROF_SEARCH_RANGE\]
 #'       for each item j. Applies to both continuous/ordinal and inflated interval data.
-#'       Must be positive. Default: `10`.}
+#'       Must be positive. Default: `10` (continuous/inflated), `3` (ordinal).}
 #'     \item{`PROF_MAX_ITER`}{Maximum number of iterations for profiling optimization.
-#'       Must be a positive integer. Default: `500`.}
+#'       Must be a positive integer. Default: `500` (continuous/inflated), `10` (ordinal).}
 #'     \item{`ALT_MAX_ITER`}{Maximum iterations for alternating profiling. Non-inflated only.
-#'       Must be a positive integer. Default: `50`.}
+#'       Must be a positive integer. Default: `50` (continuous), `10` (ordinal).}
 #'     \item{`ALT_TOL`}{Relative convergence tolerance for alternating profiling. Non-inflated only.
-#'       Must be positive. Default: `1e-3`.}
+#'       Must be positive. Default: `1e-3` (continuous), `1e-2` (ordinal).}
 #'     \item{`BOUNDARY`}{Boundary value for cutpoints when one boundary is absent. Inflated interval only.
 #'       Must be positive. Default: `100`.}
 #'  }
@@ -110,7 +110,7 @@ agreement <- function(
   METHOD <- match.arg(METHOD)
 
   params_type <- validate_params_type(NUISANCE, "phi")
-  CONTROL <- validate_cpp_control(CONTROL)
+  CONTROL <- validate_cpp_control(CONTROL, DATA$data_type)
 
   if (DATA$ave_ratings_per_item^3 < DATA$n_items && VERBOSE) {
     message("Average number of ratings per item is lower than recommended")
