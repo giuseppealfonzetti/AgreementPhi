@@ -91,22 +91,25 @@ agreement(
       algorithm searches in \[alpha_j - PROF_SEARCH_RANGE, alpha_j +
       PROF_SEARCH_RANGE\] for each item j. Applies to both
       continuous/ordinal and inflated interval data. Must be positive.
-      Default: `10`.
+      Default: `10` (continuous/inflated), `3` (ordinal).
 
   `PROF_MAX_ITER`
 
   :   Maximum number of iterations for profiling optimization. Must be a
-      positive integer. Default: `500`.
+      positive integer. Default: `500` (continuous/inflated), `10`
+      (ordinal).
 
   `ALT_MAX_ITER`
 
   :   Maximum iterations for alternating profiling. Non-inflated only.
-      Must be a positive integer. Default: `50`.
+      Must be a positive integer. Default: `50` (continuous), `10`
+      (ordinal).
 
   `ALT_TOL`
 
   :   Relative convergence tolerance for alternating profiling.
-      Non-inflated only. Must be positive. Default: `1e-3`.
+      Non-inflated only. Must be positive. Default: `1e-3` (continuous),
+      `1e-2` (ordinal).
 
   `BOUNDARY`
 

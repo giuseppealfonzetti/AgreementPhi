@@ -126,19 +126,19 @@ Must be a positive integer. Default: <code>100</code>.</p></dd>
 <dd><p>Search range for profiling out item intercepts (alpha).
 The algorithm searches in [alpha_j - PROF_SEARCH_RANGE, alpha_j + PROF_SEARCH_RANGE]
 for each item j. Applies to both continuous/ordinal and inflated interval data.
-Must be positive. Default: <code>10</code>.</p></dd>
+Must be positive. Default: <code>10</code> (continuous/inflated), <code>3</code> (ordinal).</p></dd>
 
 <dt><code>PROF_MAX_ITER</code></dt>
 <dd><p>Maximum number of iterations for profiling optimization.
-Must be a positive integer. Default: <code>500</code>.</p></dd>
+Must be a positive integer. Default: <code>500</code> (continuous/inflated), <code>10</code> (ordinal).</p></dd>
 
 <dt><code>ALT_MAX_ITER</code></dt>
 <dd><p>Maximum iterations for alternating profiling. Non-inflated only.
-Must be a positive integer. Default: <code>50</code>.</p></dd>
+Must be a positive integer. Default: <code>50</code> (continuous), <code>10</code> (ordinal).</p></dd>
 
 <dt><code>ALT_TOL</code></dt>
 <dd><p>Relative convergence tolerance for alternating profiling. Non-inflated only.
-Must be positive. Default: <code>1e-3</code>.</p></dd>
+Must be positive. Default: <code>1e-3</code> (continuous), <code>1e-2</code> (ordinal).</p></dd>
 
 <dt><code>BOUNDARY</code></dt>
 <dd><p>Boundary value for cutpoints when one boundary is absent. Inflated interval only.
