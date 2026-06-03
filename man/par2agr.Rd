@@ -4,7 +4,15 @@
 \alias{par2agr}
 \title{From model parameters to agreement}
 \usage{
-par2agr(PHI, ALPHA = NULL, BETA = NULL, K0 = NULL, K1 = NULL)
+par2agr(
+  PHI,
+  ALPHA = NULL,
+  BETA = NULL,
+  K0 = NULL,
+  K1 = NULL,
+  ADJUST = FALSE,
+  N_DEGENERATE = 0L
+)
 }
 \arguments{
 \item{PHI}{dispersion parameter}
@@ -16,6 +24,13 @@ par2agr(PHI, ALPHA = NULL, BETA = NULL, K0 = NULL, K1 = NULL)
 \item{K0}{zero-inflation threshold}
 
 \item{K1}{one-inflation threshold}
+
+\item{ADJUST}{logical; if \code{TRUE}, degenerate items (dropped from estimation,
+i.e. not in \code{ALPHA}) are included in the overall mean with a unit
+contribution. Requires \code{ALPHA}.}
+
+\item{N_DEGENERATE}{number of degenerate items dropped before estimation.
+Used only when \code{ADJUST = TRUE}.}
 }
 \value{
 return agreement measure according to the estimated parameters

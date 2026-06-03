@@ -17,8 +17,7 @@
 }
 \value{
 A named list with two elements, each a numeric matrix with columns
-\code{Estimate}, \verb{Std. Error}, and the lower/upper confidence bounds (named by
-tail probability, e.g. \code{"2.5 \%"} and \code{"97.5 \%"}):
+\code{Estimate}, \verb{Std. Error}, and the lower/upper confidence bounds:
 \describe{
 \item{\code{parameters}}{Parameter-scale estimates. One row (\code{phi}) for
 non-inflated data; three rows (\code{phi}, \code{k0}, \code{k1}) for inflated data.}

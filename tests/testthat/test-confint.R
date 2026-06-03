@@ -218,6 +218,33 @@ test_that("wider confidence intervals for higher confidence levels", {
   )
 })
 
+test_that("confint: ADJUST scales agreement SE but not phi SE (one-way degenerate)", {
+  degen_ratings  <- c(0.5, 0.5, 0.5,  0.2, 0.7, 0.4,  0.3, 0.8, 0.6)
+  degen_item_ids <- c(1L,  1L,  1L,    2L,  2L,  2L,   3L,  3L,  3L )
+  rd <- rating_data(degen_ratings, degen_item_ids, VERBOSE = FALSE)
+
+  fit_adj <- agreement(rd, METHOD = "modified", NUISANCE = "items")
+  fit_raw <- agreement(rd, METHOD = "modified", NUISANCE = "items", ADJUST = FALSE)
+
+  fit_J <- fit_adj$fit_data$n_items
+  n_dropped <- rd$n_items - fit_J
+  expect_equal(n_dropped, 1L)
+
+  ci_adj <- confint(fit_adj)
+  ci_raw <- confint(fit_raw)
+
+  expect_equal(
+    ci_adj$agreement["agreement", "Std. Error"],
+    ci_raw$agreement["agreement", "Std. Error"] * fit_J / (fit_J + n_dropped),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    ci_adj$parameters["phi", "Std. Error"],
+    ci_raw$parameters["phi", "Std. Error"],
+    tolerance = 1e-8
+  )
+})
+
 test_that("confint rejects invalid level values", {
   skip_if_not_installed("AlgDesign")
   set.seed(321)

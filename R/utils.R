@@ -197,8 +197,7 @@ get_range_ll <- function(X, RANGE = .2, GRID_LENGTH = 15) {
 #' @param ... Ignored.
 #'
 #' @return A named list with two elements, each a numeric matrix with columns
-#'   `Estimate`, `Std. Error`, and the lower/upper confidence bounds (named by
-#'   tail probability, e.g. `"2.5 %"` and `"97.5 %"`):
+#'   `Estimate`, `Std. Error`, and the lower/upper confidence bounds:
 #'   \describe{
 #'     \item{`parameters`}{Parameter-scale estimates. One row (`phi`) for
 #'       non-inflated data; three rows (`phi`, `k0`, `k1`) for inflated data.}
@@ -235,39 +234,51 @@ confint.agreement_fit <- function(object, parm = NULL, level = 0.95, ...) {
     }
     se <- object$se
 
-    n_degen <- length(object$data$degen_ids)
-    adj_factor <- (object$data$n_items - n_degen) / object$data$n_items
+    n_dropped <- object$data$n_items - object$fit_data$n_items
 
     h <- sqrt(.Machine$double.eps)
     par2agr_agr <- function(phi, k0, k1) {
-      par2agr(phi, ALPHA = object$alpha, K0 = k0, K1 = k1)$agreement
+      par2agr(
+        phi,
+        ALPHA = object$alpha,
+        K0 = k0,
+        K1 = k1,
+        ADJUST = isTRUE(object$adjust),
+        N_DEGENERATE = n_dropped
+      )$agreement
     }
     grad <- c(
       (par2agr_agr(phi_est + h * abs(phi_est), object$k0, object$k1) -
-         par2agr_agr(phi_est - h * abs(phi_est), object$k0, object$k1)) /
+        par2agr_agr(phi_est - h * abs(phi_est), object$k0, object$k1)) /
         (2 * h * abs(phi_est)),
       (par2agr_agr(phi_est, object$k0 + h, object$k1) -
-         par2agr_agr(phi_est, object$k0 - h, object$k1)) / (2 * h),
+        par2agr_agr(phi_est, object$k0 - h, object$k1)) /
+        (2 * h),
       (par2agr_agr(phi_est, object$k0, object$k1 + h) -
-         par2agr_agr(phi_est, object$k0, object$k1 - h)) / (2 * h)
+        par2agr_agr(phi_est, object$k0, object$k1 - h)) /
+        (2 * h)
     )
-    agr_se <- sqrt(drop(grad %*% object$vcov %*% grad)) * adj_factor
+    agr_se <- sqrt(drop(grad %*% object$vcov %*% grad))
 
     return(list(
       parameters = make_mat(
-        est   = c(phi_est,      object$k0,    object$k1),
-        se    = c(se[["phi"]],  se[["k0"]],   se[["k1"]]),
-        lower = c(max(0, phi_est - z * se[["phi"]]),
-                  object$k0 - z * se[["k0"]],
-                  object$k1 - z * se[["k1"]]),
-        upper = c(phi_est + z * se[["phi"]],
-                  object$k0 + z * se[["k0"]],
-                  object$k1 + z * se[["k1"]]),
+        est = c(phi_est, object$k0, object$k1),
+        se = c(se[["phi"]], se[["k0"]], se[["k1"]]),
+        lower = c(
+          max(0, phi_est - z * se[["phi"]]),
+          object$k0 - z * se[["k0"]],
+          object$k1 - z * se[["k1"]]
+        ),
+        upper = c(
+          phi_est + z * se[["phi"]],
+          object$k0 + z * se[["k0"]],
+          object$k1 + z * se[["k1"]]
+        ),
         row_nms = c("phi", "k0", "k1")
       ),
       agreement = make_mat(
-        est   = agr_est,
-        se    = agr_se,
+        est = agr_est,
+        se = agr_se,
         lower = max(0, agr_est - z * agr_se),
         upper = min(1, agr_est + z * agr_se),
         row_nms = "agreement"
@@ -317,19 +328,25 @@ confint.agreement_fit <- function(object, parm = NULL, level = 0.95, ...) {
   dagr_dphi <- (prec2agr(phi_eval + h) - prec2agr(phi_eval - h)) / (2 * h)
   phi_se <- agr_se / abs(dagr_dphi)
 
+  fit_J <- object$fit_data$n_items
+  n_dropped <- object$data$n_items - fit_J
+  if (isTRUE(object$adjust) && n_dropped > 0) {
+    agr_se <- agr_se * fit_J / (fit_J + n_dropped)
+  }
+
   list(
     parameters = make_mat(
-      est     = phi_eval,
-      se      = phi_se,
-      lower   = max(0, phi_eval - z * phi_se),
-      upper   = phi_eval + z * phi_se,
+      est = phi_eval,
+      se = phi_se,
+      lower = max(0, phi_eval - z * phi_se),
+      upper = phi_eval + z * phi_se,
       row_nms = "phi"
     ),
     agreement = make_mat(
-      est     = est,
-      se      = agr_se,
-      lower   = max(0, est - z * agr_se),
-      upper   = min(1, est + z * agr_se),
+      est = est,
+      se = agr_se,
+      lower = max(0, est - z * agr_se),
+      upper = min(1, est + z * agr_se),
       row_nms = "agreement"
     )
   )
@@ -343,33 +360,61 @@ confint.agreement_fit <- function(object, parm = NULL, level = 0.95, ...) {
 #' @param BETA worker-specific intercepts
 #' @param K0 zero-inflation threshold
 #' @param K1 one-inflation threshold
+#' @param ADJUST logical; if `TRUE`, degenerate items (dropped from estimation,
+#'   i.e. not in `ALPHA`) are included in the overall mean with a unit
+#'   contribution. Requires `ALPHA`.
+#' @param N_DEGENERATE number of degenerate items dropped before estimation.
+#'   Used only when `ADJUST = TRUE`.
 #'
 #' @return return agreement measure according to the estimated parameters
 #'
 #' @export
-par2agr <- function(PHI, ALPHA = NULL, BETA = NULL, K0 = NULL, K1 = NULL) {
+par2agr <- function(
+  PHI,
+  ALPHA = NULL,
+  BETA = NULL,
+  K0 = NULL,
+  K1 = NULL,
+  ADJUST = FALSE,
+  N_DEGENERATE = 0
+) {
   out <- list()
-  if (is.null(K0) & is.null(K1)) {
+
+  if (is.null(ALPHA)) {
     out$agreement <- prec2agr(PHI)
     return(out)
   }
 
-  stopifnot(!is.null(ALPHA))
-  eps <- .Machine$double.eps^0.5
-  K0_eff <- if (!is.finite(K0)) -100 else K0
-  K1_eff <- if (!is.finite(K1)) 100 else K1
-  L0_i <- plogis(ALPHA - K0_eff)
-  L1_i <- plogis(ALPHA - K1_eff)
-  p0_i <- 1 - L0_i
-  p1_i <- L1_i
-  pc_i <- L0_i - L1_i
-  mu_i <- plogis(ALPHA)
-  m_i <- p1_i + pc_i * mu_i
-  vb_i <- mu_i * (1 - mu_i) / (PHI + 1)
-  V_i <- pc_i * vb_i + p0_i * m_i^2 + p1_i * (1 - m_i)^2 + pc_i * (mu_i - m_i)^2
-  pe_i <- ifelse(V_i <= eps, Inf, m_i * (1 - m_i) / V_i - 1)
-  agr_i <- prec2agr(pmax(0, pe_i))
+  fit_J <- length(ALPHA)
+
+  if (is.null(K0) & is.null(K1)) {
+    agr_i <- rep(prec2agr(PHI), fit_J)
+  } else {
+    eps <- .Machine$double.eps^0.5
+    K0_eff <- if (!is.finite(K0)) -100 else K0
+    K1_eff <- if (!is.finite(K1)) 100 else K1
+    L0_i <- plogis(ALPHA - K0_eff)
+    L1_i <- plogis(ALPHA - K1_eff)
+    p0_i <- 1 - L0_i
+    p1_i <- L1_i
+    pc_i <- L0_i - L1_i
+    mu_i <- plogis(ALPHA)
+    m_i <- p1_i + pc_i * mu_i
+    vb_i <- mu_i * (1 - mu_i) / (PHI + 1)
+    V_i <- pc_i *
+      vb_i +
+      p0_i * m_i^2 +
+      p1_i * (1 - m_i)^2 +
+      pc_i * (mu_i - m_i)^2
+    pe_i <- ifelse(V_i <= eps, Inf, m_i * (1 - m_i) / V_i - 1)
+    agr_i <- prec2agr(pmax(0, pe_i))
+  }
+
   out$agreement_by_item <- agr_i
-  out$agreement <- mean(agr_i)
+  out$agreement <- if (ADJUST && N_DEGENERATE > 0) {
+    (fit_J * mean(agr_i) + N_DEGENERATE) / (fit_J + N_DEGENERATE)
+  } else {
+    mean(agr_i)
+  }
   return(out)
 }
