@@ -48,10 +48,6 @@ rd <- rating_data(
   ITEM_INDS = dt$id_item, 
   WORKER_INDS = dt$id_worker
   )
-#>  - Detected 200 items and 200 workers.
-#>  - Detected continuous data on the (0,1) range.
-#>  - Average number of observed ratings per item is 8.
-#>  - Average number of observed ratings per worker is 8.
 ```
 
 Fit the model using

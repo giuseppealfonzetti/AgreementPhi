@@ -31,8 +31,7 @@ confint(object, parm = NULL, level = 0.95, ...)
 ## Value
 
 A named list with two elements, each a numeric matrix with columns
-`Estimate`, `Std. Error`, and the lower/upper confidence bounds (named
-by tail probability, e.g. `"2.5 %"` and `"97.5 %"`):
+`Estimate`, `Std. Error`, and the lower/upper confidence bounds:
 
 - `parameters`:
 

@@ -43,7 +43,15 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">par2agr</span><span class="op">(</span><span class="va">PHI</span>, ALPHA <span class="op">=</span> <span class="cn">NULL</span>, BETA <span class="op">=</span> <span class="cn">NULL</span>, K0 <span class="op">=</span> <span class="cn">NULL</span>, K1 <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">par2agr</span><span class="op">(</span></span>
+<span>  <span class="va">PHI</span>,</span>
+<span>  ALPHA <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  BETA <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  K0 <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  K1 <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  ADJUST <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  N_DEGENERATE <span class="op">=</span> <span class="fl">0L</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -68,6 +76,17 @@
 
 <dt id="arg-k-">K1<a class="anchor" aria-label="anchor" href="#arg-k-"></a></dt>
 <dd><p>one-inflation threshold</p></dd>
+
+
+<dt id="arg-adjust">ADJUST<a class="anchor" aria-label="anchor" href="#arg-adjust"></a></dt>
+<dd><p>logical; if <code>TRUE</code>, degenerate items (dropped from estimation,
+i.e. not in <code>ALPHA</code>) are included in the overall mean with a unit
+contribution. Requires <code>ALPHA</code>.</p></dd>
+
+
+<dt id="arg-n-degenerate">N_DEGENERATE<a class="anchor" aria-label="anchor" href="#arg-n-degenerate"></a></dt>
+<dd><p>number of degenerate items dropped before estimation.
+Used only when <code>ADJUST = TRUE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

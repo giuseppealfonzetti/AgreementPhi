@@ -90,11 +90,7 @@
 <span>  RATINGS <span class="op">=</span> <span class="va">dt</span><span class="op">$</span><span class="va">rating</span>, </span>
 <span>  ITEM_INDS <span class="op">=</span> <span class="va">dt</span><span class="op">$</span><span class="va">id_item</span>, </span>
 <span>  WORKER_INDS <span class="op">=</span> <span class="va">dt</span><span class="op">$</span><span class="va">id_worker</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="co">#&gt;  - Detected 200 items and 200 workers.</span></span>
-<span><span class="co">#&gt;  - Detected continuous data on the (0,1) range.</span></span>
-<span><span class="co">#&gt;  - Average number of observed ratings per item is 8.</span></span>
-<span><span class="co">#&gt;  - Average number of observed ratings per worker is 8.</span></span></code></pre></div>
+<span>  <span class="op">)</span></span></code></pre></div>
 <p>Fit the model using <code><a href="reference/agreement.html">agreement()</a></code></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/agreement.html">agreement</a></span><span class="op">(</span><span class="va">rd</span>, METHOD <span class="op">=</span> <span class="st">"modified"</span>, NUISANCE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"items"</span><span class="op">)</span>, VERBOSE <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -172,8 +168,8 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://github.com/giuseppealfonzetti/AgreementPhi/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/giuseppealfonzetti/AgreementPhi/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
-<li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
 <li><a href="https://app.codecov.io/gh/giuseppealfonzetti/AgreementPhi" class="external-link"><img src="https://codecov.io/gh/giuseppealfonzetti/AgreementPhi/graph/badge.svg" alt="Codecov test coverage"></a></li>
+<li><a href="https://giuseppealfonzetti.github.io/AgreementPhi/"><img src="https://img.shields.io/badge/docs-homepage-blue.svg" alt="Docs"></a></li>
 </ul>
 </div>
 

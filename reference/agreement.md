@@ -24,7 +24,8 @@ agreement(
   PHI_START = NULL,
   NUISANCE = c("items"),
   CONTROL = list(),
-  VERBOSE = FALSE
+  VERBOSE = FALSE,
+  ADJUST = TRUE
 )
 ```
 
@@ -119,6 +120,15 @@ agreement(
 - VERBOSE:
 
   Print optimization progress. Default `FALSE`.
+
+- ADJUST:
+
+  Logical; if `TRUE` (default), degenerate items dropped before
+  estimation are re-included in the overall agreement by weighting each
+  with a unit contribution:
+  `(fit_J * raw + n_dropped) / (fit_J + n_dropped)`. Applied uniformly
+  to all data types. Has no effect when no items are dropped (e.g.
+  two-way models, where degenerate items are kept in the fit).
 
 ## Value
 
