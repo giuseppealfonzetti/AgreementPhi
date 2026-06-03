@@ -6,10 +6,10 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/giuseppealfonzetti/AgreementPhi/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/giuseppealfonzetti/AgreementPhi/actions/workflows/R-CMD-check.yaml)
-[![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![Codecov test
 coverage](https://codecov.io/gh/giuseppealfonzetti/AgreementPhi/graph/badge.svg)](https://app.codecov.io/gh/giuseppealfonzetti/AgreementPhi)
+[![Docs](https://img.shields.io/badge/docs-homepage-blue.svg)](https://giuseppealfonzetti.github.io/AgreementPhi/)
+<!-- [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) -->
 <!-- badges: end -->
 
 The `AgreementPhi` package is the companion of “Alfonzetti G., Bellio
@@ -56,10 +56,6 @@ rd <- rating_data(
   ITEM_INDS = dt$id_item, 
   WORKER_INDS = dt$id_worker
   )
-#>  - Detected 200 items and 200 workers.
-#>  - Detected continuous data on the (0,1) range.
-#>  - Average number of observed ratings per item is 8.
-#>  - Average number of observed ratings per worker is 8.
 ```
 
 Fit the model using `agreement()`

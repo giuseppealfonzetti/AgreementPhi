@@ -17,8 +17,9 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/giuseppealfonzetti/AgreementPhi/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/giuseppealfonzetti/AgreementPhi/actions/workflows/R-CMD-check.yaml)
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![Codecov test coverage](https://codecov.io/gh/giuseppealfonzetti/AgreementPhi/graph/badge.svg)](https://app.codecov.io/gh/giuseppealfonzetti/AgreementPhi)
+[![Docs](https://img.shields.io/badge/docs-homepage-blue.svg)](https://giuseppealfonzetti.github.io/AgreementPhi/)
+<!-- [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) -->
 <!-- badges: end -->
 
 The `AgreementPhi` package is the companion of "Alfonzetti G., Bellio R., Vidoni P. *Accurate agreement estimation in crowdsourced relevance assessments*". It allows the accurate estimation of the general $\Phi$ agreement measure among multiple crowd-workers assessing a given collection of items (Checco et al. 2017).
