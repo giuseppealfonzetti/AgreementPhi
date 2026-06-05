@@ -284,7 +284,8 @@ agreement <- function(
   }
 
   if (is.null(ALPHA_START)) {
-    ALPHA_START <- init_alpha(fit_ratings, fit_item_ids, fit_J, -5, 5)
+    K_arg <- if (DATA$data_type == "ordinal") DATA$K else NULL
+    ALPHA_START <- init_alpha(fit_ratings, fit_item_ids, fit_J, -5, 5, K = K_arg)
   }
   if (is.null(BETA_START)) {
     BETA_START <- if (is.null(fit_W)) numeric(0) else rep(0, fit_W - 1)

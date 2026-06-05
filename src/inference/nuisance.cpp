@@ -194,16 +194,16 @@ double AgreementPhi::ordinal::nuisance::brent_profiling(
             return nll;
         };
         
-        double lower = std::max(START - RANGE/2, -10.0);
-        double upper = std::min(START + RANGE/2,  10.0);
-        
+        double lower = std::max(START - RANGE, -10.0);
+        double upper = std::min(START + RANGE,  10.0);
+
         const int digits = std::numeric_limits<double>::digits;
         boost::uintmax_t max_iter = MAX_ITER;
-        
+
         auto result = boost::math::tools::brent_find_minima(
             neg_ll_regularized, lower, upper, digits, max_iter
         );
-        
+
         return result.first;
     }else{
         auto neg_ll = [&](double nuisance){
@@ -215,14 +215,14 @@ double AgreementPhi::ordinal::nuisance::brent_profiling(
                 const double const_dim_par = CONST_DIM_PARS.at(const_dim_idx);
                 double dmu, dmu2;
                 double mu = link::mu(nuisance+const_dim_par);
-                nll -= AgreementPhi::ordinal::loglik(Y.at(obs_id), mu, PHI, TAU, dmu, dmu2, 0); 
+                nll -= AgreementPhi::ordinal::loglik(Y.at(obs_id), mu, PHI, TAU, dmu, dmu2, 0);
             }
 
             return nll;
         };
 
-        double lower = std::max(START - RANGE/2, -10.0);
-        double upper = std::min(START + RANGE/2,  10.0);
+        double lower = std::max(START - RANGE, -10.0);
+        double upper = std::min(START + RANGE,  10.0);
         const int digits = std::numeric_limits<double>::digits;
         boost::uintmax_t max_iter = MAX_ITER;
 

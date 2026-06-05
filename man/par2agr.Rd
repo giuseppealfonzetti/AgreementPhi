@@ -11,7 +11,7 @@ par2agr(
   K0 = NULL,
   K1 = NULL,
   ADJUST = FALSE,
-  N_DEGENERATE = 0L
+  N_DEGENERATE = 0
 )
 }
 \arguments{

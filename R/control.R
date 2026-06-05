@@ -253,11 +253,11 @@ validate_cpp_control <- function(LIST = NULL, DATA_TYPE = NULL) {
   LIST$SEARCH_RANGE <- chk_pos(default(LIST$SEARCH_RANGE, 8), "SEARCH_RANGE")
   LIST$MAX_ITER <- chk_pos(default(LIST$MAX_ITER, 100), "MAX_ITER")
   LIST$PROF_SEARCH_RANGE <- chk_pos(
-    default(LIST$PROF_SEARCH_RANGE, if (is_ordinal) 3 else 10),
+    default(LIST$PROF_SEARCH_RANGE, if (is_ordinal) 5 else 10),
     "PROF_SEARCH_RANGE"
   )
   LIST$PROF_MAX_ITER <- chk_pos(
-    default(LIST$PROF_MAX_ITER, if (is_ordinal) 10 else 500),
+    default(LIST$PROF_MAX_ITER, if (is_ordinal) 20 else 500),
     "PROF_MAX_ITER"
   )
   LIST$ALT_MAX_ITER <- chk_pos(

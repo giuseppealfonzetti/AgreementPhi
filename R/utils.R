@@ -1,7 +1,10 @@
 #' @noRd
-init_alpha <- function(Y, ITEM_INDS, J, LO, HI) {
+init_alpha <- function(Y, ITEM_INDS, J, LO, HI, K = NULL) {
   ids <- seq_len(J)
   means <- as.numeric(tapply(Y, ITEM_INDS, mean)[ids])
+  if (!is.null(K)) {
+    means <- (means - 0.5) / K   # maps ordinal mean from [1, K] to (0.5/K, (K-0.5)/K)
+  }
   means <- pmax(pmin(means, 1 - 1e-6), 1e-6)
   alpha <- stats::qlogis(means)
   pmax(pmin(alpha, HI), LO)
