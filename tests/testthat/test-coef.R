@@ -140,3 +140,68 @@ test_that("coef falls back to alpha_i / beta_i when labels absent", {
   expect_true(all(grepl("^alpha_", names(cf)[grepl("^alpha_", names(cf))])))
   expect_true(all(grepl("^beta_", names(cf)[grepl("^beta_", names(cf))])))
 })
+
+# Ordinal degenerate item back-fill ------------------------------------------
+
+.ord_degen_fit <- local({
+  # 3 items, K=3, B=5 raters each; items 2-3 are genuinely non-degenerate
+  base_ratings  <- c(
+    1L, 3L, 2L, 1L, 3L,   # item 2: varied
+    2L, 1L, 3L, 2L, 1L,   # item 3: varied
+    NA, NA, NA, NA, NA     # item 1: filled below per test
+  )
+  item_ids <- c(rep(2L, 5), rep(3L, 5), rep(1L, 5))
+
+  list(
+    make = function(degen_val) {
+      r <- base_ratings
+      r[item_ids == 1L] <- degen_val
+      rd <- rating_data(r, item_ids, VERBOSE = FALSE)
+      agreement(rd, METHOD = "profile", NUISANCE = "items")
+    }
+  )
+})
+
+test_that("coef ordinal one-way: all-min degenerate item gets alpha = -Inf", {
+  fit <- .ord_degen_fit$make(1L)
+  expect_equal(length(fit$data$degen_ids), 1L)
+  cf <- coef(fit)
+  expect_true(is.infinite(cf["alpha_1"]) && cf["alpha_1"] < 0)
+})
+
+test_that("coef ordinal one-way: all-max degenerate item gets alpha = +Inf", {
+  fit <- .ord_degen_fit$make(3L)
+  expect_equal(length(fit$data$degen_ids), 1L)
+  cf <- coef(fit)
+  expect_true(is.infinite(cf["alpha_1"]) && cf["alpha_1"] > 0)
+})
+
+test_that("coef ordinal one-way: interior degenerate item gets finite MLE alpha", {
+  K <- 4L
+  # Concentrated anchor items → high phi → meaningful interior optimisation
+  ratings  <- c(
+    2L, 2L, 2L, 2L, 3L, 2L,   # item 2: mostly category 2
+    3L, 3L, 2L, 3L, 3L, 3L,   # item 3: mostly category 3
+    2L, 2L, 2L, 2L, 2L, 2L    # item 1: all = 2 (interior for K=4)
+  )
+  item_ids <- c(rep(2L, 6), rep(3L, 6), rep(1L, 6))
+  rd  <- rating_data(ratings, item_ids, K = K, VERBOSE = FALSE)
+  fit <- agreement(rd, METHOD = "profile", NUISANCE = "items")
+  expect_equal(length(fit$data$degen_ids), 1L)
+  cf <- coef(fit)
+
+  alpha_hat <- unname(cf["alpha_1"])
+  expect_true(is.finite(alpha_hat))
+
+  # Verify alpha_hat is a local minimum of the neg-log-likelihood for category 2
+  phi <- unname(fit$profile$precision)
+  tau <- fit$tau
+  neg_ll <- function(a) {
+    mu <- plogis(a)
+    lp <- log(pbeta(tau[3L], mu * phi, (1 - mu) * phi) -
+               pbeta(tau[2L], mu * phi, (1 - mu) * phi))
+    if (!is.finite(lp)) 1e30 else -lp
+  }
+  expect_true(neg_ll(alpha_hat) < neg_ll(alpha_hat + 1))
+  expect_true(neg_ll(alpha_hat) < neg_ll(alpha_hat - 1))
+})

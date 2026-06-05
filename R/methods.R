@@ -127,6 +127,29 @@ coef.agreement_fit <- function(object, ...) {
         )$alpha
         alpha_full[interior_degen] <- int_alphas
       }
+    } else if (object$data_type == "ordinal") {
+      tau <- object$tau
+      for (di in degen_ids) {
+        y      <- as.integer(data_ref$ratings[data_ref$item_ids == di][1L])
+        tau_lo <- tau[y]
+        tau_hi <- tau[y + 1L]
+        if (tau_lo == 0) {
+          alpha_full[di] <- -Inf
+        } else if (tau_hi == 1) {
+          alpha_full[di] <- Inf
+        } else {
+          res <- optimize(
+            function(a) {
+              mu  <- plogis(a)
+              lp  <- log(pbeta(tau_hi, mu * phi, (1 - mu) * phi) -
+                          pbeta(tau_lo, mu * phi, (1 - mu) * phi))
+              if (!is.finite(lp)) 1e30 else -lp
+            },
+            lower = -100, upper = 100
+          )
+          alpha_full[di] <- res$minimum
+        }
+      }
     }
   } else {
     alpha_full <- object$alpha

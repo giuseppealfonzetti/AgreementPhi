@@ -190,9 +190,106 @@ plot.agreement_fit <- function(
     D = RANGE_LL,
     M_EST = if (x$method == "modified") x$modified$agreement else NULL,
     P_EST = x$profile$agreement,
-    M_SE = if (x$method == "modified") ci$agreement["agreement", "Std. Error"] else NULL,
-    P_SE = if (x$method == "profile") ci$agreement["agreement", "Std. Error"] else NULL,
+    M_SE = if (x$method == "modified") {
+      ci$agreement["agreement", "Std. Error"]
+    } else {
+      NULL
+    },
+    P_SE = if (x$method == "profile") {
+      ci$agreement["agreement", "Std. Error"]
+    } else {
+      NULL
+    },
     CONFIDENCE = CONFIDENCE
   )
   invisible(x)
+}
+
+#' Forest plot of model-based probability of item degeneracy
+#'
+#' Plots per-item P(degenerate) estimates and their confidence intervals from
+#' [confint_prob_degenerate()]. Items are colour-coded: observed degenerate
+#' items (P = 1, CI collapsed) in orange; non-degenerate items in blue.
+#'
+#' @param x An `agreement_fit` object from [agreement()].
+#' @param LEVEL Confidence level passed to [confint_prob_degenerate()].
+#'   Default `0.95`.
+#' @param SORT Logical; sort items by estimate before plotting. Default `TRUE`.
+#' @param ... Ignored (required for S3 consistency).
+#'
+#' @return Invisibly returns the matrix from [confint_prob_degenerate()],
+#'   in the order plotted.
+#'
+#' @export
+#' @importFrom graphics segments points axis abline legend par
+plot_prob_degenerate <- function(x, LEVEL = 0.95, SORT = TRUE, ...) {
+  ci <- confint_prob_degenerate(x, level = LEVEL)
+
+  if (SORT) {
+    ci <- ci[order(ci[, "Estimate"]), , drop = FALSE]
+  }
+
+  J <- nrow(ci)
+  item_nms <- rownames(ci)
+
+  all_nms <- if (!is.null(x$data$item_labels)) {
+    paste0("item_", x$data$item_labels)
+  } else {
+    paste0("item_", seq_len(x$data$n_items))
+  }
+  is_degen <- item_nms %in% all_nms[x$data$degen_ids]
+  cols <- ifelse(is_degen, "#F28E2B", "#4E79A7")
+
+  opar <- par(no.readonly = TRUE)
+  on.exit(par(opar))
+
+  left_mar <- max(4, max(nchar(item_nms)) * 0.55)
+  par(mar = c(4, left_mar, 2, 2))
+
+  cex_ax <- max(0.5, min(1, 15 / J))
+
+  plot(
+    x = ci[, "Estimate"],
+    y = seq_len(J),
+    xlim = c(0, 1),
+    ylim = c(0.5, J + 0.5),
+    xlab = "P(degenerate)",
+    ylab = "",
+    yaxt = "n",
+    pch = 19,
+    col = cols,
+    bty = "l"
+  )
+
+  axis(
+    2,
+    at = seq_len(J),
+    labels = item_nms,
+    las = 1,
+    tick = FALSE,
+    cex.axis = cex_ax
+  )
+
+  nt <- ci[, 3L] < ci[, 4L]
+  y_nt <- which(nt)
+  if (length(y_nt) > 0L) {
+    segments(ci[nt, 3L], y_nt, ci[nt, 4L], y_nt, col = cols[nt], lwd = 1.5)
+    cap <- 0.18
+    segments(ci[nt, 3L], y_nt - cap, ci[nt, 3L], y_nt + cap, col = cols[nt])
+    segments(ci[nt, 4L], y_nt - cap, ci[nt, 4L], y_nt + cap, col = cols[nt])
+  }
+
+  abline(v = 0, col = "grey80", lty = 2)
+
+  if (any(is_degen)) {
+    legend(
+      "bottomright",
+      legend = c("Non-degenerate", "Observed degenerate"),
+      col = c("#4E79A7", "#F28E2B"),
+      pch = 19,
+      bty = "n"
+    )
+  }
+
+  invisible(ci)
 }

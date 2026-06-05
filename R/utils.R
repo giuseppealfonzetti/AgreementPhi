@@ -327,3 +327,181 @@ confint.agreement_fit <- function(object, parm = NULL, level = 0.95, ...) {
     )
   )
 }
+
+
+#' Model-based probability of item degeneracy
+#'
+#' For each item, computes the probability that all raters give the same rating
+#' according to the fitted model. Returns 0 for continuous fits (exact ties
+#' have zero probability under a continuous distribution). Not defined for
+#' two-way models (raises an error).
+#'
+#' @param object An `agreement_fit` object from [agreement()].
+#'
+#' @return A named numeric vector of length J (all items, including any
+#'   degenerate items detected before fitting). Degenerate items always get
+#'   probability 1. Names are `item_1, ..., item_J` or `item_<label>` when
+#'   item labels are available.
+#'
+#' @export
+prob_degenerate <- function(object) {
+  stopifnot(inherits(object, "agreement_fit"))
+
+  if ("workers" %in% object$params_type$nuisance) {
+    stop("prob_degenerate() is not defined for two-way models.")
+  }
+
+  n_total   <- object$data$n_items
+  degen_ids <- object$data$degen_ids
+  non_degen <- setdiff(seq_len(n_total), degen_ids)
+  B         <- as.integer(table(object$data$item_ids))
+
+  item_nms <- if (!is.null(object$data$item_labels)) {
+    paste0("item_", object$data$item_labels)
+  } else {
+    paste0("item_", seq_len(n_total))
+  }
+
+  out <- setNames(rep(0, n_total), item_nms)
+
+  if (object$data_type == "continuous") return(out)
+
+  out[degen_ids] <- 1
+
+  phi <- unname(
+    if (object$method == "modified") object$modified$precision
+    else object$profile$precision
+  )
+  alpha_j <- object$alpha
+
+  if (object$data_type == "ordinal") {
+    tau <- object$tau
+    for (i in seq_along(non_degen)) {
+      j   <- non_degen[i]
+      mu  <- plogis(alpha_j[i])
+      p_c <- diff(pbeta(tau, mu * phi, (1 - mu) * phi))
+      out[j] <- sum(p_c ^ B[j])
+    }
+  } else {
+    k0 <- unname(object$k0)
+    k1 <- unname(object$k1)
+    for (i in seq_along(non_degen)) {
+      j  <- non_degen[i]
+      a  <- alpha_j[i]
+      p0 <- 1 - plogis(a - k0)
+      p1 <- plogis(a - k1)
+      out[j] <- p0 ^ B[j] + p1 ^ B[j]
+    }
+  }
+  out
+}
+
+
+#' Confidence intervals for model-based probability of item degeneracy
+#'
+#' Applies the delta method to `prob_degenerate()`, propagating parameter
+#' uncertainty to per-item probabilities. Item intercepts α_j are treated as
+#' fixed at their MLE (plug-in). Not defined for two-way models.
+#'
+#' @param object An `agreement_fit` object from [agreement()].
+#' @param level Confidence level. Default `0.95`.
+#'
+#' @return A named matrix with one row per item and columns
+#'   `Estimate`, `Std. Error`, and the two percentile bounds.
+#'
+#' @export
+confint_prob_degenerate <- function(object, level = 0.95) {
+  stopifnot(inherits(object, "agreement_fit"))
+
+  if ("workers" %in% object$params_type$nuisance) {
+    stop("confint_prob_degenerate() is not defined for two-way models.")
+  }
+
+  z   <- qnorm(1 - (1 - level) / 2)
+  pct <- paste0(formatC(c((1 - level) / 2, 1 - (1 - level) / 2) * 100,
+                        format = "g"), "%")
+
+  pd        <- prob_degenerate(object)
+  n_total   <- object$data$n_items
+  degen_ids <- object$data$degen_ids
+  non_degen <- setdiff(seq_len(n_total), degen_ids)
+  B         <- as.integer(table(object$data$item_ids))
+
+  se_vec            <- rep(NA_real_, n_total)
+  se_vec[degen_ids] <- 0
+
+  phi <- unname(
+    if (object$method == "modified") object$modified$precision
+    else object$profile$precision
+  )
+
+  if (object$data_type == "continuous") {
+    se_vec[] <- 0
+
+  } else if (object$data_type == "ordinal") {
+    d   <- object$fit_data
+    ctl <- object$control
+    agr_se <- cpp_get_se(
+      Y          = d$ratings,
+      ITEM_INDS  = as.integer(d$item_ids),
+      WORKER_INDS = if (!is.null(d$worker_ids)) as.integer(d$worker_ids)
+                    else rep(1L, length(d$ratings)),
+      ALPHA_MLE  = object$alpha,
+      BETA_MLE   = object$beta,
+      TAU_MLE    = object$tau,
+      PHI_EVAL   = phi,
+      PHI_MLE    = unname(object$profile$precision),
+      J          = d$n_items,
+      W          = if (!is.null(d$n_workers)) d$n_workers else 1L,
+      K          = d$K,
+      METHOD     = object$method,
+      DATA_TYPE  = object$data_type,
+      ITEMS_NUISANCE  = "items" %in% object$params_type$nuisance,
+      WORKER_NUISANCE = "workers" %in% object$params_type$nuisance,
+      PROF_SEARCH_RANGE = as.integer(ctl$PROF_SEARCH_RANGE),
+      PROF_MAX_ITER     = as.integer(ctl$PROF_MAX_ITER),
+      ALT_MAX_ITER      = as.integer(ctl$ALT_MAX_ITER),
+      ALT_TOL           = ctl$ALT_TOL
+    )
+    h_phi  <- sqrt(.Machine$double.eps) * phi
+    phi_se <- agr_se /
+      abs((prec2agr(phi + h_phi) - prec2agr(phi - h_phi)) / (2 * h_phi))
+
+    tau     <- object$tau
+    alpha_j <- object$alpha
+    h       <- sqrt(.Machine$double.eps) * abs(phi)
+
+    for (i in seq_along(non_degen)) {
+      j  <- non_degen[i]
+      mu <- plogis(alpha_j[i])
+      P  <- function(pv) sum(diff(pbeta(tau, mu * pv, (1 - mu) * pv)) ^ B[j])
+      se_vec[j] <- abs((P(phi + h) - P(phi - h)) / (2 * h)) * phi_se
+    }
+
+  } else {
+    k0      <- unname(object$k0)
+    k1      <- unname(object$k1)
+    vc      <- object$vcov
+    alpha_j <- object$alpha
+    h       <- sqrt(.Machine$double.eps)
+
+    for (i in seq_along(non_degen)) {
+      j  <- non_degen[i]
+      a  <- alpha_j[i]
+      Bj <- B[j]
+      P  <- function(k0v, k1v) (1 - plogis(a - k0v)) ^ Bj + plogis(a - k1v) ^ Bj
+      g  <- c(
+        0,
+        (P(k0 + h, k1) - P(k0 - h, k1)) / (2 * h),
+        (P(k0, k1 + h) - P(k0, k1 - h)) / (2 * h)
+      )
+      se_vec[j] <- sqrt(drop(g %*% vc %*% g))
+    }
+  }
+
+  lower <- pmax(0, pd - z * se_vec)
+  upper <- pmin(1, pd + z * se_vec)
+  out   <- cbind(pd, se_vec, lower, upper)
+  colnames(out) <- c("Estimate", "Std. Error", pct)
+  out
+}
