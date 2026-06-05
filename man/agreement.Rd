@@ -13,8 +13,7 @@ agreement(
   PHI_START = NULL,
   NUISANCE = c("items"),
   CONTROL = list(),
-  VERBOSE = FALSE,
-  ADJUST = TRUE
+  VERBOSE = FALSE
 )
 }
 \arguments{
@@ -62,12 +61,6 @@ Must be positive. Default: \code{100}.}
 }}
 
 \item{VERBOSE}{Print optimization progress. Default \code{FALSE}.}
-
-\item{ADJUST}{Logical; if \code{TRUE} (default), degenerate items dropped before
-estimation are re-included in the overall agreement by weighting each with a
-unit contribution: \code{(fit_J * raw + n_dropped) / (fit_J + n_dropped)}. Applied
-uniformly to all data types. Has no effect when no items are dropped (e.g.
-two-way models, where degenerate items are kept in the fit).}
 }
 \value{
 An S3 object of class \code{agreement_fit} with the following components:

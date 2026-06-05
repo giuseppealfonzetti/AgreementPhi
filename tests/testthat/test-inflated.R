@@ -424,12 +424,7 @@ test_that("inflated agreement estimate is in the right ballpark", {
   K0_true <- -2
   K1_true <- 2
   agr_phi <- 0.5
-  agr_true <- par2agr(
-    PHI = agr2prec(agr_phi),
-    ALPHA = alpha_true,
-    K0 = K0_true,
-    K1 = K1_true
-  )$agreement
+  agr_true <- agr_phi
   dt <- sim_data(
     J = J_rec,
     B = 10,
@@ -490,8 +485,7 @@ test_that("agreement over inflated data uses only non-degenerate items", {
     ITEM_INDS = fit_iids,
     J = fit_J
   )
-  raw_agr <- par2agr(pf$phi, ALPHA = pf$alpha, K0 = pf$k0, K1 = pf$k1)$agreement
-  expected <- (fit_J * raw_agr + n_degen) / rd$n_items
+  expected <- prec2agr(unname(pf$phi))
   fit <- agreement(rd, METHOD = "profile", NUISANCE = "items")
   expect_equal(fit$profile$agreement, expected, tolerance = 1e-8)
 })

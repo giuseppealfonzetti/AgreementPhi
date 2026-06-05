@@ -51,12 +51,6 @@
 #'       Must be positive. Default: `100`.}
 #'  }
 #' @param VERBOSE Print optimization progress. Default `FALSE`.
-#' @param ADJUST Logical; if `TRUE` (default), degenerate items dropped before
-#'   estimation are re-included in the overall agreement by weighting each with a
-#'   unit contribution: `(fit_J * raw + n_dropped) / (fit_J + n_dropped)`. Applied
-#'   uniformly to all data types. Has no effect when no items are dropped (e.g.
-#'   two-way models, where degenerate items are kept in the fit).
-#'
 #' @return An S3 object of class `agreement_fit` with the following components:
 #' \describe{
 #'   \item{`data_type`}{Detected data type: `"ordinal"`, `"continuous"`, or `"inflated"`.}
@@ -109,8 +103,7 @@ agreement <- function(
   PHI_START = NULL,
   NUISANCE = c("items"),
   CONTROL = list(),
-  VERBOSE = FALSE,
-  ADJUST = TRUE
+  VERBOSE = FALSE
 ) {
   stopifnot(inherits(DATA, "rating_data"))
   METHOD <- match.arg(METHOD)
@@ -188,7 +181,6 @@ agreement <- function(
     }
 
     ref <- if (METHOD == "modified") inflated_fit$ref_fit else inflated_fit
-    n_dropped <- DATA$n_items - fit_J
 
     out <- structure(
       list(
@@ -197,7 +189,6 @@ agreement <- function(
         data_type = "inflated",
         method = METHOD,
         params_type = params_type,
-        adjust = ADJUST,
         alpha = inflated_fit$alpha,
         beta = NULL,
         tau = NULL,
@@ -205,26 +196,12 @@ agreement <- function(
         k1 = inflated_fit$k1,
         profile = list(
           precision = ref$phi,
-          agreement = par2agr(
-            ref$phi,
-            ALPHA = ref$alpha,
-            K0 = ref$k0,
-            K1 = ref$k1,
-            ADJUST = ADJUST,
-            N_DEGENERATE = n_dropped
-          )$agreement
+          agreement = prec2agr(unname(ref$phi))
         ),
         modified = list(
           precision = if (METHOD == "modified") inflated_fit$phi else NA,
           agreement = if (METHOD == "modified") {
-            par2agr(
-              inflated_fit$phi,
-              ALPHA = inflated_fit$alpha,
-              K0 = inflated_fit$k0,
-              K1 = inflated_fit$k1,
-              ADJUST = ADJUST,
-              N_DEGENERATE = n_dropped
-            )$agreement
+            prec2agr(unname(inflated_fit$phi))
           } else {
             NA
           }
@@ -331,7 +308,6 @@ agreement <- function(
   )
 
   opt <- do.call(cpp_get_phi, args)
-  n_dropped <- DATA$n_items - fit_J
 
   out <- structure(
     list(
@@ -340,7 +316,6 @@ agreement <- function(
       data_type = DATA$data_type,
       method = METHOD,
       params_type = params_type,
-      adjust = ADJUST,
       alpha = opt$alpha,
       beta = opt$beta,
       tau = opt$tau,
@@ -348,22 +323,12 @@ agreement <- function(
       k1 = NULL,
       profile = list(
         precision = opt$profile_phi,
-        agreement = par2agr(
-          opt$profile_phi,
-          ALPHA = opt$alpha,
-          ADJUST = ADJUST,
-          N_DEGENERATE = n_dropped
-        )$agreement
+        agreement = prec2agr(opt$profile_phi)
       ),
       modified = list(
         precision = opt$modified_phi,
         agreement = if (!is.na(opt$modified_phi)) {
-          par2agr(
-            opt$modified_phi,
-            ALPHA = opt$alpha,
-            ADJUST = ADJUST,
-            N_DEGENERATE = n_dropped
-          )$agreement
+          prec2agr(opt$modified_phi)
         } else {
           NaN
         }
