@@ -138,7 +138,7 @@ confint(fit)
 #> 
 #> $agreement
 #>            Estimate Std. Error     2.5 %    97.5 %
-#> agreement 0.2828532 0.01201713 0.2593001 0.3064064
+#> agreement 0.4947163 0.01518123 0.4649616 0.5244709
 ```
 
 ## Item effects

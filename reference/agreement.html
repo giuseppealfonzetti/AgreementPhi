@@ -70,8 +70,7 @@ Fitted via the ordered beta mixture model. One-way only (no workers in <code>DAT
 <span>  PHI_START <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  NUISANCE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"items"</span><span class="op">)</span>,</span>
 <span>  CONTROL <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  VERBOSE <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  ADJUST <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  VERBOSE <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -151,14 +150,6 @@ Must be positive. Default: <code>100</code>.</p></dd>
 
 <dt id="arg-verbose">VERBOSE<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>Print optimization progress. Default <code>FALSE</code>.</p></dd>
-
-
-<dt id="arg-adjust">ADJUST<a class="anchor" aria-label="anchor" href="#arg-adjust"></a></dt>
-<dd><p>Logical; if <code>TRUE</code> (default), degenerate items dropped before
-estimation are re-included in the overall agreement by weighting each with a
-unit contribution: <code>(fit_J * raw + n_dropped) / (fit_J + n_dropped)</code>. Applied
-uniformly to all data types. Has no effect when no items are dropped (e.g.
-two-way models, where degenerate items are kept in the fit).</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -249,8 +240,8 @@ two-way models, where degenerate items are kept in the fit).</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> k1   2.172107  0.2019449  1.776303  2.567912</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $agreement</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            Estimate Std. Error     2.5 %    97.5 %</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> agreement 0.3489283 0.03463357 0.2810477 0.4168088</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            Estimate Std. Error     2.5 %   97.5 %</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> agreement 0.7110649 0.04397537 0.6248748 0.797255</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
