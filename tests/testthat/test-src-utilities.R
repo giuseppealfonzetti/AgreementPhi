@@ -55,9 +55,9 @@ for (seed in 1:3) {
     numhess <- numDeriv::hessian(RlogiB, x, X = ub)
     cpp_res <- cpp_ibeta_funs(X = ub, A = x[1], B = x[2])
 
-    expect_equal(numhess[1, 1], cpp_res$da2)
-    expect_equal(numhess[2, 2], cpp_res$db2)
-    expect_equal(numhess[2, 1], cpp_res$dadb)
+    expect_equal(numhess[1, 1], cpp_res$da2,  tolerance = 1e-4)
+    expect_equal(numhess[2, 2], cpp_res$db2,  tolerance = 1e-4)
+    expect_equal(numhess[2, 1], cpp_res$dadb, tolerance = 1e-4)
   })
 }
 
@@ -89,9 +89,9 @@ for (seed in 1:3) {
     numhess <- numDeriv::hessian(RF, x, X = ub)
     cpp_res <- cpp_cdfbeta_funs(X = ub, A = x[1], B = x[2])
 
-    expect_equal(numhess[1, 1], cpp_res$da2)
-    expect_equal(numhess[2, 2], cpp_res$db2)
-    expect_equal(numhess[2, 1], cpp_res$dadb)
+    expect_equal(numhess[1, 1], cpp_res$da2,  tolerance = 1e-4)
+    expect_equal(numhess[2, 2], cpp_res$db2,  tolerance = 1e-4)
+    expect_equal(numhess[2, 1], cpp_res$dadb, tolerance = 1e-4)
   })
 }
 
@@ -128,6 +128,6 @@ for (seed in 1:3) {
     numhess <- numDeriv::hessian(RF, pars, X = ub)
     cpp_res <- cpp_cdfbeta_muphi_funs(X = ub, MU = pars[1], PHI = pars[2])
 
-    expect_equal(numhess[1, 1], cpp_res$dmu2)
+    expect_equal(numhess[1, 1], cpp_res$dmu2, tolerance = 1e-4)
   })
 }

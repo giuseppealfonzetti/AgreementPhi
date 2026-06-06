@@ -257,25 +257,43 @@ double AgreementPhi::ordinal::log_det_E0d0d1(
     const bool WORKER_NUISANCE
 ){
     const int n = ITEM_INDS.size();
-    
+
     Eigen::VectorXd Ialphaalpha = Eigen::VectorXd::Zero(J);
     Eigen::VectorXd Ibetabeta = Eigen::VectorXd::Zero(W - 1);
     Eigen::MatrixXd Ialphabeta = Eigen::MatrixXd::Zero(J, W - 1);
 
-    std::vector<double> mu0(n), mu1(n);
+    // For one-way models (no worker nuisance), all observations on item j share the
+    // same linear predictor eta = alpha_j, so E0_dmu0dmu1 is constant across
+    // observations on that item. Precompute once per item.
+    std::vector<double> e_item(J, 0.0);
+    if (!WORKER_NUISANCE) {
+        for (int j = 0; j < J; ++j) {
+            double mu0j = link::mu(LAMBDA0.at(j));
+            double mu1j = link::mu(LAMBDA1.at(j));
+            e_item[j] = ordinal::E0_dmu0dmu1(mu0j, PHI0, mu1j, PHI1, TAU, K);
+        }
+    }
+
     for(int i = 0; i < n; ++i){
         int j = ITEM_INDS.at(i) - 1;
         int w = WORKER_INDS.at(i) - 1;
-        double eta0 = LAMBDA0.at(j) + ((w == 0) ? 0.0 : LAMBDA0.at(J + w - 1));
-        double eta1 = LAMBDA1.at(j) + ((w == 0) ? 0.0 : LAMBDA1.at(J + w - 1));
-        double mu0 = link::mu(eta0);
-        double mu1 = link::mu(eta1);
-        double e = ordinal::E0_dmu0dmu1(mu0, PHI0, mu1, PHI1, TAU, K);
-        double dmu0_dalpha = link::dmu(mu0);
-        double dmu1_dalpha = link::dmu(mu1);
+
+        double e;
+        if (!WORKER_NUISANCE) {
+            e = e_item[j];
+        } else {
+            double eta0 = LAMBDA0.at(j) + ((w == 0) ? 0.0 : LAMBDA0.at(J + w - 1));
+            double eta1 = LAMBDA1.at(j) + ((w == 0) ? 0.0 : LAMBDA1.at(J + w - 1));
+            e = ordinal::E0_dmu0dmu1(link::mu(eta0), PHI0, link::mu(eta1), PHI1, TAU, K);
+        }
+
+        double mu0_i = link::mu(LAMBDA0.at(j) + ((w == 0) ? 0.0 : LAMBDA0.at(J + w - 1)));
+        double mu1_i = link::mu(LAMBDA1.at(j) + ((w == 0) ? 0.0 : LAMBDA1.at(J + w - 1)));
+        double dmu0_dalpha = link::dmu(mu0_i);
+        double dmu1_dalpha = link::dmu(mu1_i);
         double dmu0_dbeta = (w > 0) ? dmu0_dalpha : 0.0;
         double dmu1_dbeta = (w > 0) ? dmu1_dalpha : 0.0;
-        
+
         Ialphaalpha(j) += dmu0_dalpha * dmu1_dalpha * e;
         if(WORKER_NUISANCE){
             if(w > 0){

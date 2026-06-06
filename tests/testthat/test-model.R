@@ -220,7 +220,7 @@ cpp_res <- cpp_log_det_obs_info(
   ITEMS_NUISANCE = TRUE
 )
 test_that("log det obs info", {
-  expect_equal(cpp_res, numlogdet)
+  expect_equal(cpp_res, numlogdet, tolerance = 1e-4)
 })
 
 cpp_res_E <- cpp_log_det_E0d0d1(

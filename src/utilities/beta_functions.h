@@ -1,7 +1,8 @@
 #ifndef AGREEMENTPHI_UTILITIES_BETA_FUNCTIONS_H
 #define AGREEMENTPHI_UTILITIES_BETA_FUNCTIONS_H
 #include <boost/math/special_functions/beta.hpp>
-#include <boost/math/quadrature/tanh_sinh.hpp>
+#include <cmath>
+#include <limits>
 
 namespace AgreementPhi{
     namespace betamath{
@@ -36,88 +37,65 @@ namespace AgreementPhi{
             return out;
         }
 
+        // Unnormalized incomplete beta: B(x;a,b) = ibeta(a,b,x) * beta(a,b)
+        // = integral_0^x t^(a-1)(1-t)^(b-1) dt.
+        inline double B_inc(const double A, const double B, const double X){
+            return boost::math::ibeta(A, B, X) * boost::math::beta(A, B);
+        }
+
         // derivative incomplete beta function wrt first shape parameter
+        // = d/dA [B(X;A,B)] via centered finite differences. 
         inline double diBda(const double X, const double A, const double B){
-
-            double lb = 1e-12;
-            if(X < lb) return 0.0;
-            auto f = [A, B](double t) {
-                return std::log(t) * std::pow(t, A - 1) * std::pow(1 - t, B - 1);
-            };
-
-            boost::math::quadrature::tanh_sinh<double> integrator(15);
-
-            try {
-                double out = integrator.integrate(f, 0.0, X, 1e-15);
-                return out;
-            } catch(...) {
-                return 0.0;
-            }
-            // return out;
+            if (X < 1e-12) return 0.0;
+            const double eps = std::numeric_limits<double>::epsilon();
+            double h = std::max(std::cbrt(eps) * std::max(A, 0.01), 1e-6);
+            h = std::min(h, A * 0.5);
+            h = std::max(h, 1e-10);
+            return (B_inc(A + h, B, X) - B_inc(A - h, B, X)) / (2.0 * h);
         }
 
         // derivative incomplete beta function wrt second shape parameter
         inline double diBdb(const double X, const double A, const double B){
-            double lb = 1e-12;
-            if(X < lb) return 0.0;
-            auto f = [A, B](double t) {
-                return std::log(1-t) * std::pow(t, A - 1) * std::pow(1 - t, B - 1);
-            };
-            boost::math::quadrature::tanh_sinh<double> integrator(15);
-            try {
-                double out = integrator.integrate(f, 0.0, X, 1e-15);
-                return out;
-            } catch(...) {
-                return 0.0;
-            }
+            if (X < 1e-12) return 0.0;
+            const double eps = std::numeric_limits<double>::epsilon();
+            double h = std::max(std::cbrt(eps) * std::max(B, 0.01), 1e-6);
+            h = std::min(h, B * 0.5);
+            h = std::max(h, 1e-10);
+            return (B_inc(A, B + h, X) - B_inc(A, B - h, X)) / (2.0 * h);
         }
 
         // second derivative incomplete beta function wrt first shape parameter
         inline double d2iBda2(const double X, const double A, const double B){
-            double lb = 1e-12;
-            if(X < lb) return 0.0;
-            auto f = [A, B](double t) {
-                return pow(std::log(t), 2) * std::pow(t, A - 1) * std::pow(1 - t, B - 1);
-            };
-            boost::math::quadrature::tanh_sinh<double> integrator(15);
-            try {
-                double out = integrator.integrate(f, 0.0, X, 1e-15);
-                return out;
-            } catch(...) {
-                return 0.0;
-            }
+            if (X < 1e-12) return 0.0;
+            const double eps = std::numeric_limits<double>::epsilon();
+            double h = std::max(std::pow(eps, 0.25) * std::max(A, 0.01), 1e-4);
+            h = std::min(h, A * 0.5);
+            h = std::max(h, 1e-8);
+            return (B_inc(A + h, B, X) - 2.0 * B_inc(A, B, X) + B_inc(A - h, B, X)) / (h * h);
         }
 
         // second derivative incomplete beta function wrt second shape parameter
         inline double d2iBdb2(const double X, const double A, const double B){
-            double lb = 1e-12;
-            if(X < lb) return 0.0;
-            auto f = [A, B](double t) {
-                return pow(std::log(1-t), 2) * std::pow(t, A - 1) * std::pow(1 - t, B - 1);
-            };
-            boost::math::quadrature::tanh_sinh<double> integrator(15);
-            try {
-                double out = integrator.integrate(f, 0.0, X, 1e-15);
-                return out;
-            } catch(...) {
-                return 0.0;
-            }
+            if (X < 1e-12) return 0.0;
+            const double eps = std::numeric_limits<double>::epsilon();
+            double h = std::max(std::pow(eps, 0.25) * std::max(B, 0.01), 1e-4);
+            h = std::min(h, B * 0.5);
+            h = std::max(h, 1e-8);
+            return (B_inc(A, B + h, X) - 2.0 * B_inc(A, B, X) + B_inc(A, B - h, X)) / (h * h);
         }
 
         // crossed derivative incomplete beta function
         inline double d2iBdadb(const double X, const double A, const double B){
-            double lb = 1e-12;
-            if(X < lb) return 0.0;
-            auto f = [A, B](double t) {
-                return std::log(1-t)*std::log(t) * std::pow(t, A - 1) * std::pow(1 - t, B - 1);
-            };
-            boost::math::quadrature::tanh_sinh<double> integrator(15);
-            try {
-                double out = integrator.integrate(f, 0.0, X, 1e-15);
-                return out;
-            } catch(...) {
-                return 0.0;
-            }
+            if (X < 1e-12) return 0.0;
+            const double eps = std::numeric_limits<double>::epsilon();
+            double ha = std::max(std::cbrt(eps) * std::max(A, 0.01), 1e-6);
+            ha = std::min(ha, A * 0.5);
+            ha = std::max(ha, 1e-10);
+            double hb = std::max(std::cbrt(eps) * std::max(B, 0.01), 1e-6);
+            hb = std::min(hb, B * 0.5);
+            hb = std::max(hb, 1e-10);
+            return (B_inc(A+ha, B+hb, X) - B_inc(A+ha, B-hb, X)
+                  - B_inc(A-ha, B+hb, X) + B_inc(A-ha, B-hb, X)) / (4.0 * ha * hb);
         }
 
         // derivative of beta CDF wrt to shape parameter (first or second depends on DIB and DLOGB)
