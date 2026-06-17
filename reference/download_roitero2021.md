@@ -9,12 +9,18 @@ avoiding any download.
 ## Usage
 
 ``` r
-download_roitero2021()
+download_roitero2021(SCALE = c("S100", "S4"))
 ```
 
 ## Source
 
 <https://github.com/KevinRoitero/CrowdsourcingRelevanceScales>
+
+## Arguments
+
+- SCALE:
+
+  Scale of interest. Default "S100".
 
 ## Value
 
