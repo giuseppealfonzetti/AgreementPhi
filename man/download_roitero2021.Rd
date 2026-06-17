@@ -7,7 +7,10 @@
 \url{https://github.com/KevinRoitero/CrowdsourcingRelevanceScales}
 }
 \usage{
-download_roitero2021()
+download_roitero2021(SCALE = c("S100", "S4"))
+}
+\arguments{
+\item{SCALE}{Scale of interest. Default "S100".}
 }
 \value{
 A data frame with 56 472 rows and 11 columns:

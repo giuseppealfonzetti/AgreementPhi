@@ -410,7 +410,7 @@ prob_degenerate <- function(object) {
 #' @return A named matrix with one row per item and columns
 #'   `Estimate`, `Std. Error`, and the two percentile bounds.
 #'
-#' @importFrom stats pbeta plogis optimize qnorm
+#' @importFrom stats pbeta plogis qlogis optimize qnorm
 #' @export
 confint_prob_degenerate <- function(object, level = 0.95) {
   stopifnot(inherits(object, "agreement_fit"))
