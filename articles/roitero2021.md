@@ -32,9 +32,9 @@ related items were assessed.
 
 ``` r
 
-topic <- subset(roitero2021, topic_id == 418)
+topic <- subset(roitero2021, topic_id == 428)
 nrow(topic)
-#> [1] 3216
+#> [1] 3352
 ```
 
 We retain only workers who “correctly” responded to the gold items
@@ -51,7 +51,7 @@ select_workers <- intersect(
 
 topic <- subset(topic, unit_id %in% select_workers & gold == "null")
 nrow(topic)
-#> [1] 2088
+#> [1] 2196
 ```
 
 As scores were collected on a 0–100 scale, we map them onto `[0,1]` by
@@ -67,10 +67,10 @@ items <- as.integer(factor(topic$document_id))
 rd <- rating_data(ratings, items)
 rd
 #> - Data type: inflated 
-#> - Inflation: zeros = 46.1% / ones = 2.4% 
-#> - Items: 241 ( 1 degenerate )
-#> - Average budget per item: 8.66 
-#> - n: 2088
+#> - Inflation: zeros = 38.3% / ones = 7.6% 
+#> - Items: 251 ( 2 degenerate )
+#> - Average budget per item: 8.75 
+#> - n: 2196
 ```
 
 As printed, the checks detected two degenerate items. These correspond
@@ -81,13 +81,24 @@ to documents where the same value is given by all raters
 degen_docs <- levels(factor(topic$document_id))[rd$degen_ids]
 d <- subset(topic, document_id %in% degen_docs, select = c(document_id, relevance_score))
 d[order(d$document_id), ]
-#>        document_id relevance_score
-#> 141537 FBIS3-26358               0
-#> 141872 FBIS3-26358               0
-#> 142406 FBIS3-26358               0
-#> 143087 FBIS3-26358               0
-#> 143612 FBIS3-26358               0
-#> 143936 FBIS3-26358               0
+#>             document_id relevance_score
+#> 115931 FR941121-0-00035               0
+#> 116340 FR941121-0-00035               0
+#> 116533 FR941121-0-00035               0
+#> 116795 FR941121-0-00035               0
+#> 117104 FR941121-0-00035               0
+#> 117660 FR941121-0-00035               0
+#> 117872 FR941121-0-00035               0
+#> 118732 FR941121-0-00035               0
+#> 118929 FR941121-0-00035               0
+#> 115886    LA013190-0096               0
+#> 116191    LA013190-0096               0
+#> 116685    LA013190-0096               0
+#> 117054    LA013190-0096               0
+#> 117096    LA013190-0096               0
+#> 117619    LA013190-0096               0
+#> 118195    LA013190-0096               0
+#> 118406    LA013190-0096               0
 ```
 
 ## Fitting the agreement model
@@ -107,10 +118,10 @@ We can extract estimated coefficients with the familiar
 ``` r
 
 coef(fit)[1:10]
-#>       phi        k0        k1   alpha_1   alpha_2   alpha_3   alpha_4   alpha_5 
-#>  2.841631 -1.328231  2.974278 -1.597678 -1.382612 -1.729650 -1.646931 -1.248158 
-#>   alpha_6   alpha_7 
-#> -1.330361 -1.540069
+#>        phi         k0         k1    alpha_1    alpha_2    alpha_3    alpha_4 
+#>  2.6944238 -1.3789283  2.3437713  0.4646532  0.9665874  1.9666077 -0.9659125 
+#>    alpha_5    alpha_6    alpha_7 
+#> -0.8590840 -1.1937944 -0.2065705
 ```
 
 where alphas for degenrate items are reported with infinite values
@@ -118,8 +129,8 @@ where alphas for degenrate items are reported with infinite values
 ``` r
 
 coef(fit)[paste0("alpha_", rd$degen_ids)]
-#> alpha_12 
-#>     -Inf
+#> alpha_138 alpha_199 
+#>      -Inf      -Inf
 ```
 
 The [`confint()`](https://rdrr.io/r/stats/confint.html) method returns
@@ -132,13 +143,13 @@ constructed via delta method
 confint(fit)
 #> $parameters
 #>      Estimate Std. Error     2.5 %    97.5 %
-#> phi  2.841631 0.12506931  2.596500  3.086763
-#> k0  -1.328231 0.06043951 -1.446690 -1.209772
-#> k1   2.974278 0.15372395  2.672985  3.275572
+#> phi  2.694424 0.10667435  2.485346  2.903502
+#> k0  -1.378928 0.06127626 -1.499028 -1.258829
+#> k1   2.343771 0.09483957  2.157889  2.529653
 #> 
 #> $agreement
 #>            Estimate Std. Error     2.5 %    97.5 %
-#> agreement 0.4947163 0.01518123 0.4649616 0.5244709
+#> agreement 0.4765281 0.01341449 0.4502362 0.5028201
 ```
 
 ## Item effects
@@ -164,3 +175,11 @@ boxplot(
 ```
 
 ![](roitero2021_files/figure-html/item-effects-1.png)
+
+``` r
+
+p_degen <- confint_prob_degenerate(fit)
+plot_prob_degenerate(fit)
+```
+
+![](roitero2021_files/figure-html/unnamed-chunk-4-1.png)
