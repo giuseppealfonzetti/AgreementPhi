@@ -37,7 +37,7 @@ str(roitero2021)
 For simplicity, here we focus on a single topic and look at how the related items were assessed.
 
 ```{r topic}
-topic <- subset(roitero2021, topic_id == 418)
+topic <- subset(roitero2021, topic_id == 428)
 nrow(topic)
 ```
 
@@ -122,3 +122,8 @@ boxplot(
   col = c("#F28E2B", "#4E79A7"))
 ```
 
+
+```{r}
+p_degen <- confint_prob_degenerate(fit)
+plot_prob_degenerate(fit)
+```

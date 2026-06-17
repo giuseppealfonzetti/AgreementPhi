@@ -343,6 +343,7 @@ confint.agreement_fit <- function(object, parm = NULL, level = 0.95, ...) {
 #'   probability 1. Names are `item_1, ..., item_J` or `item_<label>` when
 #'   item labels are available.
 #'
+#' @importFrom stats pbeta plogis
 #' @export
 prob_degenerate <- function(object) {
   stopifnot(inherits(object, "agreement_fit"))
@@ -409,6 +410,7 @@ prob_degenerate <- function(object) {
 #' @return A named matrix with one row per item and columns
 #'   `Estimate`, `Std. Error`, and the two percentile bounds.
 #'
+#' @importFrom stats pbeta plogis optimize qnorm
 #' @export
 confint_prob_degenerate <- function(object, level = 0.95) {
   stopifnot(inherits(object, "agreement_fit"))
@@ -472,10 +474,10 @@ confint_prob_degenerate <- function(object, level = 0.95) {
     h       <- sqrt(.Machine$double.eps) * abs(phi)
 
     for (i in seq_along(non_degen)) {
-      j  <- non_degen[i]
-      mu <- plogis(alpha_j[i])
-      P  <- function(pv) sum(diff(pbeta(tau, mu * pv, (1 - mu) * pv)) ^ B[j])
-      se_vec[j] <- abs((P(phi + h) - P(phi - h)) / (2 * h)) * phi_se
+      j    <- non_degen[i]
+      mu   <- plogis(alpha_j[i])
+      P_ord <- function(pv) sum(diff(pbeta(tau, mu * pv, (1 - mu) * pv)) ^ B[j])
+      se_vec[j] <- abs((P_ord(phi + h) - P_ord(phi - h)) / (2 * h)) * phi_se
     }
 
   } else {
@@ -486,22 +488,29 @@ confint_prob_degenerate <- function(object, level = 0.95) {
     h       <- sqrt(.Machine$double.eps)
 
     for (i in seq_along(non_degen)) {
-      j  <- non_degen[i]
-      a  <- alpha_j[i]
-      Bj <- B[j]
-      P  <- function(k0v, k1v) (1 - plogis(a - k0v)) ^ Bj + plogis(a - k1v) ^ Bj
+      j    <- non_degen[i]
+      a    <- alpha_j[i]
+      Bj   <- B[j]
+      P_inf <- function(k0v, k1v) (1 - plogis(a - k0v)) ^ Bj + plogis(a - k1v) ^ Bj
       g  <- c(
         0,
-        (P(k0 + h, k1) - P(k0 - h, k1)) / (2 * h),
-        (P(k0, k1 + h) - P(k0, k1 - h)) / (2 * h)
+        (P_inf(k0 + h, k1) - P_inf(k0 - h, k1)) / (2 * h),
+        (P_inf(k0, k1 + h) - P_inf(k0, k1 - h)) / (2 * h)
       )
       se_vec[j] <- sqrt(drop(g %*% vc %*% g))
     }
   }
 
-  lower <- pmax(0, pd - z * se_vec)
-  upper <- pmin(1, pd + z * se_vec)
-  out   <- cbind(pd, se_vec, lower, upper)
+  eps_p <- .Machine$double.eps
+  lower <- ifelse(
+    se_vec == 0, pd,
+    plogis(qlogis(pmax(pd, eps_p)) - z * se_vec / pmax(pd * (1 - pd), eps_p))
+  )
+  upper <- ifelse(
+    se_vec == 0, pd,
+    plogis(qlogis(pmin(pd, 1 - eps_p)) + z * se_vec / pmax(pd * (1 - pd), eps_p))
+  )
+  out <- cbind(pd, se_vec, lower, upper)
   colnames(out) <- c("Estimate", "Std. Error", pct)
   out
 }

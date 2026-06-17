@@ -74,7 +74,7 @@ print.agreement_fit <- function(x, ...) {
 #' fit <- agreement(rd, METHOD = "modified", NUISANCE = "items")
 #' coef(fit)
 #'
-#' @importFrom stats coef
+#' @importFrom stats coef optimize pbeta
 #' @export
 coef.agreement_fit <- function(object, ...) {
   phi <- if (object$method == "modified") {

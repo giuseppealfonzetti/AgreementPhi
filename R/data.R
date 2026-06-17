@@ -5,6 +5,7 @@
 #' and parsed into a data frame. When called from the package source tree the
 #' local \code{data-raw/dataframe.csv} is used instead, avoiding any download.
 #'
+#' @param SCALE Scale of interest. Default "S100".
 #' @return A data frame with 56 472 rows and 11 columns:
 #' \describe{
 #'   \item{topic_id}{The ID of the topic.}
@@ -33,7 +34,8 @@
 #' }
 #'
 #' @export
-download_roitero2021 <- function() {
+download_roitero2021 <- function(SCALE = c("S100", "S4")) {
+  SCALE <- match.arg(SCALE)
   local_csv <- file.path("data-raw", "dataframe.csv")
   if (!file.exists(local_csv)) {
     local_csv <- tempfile(fileext = ".csv")
@@ -42,11 +44,12 @@ download_roitero2021 <- function() {
         "https://raw.githubusercontent.com/",
         "KevinRoitero/CrowdsourcingRelevanceScales/main/dataframe.csv"
       ),
-      local_csv, quiet = TRUE
+      local_csv,
+      quiet = TRUE
     )
   }
   raw <- utils::read.csv(local_csv, header = TRUE)
-  subset(raw, raw$relevance_scale == "S100")[,
+  subset(raw, raw$relevance_scale == SCALE)[,
     setdiff(colnames(raw), c("normalized_relevance_score", "relevance_scale"))
   ]
 }
