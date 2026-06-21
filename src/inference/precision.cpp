@@ -449,15 +449,16 @@ std::vector<double> AgreementPhi::ordinal::inference::get_phi_modified_profile(
             J, W, K, ITEMS_NUISANCE, WORKER_NUISANCE
         );
         
-        // Update best warm start if this is better
-        if (ll > best.loglik) {
+        // Update best warm start only when the value is finite
+        if (std::isfinite(ll) && ll > best.loglik) {
             best.loglik = ll;
             best.alpha = profiled.at(0);
             best.beta = profiled.at(1);
             best.initialized = true;
         }
 
-        return -ll; 
+        if (!std::isfinite(ll)) return std::numeric_limits<double>::infinity();
+        return -ll;
     };
 
     double eps = 1e-5; 

@@ -250,7 +250,7 @@ validate_cpp_control <- function(LIST = NULL, DATA_TYPE = NULL) {
 
   is_ordinal <- isTRUE(DATA_TYPE == "ordinal")
 
-  LIST$SEARCH_RANGE <- chk_pos(default(LIST$SEARCH_RANGE, 8), "SEARCH_RANGE")
+  LIST$SEARCH_RANGE <- chk_pos(default(LIST$SEARCH_RANGE, 5), "SEARCH_RANGE")
   LIST$MAX_ITER <- chk_pos(default(LIST$MAX_ITER, 100), "MAX_ITER")
   LIST$PROF_SEARCH_RANGE <- chk_pos(
     default(LIST$PROF_SEARCH_RANGE, 10),
