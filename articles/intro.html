@@ -136,7 +136,7 @@ method</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit_profile</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
 <span><span class="co">#&gt;        phi    alpha_1    alpha_2    alpha_3    alpha_4 </span></span>
-<span><span class="co">#&gt;  2.4465627  1.0698711  1.4333241 -0.2898244 -0.9135686</span></span>
+<span><span class="co">#&gt;  2.4465628  1.0698711  1.4333241 -0.2898244 -0.9135687</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit_profile</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 201</span></span></code></pre></div>
 <p>To use the modified likelihood approach, it is enough to change the
@@ -158,7 +158,7 @@ you can access estimates using <code><a href="https://rdrr.io/r/stats/coef.html"
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit_profile</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
 <span><span class="co">#&gt;        phi    alpha_1    alpha_2    alpha_3    alpha_4 </span></span>
-<span><span class="co">#&gt;  2.4465627  1.0698711  1.4333241 -0.2898244 -0.9135686</span></span>
+<span><span class="co">#&gt;  2.4465628  1.0698711  1.4333241 -0.2898244 -0.9135687</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit_profile</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 201</span></span></code></pre></div>
 <p>Once the point estimates are computed, we can draw inference on
@@ -175,17 +175,17 @@ looking at the fitted object</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $agreement</span></span>
 <span><span class="co">#&gt;            Estimate Std. Error     2.5 %    97.5 %</span></span>
-<span><span class="co">#&gt; agreement 0.4444125  0.0102727 0.4242784 0.4645466</span></span>
+<span><span class="co">#&gt; agreement 0.4444125  0.0102727 0.4242784 0.4645467</span></span>
 <span></span>
 <span><span class="va">ci_modified</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit_modified</span><span class="op">)</span></span>
 <span><span class="va">ci_modified</span></span>
 <span><span class="co">#&gt; $parameters</span></span>
 <span><span class="co">#&gt;     Estimate Std. Error    2.5 %   97.5 %</span></span>
-<span><span class="co">#&gt; phi 2.129941 0.07181497 1.989187 2.270696</span></span>
+<span><span class="co">#&gt; phi  2.12994  0.0718149 1.989185 2.270694</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $agreement</span></span>
 <span><span class="co">#&gt;            Estimate Std. Error     2.5 %    97.5 %</span></span>
-<span><span class="co">#&gt; agreement 0.4005054  0.0103424 0.3802347 0.4207762</span></span></code></pre></div>
+<span><span class="co">#&gt; agreement 0.4005052 0.01034239 0.3802345 0.4207759</span></span></code></pre></div>
 <p>For convenience, <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> visualises the relative
 log-likelihood profile and confidence interval in one step</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">

@@ -91,7 +91,7 @@ Estimated coefficients can be extracted via
 
 coef(fit_profile)[1:5]
 #>        phi    alpha_1    alpha_2    alpha_3    alpha_4 
-#>  2.4465627  1.0698711  1.4333241 -0.2898244 -0.9135686
+#>  2.4465628  1.0698711  1.4333241 -0.2898244 -0.9135687
 length(coef(fit_profile))
 #> [1] 201
 ```
@@ -121,7 +121,7 @@ using [`coef()`](https://rdrr.io/r/stats/coef.html)
 
 coef(fit_profile)[1:5]
 #>        phi    alpha_1    alpha_2    alpha_3    alpha_4 
-#>  2.4465627  1.0698711  1.4333241 -0.2898244 -0.9135686
+#>  2.4465628  1.0698711  1.4333241 -0.2898244 -0.9135687
 length(coef(fit_profile))
 #> [1] 201
 ```
@@ -143,17 +143,17 @@ ci_profile
 #> 
 #> $agreement
 #>            Estimate Std. Error     2.5 %    97.5 %
-#> agreement 0.4444125  0.0102727 0.4242784 0.4645466
+#> agreement 0.4444125  0.0102727 0.4242784 0.4645467
 
 ci_modified <- confint(fit_modified)
 ci_modified
 #> $parameters
 #>     Estimate Std. Error    2.5 %   97.5 %
-#> phi 2.129941 0.07181497 1.989187 2.270696
+#> phi  2.12994  0.0718149 1.989185 2.270694
 #> 
 #> $agreement
 #>            Estimate Std. Error     2.5 %    97.5 %
-#> agreement 0.4005054  0.0103424 0.3802347 0.4207762
+#> agreement 0.4005052 0.01034239 0.3802345 0.4207759
 ```
 
 For convenience,

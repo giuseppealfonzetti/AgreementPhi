@@ -206,11 +206,11 @@ fit <- agreement(rd, METHOD = "modified", NUISANCE = c("items"))
 confint(fit)
 #> $parameters
 #>     Estimate Std. Error    2.5 %   97.5 %
-#> phi 4.462539  0.4359353 3.608121 5.316956
+#> phi 4.462555   0.435935 3.608138 5.316972
 #> 
 #> $agreement
-#>            Estimate Std. Error    2.5 %    97.5 %
-#> agreement 0.6576837 0.03584846 0.587422 0.7279454
+#>           Estimate Std. Error     2.5 %    97.5 %
+#> agreement 0.657685  0.0358483 0.5874236 0.7279464
 #> 
 plot(fit)
 
