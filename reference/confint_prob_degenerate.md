@@ -2,9 +2,12 @@
 
 Applies the delta method to
 [`prob_degenerate()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/prob_degenerate.md),
-propagating parameter uncertainty to per-item probabilities. Item
-intercepts α_j are treated as fixed at their MLE (plug-in). Not defined
-for two-way models.
+propagating parameter uncertainty to per-item probabilities. For the
+inflated (ordered beta) model, uncertainty in the item intercepts is
+propagated via the partitioned information matrix (full delta method
+over the item intercept and the two cutpoints); for the ordinal model
+each item intercept is treated as fixed at its MLE (plug-in). Not
+defined for two-way models.
 
 ## Usage
 
