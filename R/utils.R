@@ -3,7 +3,7 @@ init_alpha <- function(Y, ITEM_INDS, J, LO, HI, K = NULL) {
   ids <- seq_len(J)
   means <- as.numeric(tapply(Y, ITEM_INDS, mean)[ids])
   if (!is.null(K)) {
-    means <- (means - 0.5) / K   # maps ordinal mean from [1, K] to (0.5/K, (K-0.5)/K)
+    means <- (means - 0.5) / K # maps ordinal mean from [1, K] to (0.5/K, (K-0.5)/K)
   }
   means <- pmax(pmin(means, 1 - 1e-6), 1e-6)
   alpha <- stats::qlogis(means)
@@ -240,7 +240,8 @@ confint.agreement_fit <- function(object, parm = NULL, level = 0.95, ...) {
     h <- sqrt(.Machine$double.eps) * abs(phi_est)
     agr_se <- abs(
       (prec2agr(phi_est + h) - prec2agr(phi_est - h)) / (2 * h)
-    ) * object$se[["phi"]]
+    ) *
+      object$se[["phi"]]
 
     return(list(
       parameters = make_mat(
@@ -352,10 +353,10 @@ prob_degenerate <- function(object) {
     stop("prob_degenerate() is not defined for two-way models.")
   }
 
-  n_total   <- object$data$n_items
+  n_total <- object$data$n_items
   degen_ids <- object$data$degen_ids
   non_degen <- setdiff(seq_len(n_total), degen_ids)
-  B         <- as.integer(table(object$data$item_ids))
+  B <- as.integer(table(object$data$item_ids))
 
   item_nms <- if (!is.null(object$data$item_labels)) {
     paste0("item_", object$data$item_labels)
@@ -365,33 +366,38 @@ prob_degenerate <- function(object) {
 
   out <- setNames(rep(0, n_total), item_nms)
 
-  if (object$data_type == "continuous") return(out)
+  if (object$data_type == "continuous") {
+    return(out)
+  }
 
   out[degen_ids] <- 1
 
   phi <- unname(
-    if (object$method == "modified") object$modified$precision
-    else object$profile$precision
+    if (object$method == "modified") {
+      object$modified$precision
+    } else {
+      object$profile$precision
+    }
   )
   alpha_j <- object$alpha
 
   if (object$data_type == "ordinal") {
     tau <- object$tau
     for (i in seq_along(non_degen)) {
-      j   <- non_degen[i]
-      mu  <- plogis(alpha_j[i])
+      j <- non_degen[i]
+      mu <- plogis(alpha_j[i])
       p_c <- diff(pbeta(tau, mu * phi, (1 - mu) * phi))
-      out[j] <- sum(p_c ^ B[j])
+      out[j] <- sum(p_c^B[j])
     }
   } else {
     k0 <- unname(object$k0)
     k1 <- unname(object$k1)
     for (i in seq_along(non_degen)) {
-      j  <- non_degen[i]
-      a  <- alpha_j[i]
+      j <- non_degen[i]
+      a <- alpha_j[i]
       p0 <- 1 - plogis(a - k0)
       p1 <- plogis(a - k1)
-      out[j] <- p0 ^ B[j] + p1 ^ B[j]
+      out[j] <- p0^B[j] + p1^B[j]
     }
   }
   out
@@ -401,8 +407,11 @@ prob_degenerate <- function(object) {
 #' Confidence intervals for model-based probability of item degeneracy
 #'
 #' Applies the delta method to `prob_degenerate()`, propagating parameter
-#' uncertainty to per-item probabilities. Item intercepts α_j are treated as
-#' fixed at their MLE (plug-in). Not defined for two-way models.
+#' uncertainty to per-item probabilities. For the inflated (ordered beta) model,
+#' uncertainty in the item intercepts is propagated via the partitioned
+#' information matrix (full delta method over the item intercept and the two
+#' cutpoints); for the ordinal model each item intercept is treated as fixed at
+#' its MLE (plug-in). Not defined for two-way models.
 #'
 #' @param object An `agreement_fit` object from [agreement()].
 #' @param level Confidence level. Default `0.95`.
@@ -419,96 +428,172 @@ confint_prob_degenerate <- function(object, level = 0.95) {
     stop("confint_prob_degenerate() is not defined for two-way models.")
   }
 
-  z   <- qnorm(1 - (1 - level) / 2)
-  pct <- paste0(formatC(c((1 - level) / 2, 1 - (1 - level) / 2) * 100,
-                        format = "g"), "%")
+  z <- qnorm(1 - (1 - level) / 2)
+  pct <- paste0(
+    formatC(c((1 - level) / 2, 1 - (1 - level) / 2) * 100, format = "g"),
+    "%"
+  )
 
-  pd        <- prob_degenerate(object)
-  n_total   <- object$data$n_items
+  pd <- prob_degenerate(object)
+  n_total <- object$data$n_items
   degen_ids <- object$data$degen_ids
   non_degen <- setdiff(seq_len(n_total), degen_ids)
-  B         <- as.integer(table(object$data$item_ids))
+  B <- as.integer(table(object$data$item_ids))
 
-  se_vec            <- rep(NA_real_, n_total)
+  se_vec <- rep(NA_real_, n_total)
   se_vec[degen_ids] <- 0
 
   phi <- unname(
-    if (object$method == "modified") object$modified$precision
-    else object$profile$precision
+    if (object$method == "modified") {
+      object$modified$precision
+    } else {
+      object$profile$precision
+    }
   )
 
   if (object$data_type == "continuous") {
     se_vec[] <- 0
-
   } else if (object$data_type == "ordinal") {
-    d   <- object$fit_data
+    d <- object$fit_data
     ctl <- object$control
     agr_se <- cpp_get_se(
-      Y          = d$ratings,
-      ITEM_INDS  = as.integer(d$item_ids),
-      WORKER_INDS = if (!is.null(d$worker_ids)) as.integer(d$worker_ids)
-                    else rep(1L, length(d$ratings)),
-      ALPHA_MLE  = object$alpha,
-      BETA_MLE   = object$beta,
-      TAU_MLE    = object$tau,
-      PHI_EVAL   = phi,
-      PHI_MLE    = unname(object$profile$precision),
-      J          = d$n_items,
-      W          = if (!is.null(d$n_workers)) d$n_workers else 1L,
-      K          = d$K,
-      METHOD     = object$method,
-      DATA_TYPE  = object$data_type,
-      ITEMS_NUISANCE  = "items" %in% object$params_type$nuisance,
+      Y = d$ratings,
+      ITEM_INDS = as.integer(d$item_ids),
+      WORKER_INDS = if (!is.null(d$worker_ids)) {
+        as.integer(d$worker_ids)
+      } else {
+        rep(1L, length(d$ratings))
+      },
+      ALPHA_MLE = object$alpha,
+      BETA_MLE = object$beta,
+      TAU_MLE = object$tau,
+      PHI_EVAL = phi,
+      PHI_MLE = unname(object$profile$precision),
+      J = d$n_items,
+      W = if (!is.null(d$n_workers)) d$n_workers else 1L,
+      K = d$K,
+      METHOD = object$method,
+      DATA_TYPE = object$data_type,
+      ITEMS_NUISANCE = "items" %in% object$params_type$nuisance,
       WORKER_NUISANCE = "workers" %in% object$params_type$nuisance,
       PROF_SEARCH_RANGE = as.integer(ctl$PROF_SEARCH_RANGE),
-      PROF_MAX_ITER     = as.integer(ctl$PROF_MAX_ITER),
-      ALT_MAX_ITER      = as.integer(ctl$ALT_MAX_ITER),
-      ALT_TOL           = ctl$ALT_TOL
+      PROF_MAX_ITER = as.integer(ctl$PROF_MAX_ITER),
+      ALT_MAX_ITER = as.integer(ctl$ALT_MAX_ITER),
+      ALT_TOL = ctl$ALT_TOL
     )
-    h_phi  <- sqrt(.Machine$double.eps) * phi
+    h_phi <- sqrt(.Machine$double.eps) * phi
     phi_se <- agr_se /
       abs((prec2agr(phi + h_phi) - prec2agr(phi - h_phi)) / (2 * h_phi))
 
-    tau     <- object$tau
+    tau <- object$tau
     alpha_j <- object$alpha
-    h       <- sqrt(.Machine$double.eps) * abs(phi)
+    h <- sqrt(.Machine$double.eps) * abs(phi)
 
     for (i in seq_along(non_degen)) {
-      j    <- non_degen[i]
-      mu   <- plogis(alpha_j[i])
-      P_ord <- function(pv) sum(diff(pbeta(tau, mu * pv, (1 - mu) * pv)) ^ B[j])
+      j <- non_degen[i]
+      mu <- plogis(alpha_j[i])
+      P_ord <- function(pv) sum(diff(pbeta(tau, mu * pv, (1 - mu) * pv))^B[j])
       se_vec[j] <- abs((P_ord(phi + h) - P_ord(phi - h)) / (2 * h)) * phi_se
     }
-
   } else {
-    k0      <- unname(object$k0)
-    k1      <- unname(object$k1)
-    vc      <- object$vcov
+    # Inflated (ordered beta) model: full delta method over xi_i = (alpha_i, k0, k1),
+    # propagating item-intercept uncertainty via the partitioned information matrix
+    # (see doc/prob_degen.qmd). Link G = plogis.
+    k0 <- unname(object$k0)
+    k1 <- unname(object$k1)
     alpha_j <- object$alpha
-    h       <- sqrt(.Machine$double.eps)
+
+    # Profile covariance V_psi of (k0, k1, phi). object$vcov is ordered (phi, k0, k1);
+    # boundary fits (fix_k0 / fix_k1) carry zero rows/cols, dropping out naturally.
+    Vpsi <- object$vcov[c(2, 3, 1), c(2, 3, 1)]
+    vpsi_ok <- all(is.finite(Vpsi))
+
+    # Per-item raw ratings, indexed to match object$alpha (fit indices 1..fit_J).
+    fit_ids <- as.integer(object$fit_data$item_ids)
+    fit_y <- object$fit_data$ratings
 
     for (i in seq_along(non_degen)) {
-      j    <- non_degen[i]
-      a    <- alpha_j[i]
-      Bj   <- B[j]
-      P_inf <- function(k0v, k1v) (1 - plogis(a - k0v)) ^ Bj + plogis(a - k1v) ^ Bj
-      g  <- c(
-        0,
-        (P_inf(k0 + h, k1) - P_inf(k0 - h, k1)) / (2 * h),
-        (P_inf(k0, k1 + h) - P_inf(k0, k1 - h)) / (2 * h)
-      )
-      se_vec[j] <- sqrt(drop(g %*% vc %*% g))
+      j <- non_degen[i]
+      a <- alpha_j[i]
+      m <- B[j]
+
+      L0 <- plogis(a - k0)
+      L1 <- plogis(a - k1)
+      mu <- plogis(a)
+      v0 <- L0 * (1 - L0)
+      v1 <- L1 * (1 - L1)
+      vmu <- mu * (1 - mu)
+      p0 <- 1 - L0
+      p1 <- L1
+
+      # Gradient of p_di wrt (alpha_i, k0, k1); each cutpoint enters as (alpha - k).
+      dk0 <- m * p0^(m - 1) * v0
+      dk1 <- -m * p1^(m - 1) * v1
+      g_xi <- c(-(dk0 + dk1), dk0, dk1)
+
+      yv <- fit_y[fit_ids == i]
+      n0 <- sum(yv == 0)
+      n1 <- sum(yv == 1)
+      ints <- yv > 0 & yv < 1
+      nint <- sum(ints)
+
+      ok <- vpsi_ok
+      if (ok) {
+        aa <- mu * phi
+        bb <- (1 - mu) * phi
+        mu_star <- digamma(aa) - digamma(bb)
+        sy <- if (nint > 0) sum(log(yv[ints] / (1 - yv[ints]))) else 0
+        sy_cent <- sy - nint * mu_star
+        tg_a <- trigamma(aa)
+        tg_b <- trigamma(bb)
+
+        # Per-item information blocks j_{alpha_i alpha_i} and j_{alpha_i psi}.
+        jak0 <- -(n0 + nint) * v0
+        jak1 <- -(n1 + nint) * v1
+        japhi <- -vmu * (sy_cent - nint * phi * (mu * tg_a - (1 - mu) * tg_b))
+        jaa <- n0 *
+          v0 +
+          n1 * v1 +
+          nint * (v0 + v1) +
+          nint * phi^2 * (tg_a + tg_b) * vmu^2 -
+          phi * (vmu * (1 - 2 * mu)) * sy_cent
+
+        ok <- is.finite(jaa) && jaa > 0
+      }
+
+      if (ok) {
+        # Reconstruct V_{xi_i xi_i} from V_psi and the per-item info blocks.
+        japsi <- c(jak0, jak1, japhi) # order (k0, k1, phi)
+        iaa <- 1 / jaa
+        Vaa <- iaa + iaa^2 * drop(japsi %*% Vpsi %*% japsi)
+        Vapsi <- -iaa * drop(japsi %*% Vpsi) # cov(alpha_i, (k0, k1, phi))
+        Vxi <- matrix(0, 3, 3)
+        Vxi[1, 1] <- Vaa
+        Vxi[1, 2:3] <- Vapsi[1:2]
+        Vxi[2:3, 1] <- Vapsi[1:2]
+        Vxi[2:3, 2:3] <- Vpsi[1:2, 1:2]
+        se_vec[j] <- sqrt(max(0, drop(g_xi %*% Vxi %*% g_xi)))
+      } else if (vpsi_ok) {
+        # Fallback: plug-in SE (alpha fixed), k0/k1 covariance only.
+        g <- c(dk0, dk1)
+        se_vec[j] <- sqrt(max(0, drop(g %*% Vpsi[1:2, 1:2] %*% g)))
+      }
+      # else: V_psi not finite -> se_vec[j] left as NA
     }
   }
 
   eps_p <- .Machine$double.eps
   lower <- ifelse(
-    se_vec == 0, pd,
+    se_vec == 0,
+    pd,
     plogis(qlogis(pmax(pd, eps_p)) - z * se_vec / pmax(pd * (1 - pd), eps_p))
   )
   upper <- ifelse(
-    se_vec == 0, pd,
-    plogis(qlogis(pmin(pd, 1 - eps_p)) + z * se_vec / pmax(pd * (1 - pd), eps_p))
+    se_vec == 0,
+    pd,
+    plogis(
+      qlogis(pmin(pd, 1 - eps_p)) + z * se_vec / pmax(pd * (1 - pd), eps_p)
+    )
   )
   out <- cbind(pd, se_vec, lower, upper)
   colnames(out) <- c("Estimate", "Std. Error", pct)
