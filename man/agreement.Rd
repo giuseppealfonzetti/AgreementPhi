@@ -118,6 +118,6 @@ confint(fit_inf)
 }
 \references{
 \itemize{
-\item Checco A., Roitero K., Maddalena E., Mizzaro S., Demartini G., (2017). "Let's Agree to Disagree: Fixing Agreement Measures for Crowdsourcing." \emph{Proceedings of the AAAI Conference on Human Computation and Crowdsourcing} \strong{5}: 11–20. \href{https://doi.org/10.1609/hcomp.v5i1.13306}{doi}
+\item Checco A., Roitero K., Maddalena E., Mizzaro S., Demartini G., (2017). "Let's Agree to Disagree: Fixing Agreement Measures for Crowdsourcing." \emph{Proceedings of the AAAI Conference on Human Computation and Crowdsourcing} \strong{5}: 11-20. \href{https://doi.org/10.1609/hcomp.v5i1.13306}{doi}
 }
 }

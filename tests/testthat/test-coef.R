@@ -178,7 +178,7 @@ test_that("coef ordinal one-way: all-max degenerate item gets alpha = +Inf", {
 
 test_that("coef ordinal one-way: interior degenerate item gets finite MLE alpha", {
   K <- 4L
-  # Concentrated anchor items → high phi → meaningful interior optimisation
+  # Concentrated anchor items give high phi and a meaningful interior optimum
   ratings  <- c(
     2L, 2L, 2L, 2L, 3L, 2L,   # item 2: mostly category 2
     3L, 3L, 2L, 3L, 3L, 3L,   # item 3: mostly category 3

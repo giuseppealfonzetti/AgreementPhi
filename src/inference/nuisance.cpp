@@ -323,38 +323,6 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda(
                 }
             }
         }
-
-        // Profile thresholds after alpha update
-        // if(THRESHOLDS_NUISANCE){
-        //     std::vector<double> mu_vec(n);
-        //     for(int i = 0; i < n; ++i){
-        //         int item_idx = ITEM_INDS.at(i) - 1;
-        //         int worker_idx = WORKER_INDS.at(i) - 1;
-        //         double eta = alphas_best.at(item_idx);
-        //         if(worker_idx > 0){
-        //             eta += betas_best.at(worker_idx);
-        //         }
-        //         mu_vec.at(i) = link::mu(eta);
-        //     }
-
-                            
-        //     for(int iter_t = 0; iter_t < max_iter_thr; iter_t++){
-        //         std::vector<double> working_taus = taus_best;
-        //         // Optimize all thresholds
-        //         for(int t = K-1; t > 0; t--){
-        //             working_taus.at(t) = AgreementPhi::ordinal::nuisance::brent_profiling_thresholds(
-        //                 Y, mu_vec, CAT_DICT, t, working_taus, PHI, PROF_UNI_MAX_ITER);
-        //             max_change = std::max(max_change, std::abs(working_taus.at(t) - taus_best.at(t)));
-        //         }
-        //         // Check likelihood after ALL thresholds have been updated
-        //         double ll_after = compute_loglik(alphas_best, betas_best, working_taus);
-        //         if(ll_after > ll_best){
-        //             ll_best = ll_after;
-        //             taus_best = working_taus;
-        //         }
-        //     }
-            
-        // }
         
         // Profile workers
         if(WORKER_NUISANCE){
@@ -375,39 +343,6 @@ std::vector<std::vector<double>> AgreementPhi::ordinal::nuisance::get_lambda(
                 }
             }
         }
-
-        // Profile thresholds after alpha update
-        // if(THRESHOLDS_NUISANCE){
-        //     std::vector<double> mu_vec(n);
-        //     for(int i = 0; i < n; ++i){
-        //         int item_idx = ITEM_INDS.at(i) - 1;
-        //         int worker_idx = WORKER_INDS.at(i) - 1;
-        //         double eta = alphas_best.at(item_idx);
-        //         if(worker_idx > 0){
-        //             eta += betas_best.at(worker_idx);
-        //         }
-        //         mu_vec.at(i) = link::mu(eta);
-        //     }
-
-                            
-        //     for(int iter_t = 0; iter_t < max_iter_thr; iter_t++){
-        //         std::vector<double> working_taus = taus_best;
-        //         // Optimize all thresholds
-        //         for(int t = K-1; t > 0; t--){
-        //             working_taus.at(t) = AgreementPhi::ordinal::nuisance::brent_profiling_thresholds(
-        //                 Y, mu_vec, CAT_DICT, t, working_taus, PHI, PROF_UNI_MAX_ITER);
-        //             max_change = std::max(max_change, std::abs(working_taus.at(t) - taus_best.at(t)));
-        //         }
-        //         // Check likelihood after ALL thresholds have been updated
-        //         double ll_after = compute_loglik(alphas_best, betas_best, working_taus);
-        //         if(ll_after > ll_best){
-        //             ll_best = ll_after;
-        //             taus_best = working_taus;
-        //         }
-        //     }
-            
-        // }
-
 
         
         // Check convergence

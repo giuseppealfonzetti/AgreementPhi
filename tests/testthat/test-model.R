@@ -63,7 +63,7 @@ test_that("log p(y; mu, phi) | dmu, dmu2 over grid", {
 
 
 test_that("probabilities are normalized", {
-  # sum_{y=1}^K exp(loglik) ≈ 1
+  # category probabilities sum to about 1
   mus <- c(0.2, 0.5, 0.8)
   phis <- c(1, 10)
   k <- 8

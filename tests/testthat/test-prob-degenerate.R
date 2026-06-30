@@ -75,8 +75,8 @@ test_that("prob_degenerate: ordinal boundary-degenerate item gets probability 1"
 test_that("prob_degenerate: inflated items with extreme alpha have higher P(degen)", {
   set.seed(7)
   J <- 30
-  # Items with extreme alpha (close to K0 or K1) have high p0 or p1 → high P(degen)
-  # Items with alpha near 0 are interior → low P(degen)
+  # Extreme alpha (near K0 or K1) gives high p0 or p1, so high P(degen).
+  # Alpha near 0 is interior, so low P(degen).
   alpha_extreme <- c(rep(-5, 5), rep(0, J - 10), rep(5, 5))
   dt <- sim_data(
     J = J,
@@ -95,9 +95,8 @@ test_that("prob_degenerate: inflated items with extreme alpha have higher P(dege
   expect_equal(length(pd), fit$data$n_items)
   expect_true(all(pd >= 0 & pd <= 1))
 
-  # Items with extreme negative alpha (high p0) or extreme positive alpha (high p1)
-  # should have higher P(degen) than items near centre
-  # Use item indices that are non-degenerate for a fair comparison
+  # Extreme alpha (high p0 or p1) should give higher P(degen) than centre items.
+  # Compare only non-degenerate items.
   non_degen <- setdiff(seq_len(fit$data$n_items), fit$data$degen_ids)
   extreme_nd <- intersect(non_degen, c(1:5, (J - 4):J))
   centre_nd <- intersect(non_degen, 11:(J - 10))
@@ -123,7 +122,7 @@ test_that("prob_degenerate: two-way model raises an error", {
 
 # confint_prob_degenerate -------------------------------------------------------
 
-test_that("confint_prob_degenerate: continuous → SE = 0, CI = [0, 0]", {
+test_that("confint_prob_degenerate: continuous -> SE = 0, CI = [0, 0]", {
   dt <- sim_data(
     J = 10,
     B = 5,
@@ -143,7 +142,7 @@ test_that("confint_prob_degenerate: continuous → SE = 0, CI = [0, 0]", {
   expect_true(all(ci[, 3L] == 0 & ci[, 4L] == 0))
 })
 
-test_that("confint_prob_degenerate: ordinal clean → valid matrix", {
+test_that("confint_prob_degenerate: ordinal clean -> valid matrix", {
   set.seed(42)
   J <- 12
   K <- 4L
@@ -168,7 +167,7 @@ test_that("confint_prob_degenerate: ordinal clean → valid matrix", {
   expect_true(all(ci[, 3L] <= ci[, "Estimate"] & ci[, "Estimate"] <= ci[, 4L]))
 })
 
-test_that("confint_prob_degenerate: ordinal degenerate item → SE = 0, CI = [1, 1]", {
+test_that("confint_prob_degenerate: ordinal degenerate item -> SE = 0, CI = [1, 1]", {
   K <- 3L
   ratings <- c(
     1L,
@@ -217,7 +216,7 @@ test_that("confint_prob_degenerate: ordinal degenerate item → SE = 0, CI = [1,
   expect_true(ci["item_3", "Std. Error"] > 0)
 })
 
-test_that("confint_prob_degenerate: inflated → valid matrix with positive SEs", {
+test_that("confint_prob_degenerate: inflated -> valid matrix with positive SEs", {
   set.seed(3)
   dt <- sim_data(
     J = 20,
@@ -315,8 +314,7 @@ test_that("confint_prob_degenerate: inflated SE matches full-joint delta method"
   fit <- agreement(rd, METHOD = "profile", NUISANCE = "items")
   ci <- confint_prob_degenerate(fit)
 
-  # Brute-force reference: invert the full joint observed information over
-  # (alpha_1..Jf, k0, k1, phi), then delta method per item over (alpha_i, k0, k1).
+  # Reference SE: invert the full joint information, then delta method per item.
   y <- fit$fit_data$ratings
   ii <- as.integer(fit$fit_data$item_ids)
   Jf <- fit$fit_data$n_items
@@ -366,7 +364,7 @@ test_that("confint_prob_degenerate: inflated SE matches full-joint delta method"
   )
 
   big <- se_bf > 1e-4
-  expect_true(any(big)) # extreme-alpha items must carry non-trivial SE
+  expect_true(any(big)) # some items have non-trivial SE
   expect_equal(
     unname(ci[non_degen[big], "Std. Error"]),
     se_bf[big],

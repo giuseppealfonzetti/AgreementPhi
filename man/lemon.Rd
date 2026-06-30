@@ -25,6 +25,6 @@ lemon(x)
 }
 \references{
 \itemize{
-\item Smithson, Michael, and Jay Verkuilen. 2006. “A Better Lemon Squeezer? Maximum-Likelihood Regression with Beta-Distributed Dependent Variables.” \emph{Psychological Methods} \strong{11(1)}: 54–71. \href{https://psycnet.apa.org/doi/10.1037/1082-989X.11.1.54}{doi}
+\item Smithson, Michael, and Jay Verkuilen. 2006. "A Better Lemon Squeezer? Maximum-Likelihood Regression with Beta-Distributed Dependent Variables." \emph{Psychological Methods} \strong{11(1)}: 54-71. \href{https://psycnet.apa.org/doi/10.1037/1082-989X.11.1.54}{doi}
 }
 }

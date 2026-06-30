@@ -143,38 +143,7 @@ namespace AgreementPhi{
             return out;
         }
 
-        // double dFdphi(
-        //     const double MU, 
-        //     const double DFDA, const double DFDB
-        // ){
-        //     double out = MU*DFDA+(1-MU)*DFDB;
-        //     return out;
-        // }
-
-        // double d2Fdphi2(
-        //     const double MU, 
-        //     const double DFDA, 
-        //     const double DFDB, 
-        //     const double D2FDA2,
-        //     const double D2FDB2,
-        //     const double D2FDADB
-        // ){
-        //     double out = pow(MU,2)*D2FDA2+pow(1-MU, 2)*D2FDB2+2*MU*(1-MU)*D2FDADB;
-        //     return out;
-        // }
-
-        // double d2Fdmudphi(
-        //     const double MU, 
-        //     const double PHI,
-        //     const double DFDA, 
-        //     const double DFDB, 
-        //     const double D2FDA2,
-        //     const double D2FDB2,
-        //     const double D2FDADB
-        // ){
-        //     double out = DFDA-DFDB + PHI*(MU*D2FDA2-(1-MU)*D2FDB2+(1-2*MU)*D2FDADB);
-        //     return out;
-        // }
+        
     }
 }
 

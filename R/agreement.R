@@ -13,7 +13,7 @@
 #'
 #' @references
 #'
-#' - Checco A., Roitero K., Maddalena E., Mizzaro S., Demartini G., (2017). "Let's Agree to Disagree: Fixing Agreement Measures for Crowdsourcing." *Proceedings of the AAAI Conference on Human Computation and Crowdsourcing* **5**: 11–20. [doi](https://doi.org/10.1609/hcomp.v5i1.13306)
+#' - Checco A., Roitero K., Maddalena E., Mizzaro S., Demartini G., (2017). "Let's Agree to Disagree: Fixing Agreement Measures for Crowdsourcing." *Proceedings of the AAAI Conference on Human Computation and Crowdsourcing* **5**: 11-20. [doi](https://doi.org/10.1609/hcomp.v5i1.13306)
 #'
 #' @param DATA A `rating_data` object created by [rating_data()].
 #' @param METHOD Choose between `"modified"` or `"profile"`. Default is `"modified"`.

@@ -125,9 +125,7 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
     mle_vec.insert(mle_vec.end(), lambda_mle.at(0).begin(), lambda_mle.at(0).end());
     mle_vec.insert(mle_vec.end(), lambda_mle.at(1).begin() + 1, lambda_mle.at(1).end());
 
-    // Profiles nuisance from alpha_s/beta_s, writes profiled values back, returns -mpl.
-    // Use more alternating iterations than the user-specified minimum, scaled with
-    // problem size, so cold-started grid points converge even for large J, W.
+    // Profile nuisance from alpha_s/beta_s, write profiled values back, return -mpl.
     const int grid_alt_iter = std::max(PROF_MAX_ITER, (J + W) / 10);
 
     auto eval_mpl_updating = [&](double phi,
@@ -170,10 +168,7 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
     double lower = std::max(phi_mle.at(0) - SEARCH_RANGE, eps);
     double upper = std::min(phi_mle.at(0) + SEARCH_RANGE, 15.0);
 
-    // Two complementary sequential scans on the agreement scale.
-    // Forward (lower→upper) starts from zero nuisance — good warm-start for small phi.
-    // Backward (upper→lower) starts from lambda_mle — good warm-start for large phi.
-    // Warm-start is only propagated on successful (finite) evaluations to avoid NaN contamination.
+    
     const int N_GRID = 25;
     double agr_lower = utils::prec2agr(lower);
     double agr_upper = utils::prec2agr(upper);
@@ -194,9 +189,7 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
         }
     };
 
-    // Forward scan: agr_lower → agr_upper, logit(mean_rating_j) warm-start.
-    // Item mean logits are phi-independent and O(1)-close to the true alpha MLE,
-    // so the alternating optimisation converges quickly even from a cold start.
+    
     {
         std::vector<double> aw(J, 0.0);
         for(int j = 0; j < J; ++j){
@@ -216,7 +209,6 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
         }
     }
 
-    // Backward scan: agr_upper → agr_lower, lambda_mle warm-start
     {
         std::vector<double> aw = lambda_mle.at(0), bw = lambda_mle.at(1), ao, bo;
         for(int g = N_GRID; g >= 0; --g){
@@ -228,9 +220,6 @@ std::vector<double> AgreementPhi::continuous::inference::get_phi_modified_profil
         }
     }
 
-    // Brent refinement in a narrow window around the grid best.
-    // Always starts from best_grid_aw/bw (no within-Brent warm-start update)
-    // to avoid path-dependence in the non-monotone Brent evaluation order.
     double agr_best    = utils::prec2agr(best_grid_phi);
     double brent_lower = utils::agr2prec(std::max(agr_best - 2.0 * agr_step, agr_lower));
     double brent_upper = utils::agr2prec(std::min(agr_best + 2.0 * agr_step, agr_upper));

@@ -78,7 +78,7 @@ cont2ord <- function(X, K, TRESHOLDS = NULL) {
 #'
 #' @references
 #'
-#' - Smithson, Michael, and Jay Verkuilen. 2006. “A Better Lemon Squeezer? Maximum-Likelihood Regression with Beta-Distributed Dependent Variables.” *Psychological Methods* **11(1)**: 54–71. [doi](https://psycnet.apa.org/doi/10.1037/1082-989X.11.1.54)
+#' - Smithson, Michael, and Jay Verkuilen. 2006. "A Better Lemon Squeezer? Maximum-Likelihood Regression with Beta-Distributed Dependent Variables." *Psychological Methods* **11(1)**: 54-71. [doi](https://psycnet.apa.org/doi/10.1037/1082-989X.11.1.54)
 #'
 #' @examples
 #' x <- c(0,runif(5,0,1),1)
@@ -496,19 +496,17 @@ confint_prob_degenerate <- function(object, level = 0.95) {
       se_vec[j] <- abs((P_ord(phi + h) - P_ord(phi - h)) / (2 * h)) * phi_se
     }
   } else {
-    # Inflated (ordered beta) model: full delta method over xi_i = (alpha_i, k0, k1),
-    # propagating item-intercept uncertainty via the partitioned information matrix
-    # (see doc/prob_degen.qmd). Link G = plogis.
+    # delta-method SE over the item intercept and the two
+    # cutpoints, also accounting for intercept uncertainty.
     k0 <- unname(object$k0)
     k1 <- unname(object$k1)
     alpha_j <- object$alpha
 
-    # Profile covariance V_psi of (k0, k1, phi). object$vcov is ordered (phi, k0, k1);
-    # boundary fits (fix_k0 / fix_k1) carry zero rows/cols, dropping out naturally.
+    # Reorder the stored (phi, k0, k1) covariance to (k0, k1, phi).
     Vpsi <- object$vcov[c(2, 3, 1), c(2, 3, 1)]
     vpsi_ok <- all(is.finite(Vpsi))
 
-    # Per-item raw ratings, indexed to match object$alpha (fit indices 1..fit_J).
+    # Ratings per fitted item, matching object$alpha order.
     fit_ids <- as.integer(object$fit_data$item_ids)
     fit_y <- object$fit_data$ratings
 
@@ -526,7 +524,7 @@ confint_prob_degenerate <- function(object, level = 0.95) {
       p0 <- 1 - L0
       p1 <- L1
 
-      # Gradient of p_di wrt (alpha_i, k0, k1); each cutpoint enters as (alpha - k).
+      # Gradient of the degeneracy probability wrt intercept and cutpoints.
       dk0 <- m * p0^(m - 1) * v0
       dk1 <- -m * p1^(m - 1) * v1
       g_xi <- c(-(dk0 + dk1), dk0, dk1)
@@ -547,7 +545,7 @@ confint_prob_degenerate <- function(object, level = 0.95) {
         tg_a <- trigamma(aa)
         tg_b <- trigamma(bb)
 
-        # Per-item information blocks j_{alpha_i alpha_i} and j_{alpha_i psi}.
+        # Item information: intercept variance and intercept-nuisance cross terms.
         jak0 <- -(n0 + nint) * v0
         jak1 <- -(n1 + nint) * v1
         japhi <- -vmu * (sy_cent - nint * phi * (mu * tg_a - (1 - mu) * tg_b))
@@ -562,11 +560,11 @@ confint_prob_degenerate <- function(object, level = 0.95) {
       }
 
       if (ok) {
-        # Reconstruct V_{xi_i xi_i} from V_psi and the per-item info blocks.
-        japsi <- c(jak0, jak1, japhi) # order (k0, k1, phi)
+        # Covariance for this item's intercept and the two cutpoints.
+        japsi <- c(jak0, jak1, japhi) # (k0, k1, phi)
         iaa <- 1 / jaa
         Vaa <- iaa + iaa^2 * drop(japsi %*% Vpsi %*% japsi)
-        Vapsi <- -iaa * drop(japsi %*% Vpsi) # cov(alpha_i, (k0, k1, phi))
+        Vapsi <- -iaa * drop(japsi %*% Vpsi) # intercept vs (k0, k1, phi)
         Vxi <- matrix(0, 3, 3)
         Vxi[1, 1] <- Vaa
         Vxi[1, 2:3] <- Vapsi[1:2]
@@ -574,11 +572,10 @@ confint_prob_degenerate <- function(object, level = 0.95) {
         Vxi[2:3, 2:3] <- Vpsi[1:2, 1:2]
         se_vec[j] <- sqrt(max(0, drop(g_xi %*% Vxi %*% g_xi)))
       } else if (vpsi_ok) {
-        # Fallback: plug-in SE (alpha fixed), k0/k1 covariance only.
+        # Fallback: plug-in SE with the intercept held fixed.
         g <- c(dk0, dk1)
         se_vec[j] <- sqrt(max(0, drop(g %*% Vpsi[1:2, 1:2] %*% g)))
       }
-      # else: V_psi not finite -> se_vec[j] left as NA
     }
   }
 
