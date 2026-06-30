@@ -113,8 +113,8 @@ coef.agreement_fit <- function(object, ...) {
           data_ref$item_ids[data_ref$item_ids %in% interior_degen],
           interior_degen
         )
-        int_start <- tapply(int_ratings, int_item_ids, function(v) {
-          stats::qlogis(mean(v))
+        int_start <- tapply(int_ratings, int_item_ids, function(V) {
+          stats::qlogis(mean(V))
         })
         int_alphas <- cpp_inflated_profile(
           as.numeric(int_ratings),
@@ -139,8 +139,8 @@ coef.agreement_fit <- function(object, ...) {
           alpha_full[di] <- Inf
         } else {
           res <- optimize(
-            function(a) {
-              mu  <- plogis(a)
+            function(A) {
+              mu  <- plogis(A)
               lp  <- log(pbeta(tau_hi, mu * phi, (1 - mu) * phi) -
                           pbeta(tau_lo, mu * phi, (1 - mu) * phi))
               if (!is.finite(lp)) 1e30 else -lp

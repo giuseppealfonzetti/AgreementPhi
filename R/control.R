@@ -40,26 +40,26 @@ rating_data <- function(
   VERBOSE = FALSE
 ) {
   # internal function to detect data type (ordinal, interval, interval with inflation)
-  detect_type <- function(r) {
-    if (all(r == as.integer(r))) {
-      if (min(r) != 1) {
+  detect_type <- function(R) {
+    if (all(R == as.integer(R))) {
+      if (min(R) != 1) {
         stop("Lowest category different from 1")
       }
-      if (length(unique(r)) != max(r)) {
+      if (length(unique(R)) != max(R)) {
         warning("Some category is missing")
       }
       return("ordinal")
     }
-    if (any(r == 0) || any(r == 1)) {
-      if (min(r) < 0 || max(r) > 1) {
+    if (any(R == 0) || any(R == 1)) {
+      if (min(R) < 0 || max(R) > 1) {
         stop("Ratings must be in [0,1] for the inflated interval model.")
       }
       return("inflated")
     }
-    if (min(r) < 0) {
+    if (min(R) < 0) {
       stop("Continuous data must lie strictly in [0, 1]: values < 0 detected.")
     }
-    if (max(r) > 1) {
+    if (max(R) > 1) {
       stop("Continuous data must lie strictly in [0, 1]: values > 1 detected.")
     }
     "continuous"
@@ -91,16 +91,16 @@ rating_data <- function(
 
   data_type_early <- if (is.null(K)) detect_type(RATINGS) else "ordinal"
 
-  recode <- function(ids) {
-    u <- sort(unique(ids))
-    as.integer(setNames(seq_along(u), u)[as.character(ids)])
+  recode <- function(IDS) {
+    u <- sort(unique(IDS))
+    as.integer(setNames(seq_along(u), u)[as.character(IDS)])
   }
 
-  extract_labels <- function(inds, labels) {
-    u <- sort(unique(inds))
+  extract_labels <- function(INDS, LABELS) {
+    u <- sort(unique(INDS))
     out_labels <- character(length(u))
     for (i in seq_along(u)) {
-      lbls <- unique(labels[inds == u[i]])
+      lbls <- unique(LABELS[INDS == u[i]])
       if (length(lbls) != 1L) {
         stop(
           "Index ",
@@ -123,7 +123,7 @@ rating_data <- function(
 
   out$degen_ids <- as.integer(which(sapply(
     split(out$ratings, out$item_ids),
-    function(x) all(x == x[1])
+    function(X) all(X == X[1])
   )))
 
   out$n_items <- length(unique(out$item_ids))
@@ -241,11 +241,11 @@ validate_params_type <- function(NUISANCE, TARGET) {
 }
 
 validate_cpp_control <- function(LIST = NULL, DATA_TYPE = NULL) {
-  default <- function(x, val) if (is.null(x)) val else x
-  chk_pos <- function(x, nm) {
-    stopifnot(is.numeric(x))
-    stopifnot(x > 0)
-    x
+  default <- function(X, VAL) if (is.null(X)) VAL else X
+  chk_pos <- function(X, NM) {
+    stopifnot(is.numeric(X))
+    stopifnot(X > 0)
+    X
   }
 
   is_ordinal <- isTRUE(DATA_TYPE == "ordinal")

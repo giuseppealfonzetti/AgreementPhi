@@ -4,10 +4,10 @@
 \alias{prob_degenerate}
 \title{Model-based probability of item degeneracy}
 \usage{
-prob_degenerate(object)
+prob_degenerate(OBJECT)
 }
 \arguments{
-\item{object}{An \code{agreement_fit} object from \code{\link[=agreement]{agreement()}}.}
+\item{OBJECT}{An \code{agreement_fit} object from \code{\link[=agreement]{agreement()}}.}
 }
 \value{
 A named numeric vector of length J (all items, including any

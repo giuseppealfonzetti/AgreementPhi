@@ -8,36 +8,36 @@ init_cutpoints <- function(Y) {
 }
 
 #' @noRd
-inflated_encoding <- function(fix_k0, fix_k1, BK0, BK1) {
-  if (fix_k0) {
+inflated_encoding <- function(FIX_K0, FIX_K1, BK0, BK1) {
+  if (FIX_K0) {
     list(
-      make_start = function(phi0, k0_init, k1_init) {
-        c(log_phi = log(phi0), log_delta = log(pmax(k1_init - BK0, 0.1)))
+      make_start = function(PHI0, K0_INIT, K1_INIT) {
+        c(log_phi = log(PHI0), log_delta = log(pmax(K1_INIT - BK0, 0.1)))
       },
-      decode = function(par) {
-        list(phi = exp(par[1]), k0 = BK0, k1 = BK0 + exp(par[2]))
+      decode = function(PAR) {
+        list(phi = exp(PAR[1]), k0 = BK0, k1 = BK0 + exp(PAR[2]))
       }
     )
-  } else if (fix_k1) {
+  } else if (FIX_K1) {
     list(
-      make_start = function(phi0, k0_init, k1_init) {
-        c(log_phi = log(phi0), k0 = k0_init)
+      make_start = function(PHI0, K0_INIT, K1_INIT) {
+        c(log_phi = log(PHI0), k0 = K0_INIT)
       },
-      decode = function(par) {
-        list(phi = exp(par[1]), k0 = par[2], k1 = BK1)
+      decode = function(PAR) {
+        list(phi = exp(PAR[1]), k0 = PAR[2], k1 = BK1)
       }
     )
   } else {
     list(
-      make_start = function(phi0, k0_init, k1_init) {
+      make_start = function(PHI0, K0_INIT, K1_INIT) {
         c(
-          log_phi = log(phi0),
-          k0 = k0_init,
-          log_delta = log(pmax(k1_init - k0_init, 0.5))
+          log_phi = log(PHI0),
+          k0 = K0_INIT,
+          log_delta = log(pmax(K1_INIT - K0_INIT, 0.5))
         )
       },
-      decode = function(par) {
-        list(phi = exp(par[1]), k0 = par[2], k1 = par[2] + exp(par[3]))
+      decode = function(PAR) {
+        list(phi = exp(PAR[1]), k0 = PAR[2], k1 = PAR[2] + exp(PAR[3]))
       }
     )
   }
@@ -52,20 +52,20 @@ inflated_add_vcov <- function(
 ) {
   par <- FIT$par
   p <- length(par)
-  safe_obj <- function(x) {
-    val <- tryCatch(OBJ(x), error = function(e) NA_real_)
+  safe_obj <- function(X) {
+    val <- tryCatch(OBJ(X), error = function(E) NA_real_)
     if (is.finite(val)) val else NA_real_
   }
   H <- tryCatch(
     stats::optimHess(par, safe_obj),
-    error = function(e) tryCatch(
+    error = function(E) tryCatch(
       stats::optimHess(par, safe_obj, control = list(ndeps = rep(1e-5, p))),
-      error = function(e2) matrix(NA_real_, p, p)
+      error = function(E2) matrix(NA_real_, p, p)
     )
   )
   V_un <- tryCatch(
     solve(H),
-    error = function(e) {
+    error = function(E) {
       ee <- eigen(0.5 * (H + t(H)), symmetric = TRUE)
       if (any(abs(ee$values) < 1e-10)) {
         return(matrix(NA_real_, p, p))
@@ -138,8 +138,8 @@ fit_inflated_profile <- function(
     START <- enc$make_start(2, cuts["k0"], cuts["k1"])
   }
 
-  obj <- function(par) {
-    p <- enc$decode(par)
+  obj <- function(PAR) {
+    p <- enc$decode(PAR)
     res <- cpp_inflated_profile(
       as.numeric(Y),
       as.integer(ITEM_INDS),
@@ -176,8 +176,8 @@ fit_inflated_profile <- function(
   )
   alpha_fixed <- final$alpha
 
-  frozen_obj <- function(par) {
-    p <- enc$decode(par)
+  frozen_obj <- function(PAR) {
+    p <- enc$decode(PAR)
     -cpp_inflated_profile(
       as.numeric(Y),
       as.integer(ITEM_INDS),
@@ -255,8 +255,8 @@ fit_inflated_mpl <- function(
 
   alpha_warm <- REF_FIT$alpha
 
-  obj <- function(par) {
-    p <- enc$decode(par)
+  obj <- function(PAR) {
+    p <- enc$decode(PAR)
     res <- cpp_inflated_mpl(
       as.numeric(Y),
       as.integer(ITEM_INDS),
@@ -334,8 +334,8 @@ fit_inflated_mpl <- function(
   }
 
   frozen_obj <- if (mpl_ok) {
-    function(par) {
-      p <- enc$decode(par)
+    function(PAR) {
+      p <- enc$decode(PAR)
       -cpp_inflated_mpl(
         as.numeric(Y),
         as.integer(ITEM_INDS),
@@ -353,8 +353,8 @@ fit_inflated_mpl <- function(
       )$ll
     }
   } else {
-    function(par) {
-      p <- enc$decode(par)
+    function(PAR) {
+      p <- enc$decode(PAR)
       -cpp_inflated_profile(
         as.numeric(Y),
         as.integer(ITEM_INDS),

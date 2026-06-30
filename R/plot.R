@@ -211,7 +211,7 @@ plot.agreement_fit <- function(
 #' [confint_prob_degenerate()]. Items are colour-coded: observed degenerate
 #' items (P = 1, CI collapsed) in orange; non-degenerate items in blue.
 #'
-#' @param x An `agreement_fit` object from [agreement()].
+#' @param X An `agreement_fit` object from [agreement()].
 #' @param LEVEL Confidence level passed to [confint_prob_degenerate()].
 #'   Default `0.95`.
 #' @param SORT Logical; sort items by estimate before plotting. Default `TRUE`.
@@ -222,8 +222,8 @@ plot.agreement_fit <- function(
 #'
 #' @export
 #' @importFrom graphics segments points axis abline legend par
-plot_prob_degenerate <- function(x, LEVEL = 0.95, SORT = TRUE, ...) {
-  ci <- confint_prob_degenerate(x, level = LEVEL)
+plot_prob_degenerate <- function(X, LEVEL = 0.95, SORT = TRUE, ...) {
+  ci <- confint_prob_degenerate(X, LEVEL = LEVEL)
 
   if (SORT) {
     ci <- ci[order(ci[, "Estimate"]), , drop = FALSE]
@@ -232,12 +232,12 @@ plot_prob_degenerate <- function(x, LEVEL = 0.95, SORT = TRUE, ...) {
   J <- nrow(ci)
   item_nms <- rownames(ci)
 
-  all_nms <- if (!is.null(x$data$item_labels)) {
-    paste0("item_", x$data$item_labels)
+  all_nms <- if (!is.null(X$data$item_labels)) {
+    paste0("item_", X$data$item_labels)
   } else {
-    paste0("item_", seq_len(x$data$n_items))
+    paste0("item_", seq_len(X$data$n_items))
   }
-  is_degen <- item_nms %in% all_nms[x$data$degen_ids]
+  is_degen <- item_nms %in% all_nms[X$data$degen_ids]
   cols <- ifelse(is_degen, "#F28E2B", "#4E79A7")
 
   opar <- par(no.readonly = TRUE)

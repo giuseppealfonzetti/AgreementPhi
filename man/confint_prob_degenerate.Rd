@@ -4,12 +4,12 @@
 \alias{confint_prob_degenerate}
 \title{Confidence intervals for model-based probability of item degeneracy}
 \usage{
-confint_prob_degenerate(object, level = 0.95)
+confint_prob_degenerate(OBJECT, LEVEL = 0.95)
 }
 \arguments{
-\item{object}{An \code{agreement_fit} object from \code{\link[=agreement]{agreement()}}.}
+\item{OBJECT}{An \code{agreement_fit} object from \code{\link[=agreement]{agreement()}}.}
 
-\item{level}{Confidence level. Default \code{0.95}.}
+\item{LEVEL}{Confidence level. Default \code{0.95}.}
 }
 \value{
 A named matrix with one row per item and columns

@@ -136,7 +136,7 @@ get_range_ll <- function(X, RANGE = .2, GRID_LENGTH = 15) {
   worker_nuisance <- "workers" %in% X$params_type$nuisance
   W <- if (!is.null(d$n_workers)) d$n_workers else 1L
 
-  pl_range <- sapply(phi_range, function(phi) {
+  pl_range <- sapply(phi_range, function(PHI) {
     cpp_profile_likelihood(
       Y = d$ratings,
       ITEM_INDS = as.integer(d$item_ids),
@@ -144,7 +144,7 @@ get_range_ll <- function(X, RANGE = .2, GRID_LENGTH = 15) {
       ALPHA_START = X$alpha,
       BETA_START = X$beta,
       TAU_START = X$tau,
-      PHI = phi,
+      PHI = PHI,
       J = d$n_items,
       W = W,
       K = d$K,
@@ -160,7 +160,7 @@ get_range_ll <- function(X, RANGE = .2, GRID_LENGTH = 15) {
 
   mpl_range <- rep(NA, length(phi_range))
   if (X$method == "modified") {
-    mpl_range <- sapply(phi_range, function(phi) {
+    mpl_range <- sapply(phi_range, function(PHI) {
       cpp_modified_profile_likelihood(
         Y = d$ratings,
         ITEM_INDS = as.integer(d$item_ids),
@@ -168,7 +168,7 @@ get_range_ll <- function(X, RANGE = .2, GRID_LENGTH = 15) {
         ALPHA_MLE = X$alpha,
         BETA_MLE = X$beta,
         TAU = X$tau,
-        PHI = phi,
+        PHI = PHI,
         PHI_MLE = X$profile$precision,
         J = d$n_items,
         W = W,
@@ -217,10 +217,10 @@ confint.agreement_fit <- function(object, parm = NULL, level = 0.95, ...) {
     " %"
   )
 
-  make_mat <- function(est, se, lower, upper, row_nms) {
-    m <- cbind(est, se, lower, upper)
+  make_mat <- function(EST, SE, LOWER, UPPER, ROW_NMS) {
+    m <- cbind(EST, SE, LOWER, UPPER)
     colnames(m) <- c("Estimate", "Std. Error", pct)
-    rownames(m) <- row_nms
+    rownames(m) <- ROW_NMS
     m
   }
 
@@ -245,26 +245,26 @@ confint.agreement_fit <- function(object, parm = NULL, level = 0.95, ...) {
 
     return(list(
       parameters = make_mat(
-        est = c(phi_est, object$k0, object$k1),
-        se = c(se[["phi"]], se[["k0"]], se[["k1"]]),
-        lower = c(
+        EST = c(phi_est, object$k0, object$k1),
+        SE = c(se[["phi"]], se[["k0"]], se[["k1"]]),
+        LOWER = c(
           max(0, phi_est - z * se[["phi"]]),
           object$k0 - z * se[["k0"]],
           object$k1 - z * se[["k1"]]
         ),
-        upper = c(
+        UPPER = c(
           phi_est + z * se[["phi"]],
           object$k0 + z * se[["k0"]],
           object$k1 + z * se[["k1"]]
         ),
-        row_nms = c("phi", "k0", "k1")
+        ROW_NMS = c("phi", "k0", "k1")
       ),
       agreement = make_mat(
-        est = agr_est,
-        se = agr_se,
-        lower = max(0, agr_est - z * agr_se),
-        upper = min(1, agr_est + z * agr_se),
-        row_nms = "agreement"
+        EST = agr_est,
+        SE = agr_se,
+        LOWER = max(0, agr_est - z * agr_se),
+        UPPER = min(1, agr_est + z * agr_se),
+        ROW_NMS = "agreement"
       )
     ))
   }
@@ -313,18 +313,18 @@ confint.agreement_fit <- function(object, parm = NULL, level = 0.95, ...) {
 
   list(
     parameters = make_mat(
-      est = phi_eval,
-      se = phi_se,
-      lower = max(0, phi_eval - z * phi_se),
-      upper = phi_eval + z * phi_se,
-      row_nms = "phi"
+      EST = phi_eval,
+      SE = phi_se,
+      LOWER = max(0, phi_eval - z * phi_se),
+      UPPER = phi_eval + z * phi_se,
+      ROW_NMS = "phi"
     ),
     agreement = make_mat(
-      est = est,
-      se = agr_se,
-      lower = max(0, est - z * agr_se),
-      upper = min(1, est + z * agr_se),
-      row_nms = "agreement"
+      EST = est,
+      SE = agr_se,
+      LOWER = max(0, est - z * agr_se),
+      UPPER = min(1, est + z * agr_se),
+      ROW_NMS = "agreement"
     )
   )
 }
@@ -337,7 +337,7 @@ confint.agreement_fit <- function(object, parm = NULL, level = 0.95, ...) {
 #' have zero probability under a continuous distribution). Not defined for
 #' two-way models (raises an error).
 #'
-#' @param object An `agreement_fit` object from [agreement()].
+#' @param OBJECT An `agreement_fit` object from [agreement()].
 #'
 #' @return A named numeric vector of length J (all items, including any
 #'   degenerate items detected before fitting). Degenerate items always get
@@ -346,43 +346,43 @@ confint.agreement_fit <- function(object, parm = NULL, level = 0.95, ...) {
 #'
 #' @importFrom stats pbeta plogis
 #' @export
-prob_degenerate <- function(object) {
-  stopifnot(inherits(object, "agreement_fit"))
+prob_degenerate <- function(OBJECT) {
+  stopifnot(inherits(OBJECT, "agreement_fit"))
 
-  if ("workers" %in% object$params_type$nuisance) {
+  if ("workers" %in% OBJECT$params_type$nuisance) {
     stop("prob_degenerate() is not defined for two-way models.")
   }
 
-  n_total <- object$data$n_items
-  degen_ids <- object$data$degen_ids
+  n_total <- OBJECT$data$n_items
+  degen_ids <- OBJECT$data$degen_ids
   non_degen <- setdiff(seq_len(n_total), degen_ids)
-  B <- as.integer(table(object$data$item_ids))
+  B <- as.integer(table(OBJECT$data$item_ids))
 
-  item_nms <- if (!is.null(object$data$item_labels)) {
-    paste0("item_", object$data$item_labels)
+  item_nms <- if (!is.null(OBJECT$data$item_labels)) {
+    paste0("item_", OBJECT$data$item_labels)
   } else {
     paste0("item_", seq_len(n_total))
   }
 
   out <- setNames(rep(0, n_total), item_nms)
 
-  if (object$data_type == "continuous") {
+  if (OBJECT$data_type == "continuous") {
     return(out)
   }
 
   out[degen_ids] <- 1
 
   phi <- unname(
-    if (object$method == "modified") {
-      object$modified$precision
+    if (OBJECT$method == "modified") {
+      OBJECT$modified$precision
     } else {
-      object$profile$precision
+      OBJECT$profile$precision
     }
   )
-  alpha_j <- object$alpha
+  alpha_j <- OBJECT$alpha
 
-  if (object$data_type == "ordinal") {
-    tau <- object$tau
+  if (OBJECT$data_type == "ordinal") {
+    tau <- OBJECT$tau
     for (i in seq_along(non_degen)) {
       j <- non_degen[i]
       mu <- plogis(alpha_j[i])
@@ -390,8 +390,8 @@ prob_degenerate <- function(object) {
       out[j] <- sum(p_c^B[j])
     }
   } else {
-    k0 <- unname(object$k0)
-    k1 <- unname(object$k1)
+    k0 <- unname(OBJECT$k0)
+    k1 <- unname(OBJECT$k1)
     for (i in seq_along(non_degen)) {
       j <- non_degen[i]
       a <- alpha_j[i]
@@ -413,49 +413,49 @@ prob_degenerate <- function(object) {
 #' cutpoints); for the ordinal model each item intercept is treated as fixed at
 #' its MLE (plug-in). Not defined for two-way models.
 #'
-#' @param object An `agreement_fit` object from [agreement()].
-#' @param level Confidence level. Default `0.95`.
+#' @param OBJECT An `agreement_fit` object from [agreement()].
+#' @param LEVEL Confidence level. Default `0.95`.
 #'
 #' @return A named matrix with one row per item and columns
 #'   `Estimate`, `Std. Error`, and the two percentile bounds.
 #'
 #' @importFrom stats pbeta plogis qlogis optimize qnorm
 #' @export
-confint_prob_degenerate <- function(object, level = 0.95) {
-  stopifnot(inherits(object, "agreement_fit"))
+confint_prob_degenerate <- function(OBJECT, LEVEL = 0.95) {
+  stopifnot(inherits(OBJECT, "agreement_fit"))
 
-  if ("workers" %in% object$params_type$nuisance) {
+  if ("workers" %in% OBJECT$params_type$nuisance) {
     stop("confint_prob_degenerate() is not defined for two-way models.")
   }
 
-  z <- qnorm(1 - (1 - level) / 2)
+  z <- qnorm(1 - (1 - LEVEL) / 2)
   pct <- paste0(
-    formatC(c((1 - level) / 2, 1 - (1 - level) / 2) * 100, format = "g"),
+    formatC(c((1 - LEVEL) / 2, 1 - (1 - LEVEL) / 2) * 100, format = "g"),
     "%"
   )
 
-  pd <- prob_degenerate(object)
-  n_total <- object$data$n_items
-  degen_ids <- object$data$degen_ids
+  pd <- prob_degenerate(OBJECT)
+  n_total <- OBJECT$data$n_items
+  degen_ids <- OBJECT$data$degen_ids
   non_degen <- setdiff(seq_len(n_total), degen_ids)
-  B <- as.integer(table(object$data$item_ids))
+  B <- as.integer(table(OBJECT$data$item_ids))
 
   se_vec <- rep(NA_real_, n_total)
   se_vec[degen_ids] <- 0
 
   phi <- unname(
-    if (object$method == "modified") {
-      object$modified$precision
+    if (OBJECT$method == "modified") {
+      OBJECT$modified$precision
     } else {
-      object$profile$precision
+      OBJECT$profile$precision
     }
   )
 
-  if (object$data_type == "continuous") {
+  if (OBJECT$data_type == "continuous") {
     se_vec[] <- 0
-  } else if (object$data_type == "ordinal") {
-    d <- object$fit_data
-    ctl <- object$control
+  } else if (OBJECT$data_type == "ordinal") {
+    d <- OBJECT$fit_data
+    ctl <- OBJECT$control
     agr_se <- cpp_get_se(
       Y = d$ratings,
       ITEM_INDS = as.integer(d$item_ids),
@@ -464,18 +464,18 @@ confint_prob_degenerate <- function(object, level = 0.95) {
       } else {
         rep(1L, length(d$ratings))
       },
-      ALPHA_MLE = object$alpha,
-      BETA_MLE = object$beta,
-      TAU_MLE = object$tau,
+      ALPHA_MLE = OBJECT$alpha,
+      BETA_MLE = OBJECT$beta,
+      TAU_MLE = OBJECT$tau,
       PHI_EVAL = phi,
-      PHI_MLE = unname(object$profile$precision),
+      PHI_MLE = unname(OBJECT$profile$precision),
       J = d$n_items,
       W = if (!is.null(d$n_workers)) d$n_workers else 1L,
       K = d$K,
-      METHOD = object$method,
-      DATA_TYPE = object$data_type,
-      ITEMS_NUISANCE = "items" %in% object$params_type$nuisance,
-      WORKER_NUISANCE = "workers" %in% object$params_type$nuisance,
+      METHOD = OBJECT$method,
+      DATA_TYPE = OBJECT$data_type,
+      ITEMS_NUISANCE = "items" %in% OBJECT$params_type$nuisance,
+      WORKER_NUISANCE = "workers" %in% OBJECT$params_type$nuisance,
       PROF_SEARCH_RANGE = as.integer(ctl$PROF_SEARCH_RANGE),
       PROF_MAX_ITER = as.integer(ctl$PROF_MAX_ITER),
       ALT_MAX_ITER = as.integer(ctl$ALT_MAX_ITER),
@@ -485,30 +485,30 @@ confint_prob_degenerate <- function(object, level = 0.95) {
     phi_se <- agr_se /
       abs((prec2agr(phi + h_phi) - prec2agr(phi - h_phi)) / (2 * h_phi))
 
-    tau <- object$tau
-    alpha_j <- object$alpha
+    tau <- OBJECT$tau
+    alpha_j <- OBJECT$alpha
     h <- sqrt(.Machine$double.eps) * abs(phi)
 
     for (i in seq_along(non_degen)) {
       j <- non_degen[i]
       mu <- plogis(alpha_j[i])
-      P_ord <- function(pv) sum(diff(pbeta(tau, mu * pv, (1 - mu) * pv))^B[j])
+      P_ord <- function(PV) sum(diff(pbeta(tau, mu * PV, (1 - mu) * PV))^B[j])
       se_vec[j] <- abs((P_ord(phi + h) - P_ord(phi - h)) / (2 * h)) * phi_se
     }
   } else {
     # delta-method SE over the item intercept and the two
     # cutpoints, also accounting for intercept uncertainty.
-    k0 <- unname(object$k0)
-    k1 <- unname(object$k1)
-    alpha_j <- object$alpha
+    k0 <- unname(OBJECT$k0)
+    k1 <- unname(OBJECT$k1)
+    alpha_j <- OBJECT$alpha
 
     # Reorder the stored (phi, k0, k1) covariance to (k0, k1, phi).
-    Vpsi <- object$vcov[c(2, 3, 1), c(2, 3, 1)]
+    Vpsi <- OBJECT$vcov[c(2, 3, 1), c(2, 3, 1)]
     vpsi_ok <- all(is.finite(Vpsi))
 
-    # Ratings per fitted item, matching object$alpha order.
-    fit_ids <- as.integer(object$fit_data$item_ids)
-    fit_y <- object$fit_data$ratings
+    # Ratings per fitted item, matching OBJECT$alpha order.
+    fit_ids <- as.integer(OBJECT$fit_data$item_ids)
+    fit_y <- OBJECT$fit_data$ratings
 
     for (i in seq_along(non_degen)) {
       j <- non_degen[i]

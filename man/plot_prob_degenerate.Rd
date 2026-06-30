@@ -4,10 +4,10 @@
 \alias{plot_prob_degenerate}
 \title{Forest plot of model-based probability of item degeneracy}
 \usage{
-plot_prob_degenerate(x, LEVEL = 0.95, SORT = TRUE, ...)
+plot_prob_degenerate(X, LEVEL = 0.95, SORT = TRUE, ...)
 }
 \arguments{
-\item{x}{An \code{agreement_fit} object from \code{\link[=agreement]{agreement()}}.}
+\item{X}{An \code{agreement_fit} object from \code{\link[=agreement]{agreement()}}.}
 
 \item{LEVEL}{Confidence level passed to \code{\link[=confint_prob_degenerate]{confint_prob_degenerate()}}.
 Default \code{0.95}.}

@@ -255,8 +255,8 @@ test_that("confint_prob_degenerate: level parameter controls interval width", {
   rd <- rating_data(ratings, item_ids, K = K, VERBOSE = FALSE)
   fit <- agreement(rd, METHOD = "profile", NUISANCE = "items")
 
-  ci90 <- confint_prob_degenerate(fit, level = 0.90)
-  ci99 <- confint_prob_degenerate(fit, level = 0.99)
+  ci90 <- confint_prob_degenerate(fit, LEVEL = 0.90)
+  ci99 <- confint_prob_degenerate(fit, LEVEL = 0.99)
   width90 <- ci90[, 4L] - ci90[, 3L]
   width99 <- ci99[, 4L] - ci99[, 3L]
   expect_true(all(width90 <= width99))

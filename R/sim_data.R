@@ -95,8 +95,8 @@ sim_data <- function(
   obs_a <- obs_mu * precision
   obs_b <- (1 - obs_mu) * precision
 
-  obs_beta <- apply(cbind(obs_a, obs_b), 1, function(par) {
-    rbeta(1, par[1], par[2])
+  obs_beta <- apply(cbind(obs_a, obs_b), 1, function(PAR) {
+    rbeta(1, PAR[1], PAR[2])
   })
 
   if (DATA_TYPE == "ordinal") {
