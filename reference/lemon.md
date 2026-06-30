@@ -25,9 +25,9 @@ Squeezed vector
 
 ## References
 
-- Smithson, Michael, and Jay Verkuilen. 2006. “A Better Lemon Squeezer?
+- Smithson, Michael, and Jay Verkuilen. 2006. "A Better Lemon Squeezer?
   Maximum-Likelihood Regression with Beta-Distributed Dependent
-  Variables.” *Psychological Methods* **11(1)**: 54–71.
+  Variables." *Psychological Methods* **11(1)**: 54-71.
   [doi](https://psycnet.apa.org/doi/10.1037/1082-989X.11.1.54)
 
 ## Examples

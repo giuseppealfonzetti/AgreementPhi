@@ -71,9 +71,9 @@ Extract estimates
 
 coef(fit)[1:10]
 #>         phi     alpha_1     alpha_2     alpha_3     alpha_4     alpha_5 
-#>  6.53680906  1.84746562  1.68557164 -1.08680905 -1.36272134 -0.73792367 
+#>  6.53681005  1.84746568  1.68557169 -1.08680903 -1.36272138 -0.73792372 
 #>     alpha_6     alpha_7     alpha_8     alpha_9 
-#> -0.49287874 -0.37423723 -0.54713560  0.01762487
+#> -0.49287871 -0.37423723 -0.54713561  0.01762487
 length(coef(fit))
 #> [1] 201
 ```
@@ -85,11 +85,11 @@ Construct confidence intervals
 confint(fit)
 #> $parameters
 #>     Estimate Std. Error    2.5 %   97.5 %
-#> phi 6.536809  0.2408701 6.064712 7.008906
+#> phi  6.53681  0.2408701 6.064713 7.008907
 #> 
 #> $agreement
 #>            Estimate Std. Error     2.5 %    97.5 %
-#> agreement 0.7920203 0.01203441 0.7684333 0.8156073
+#> agreement 0.7920204  0.0120344 0.7684334 0.8156074
 ```
 
 # References
@@ -97,7 +97,7 @@ confint(fit)
 - Checco A., Roitero K., Maddalena E., Mizzaro S., Demartini G., (2017).
   “Let’s Agree to Disagree: Fixing Agreement Measures for
   Crowdsourcing.” *Proceedings of the AAAI Conference on Human
-  Computation and Crowdsourcing* **5**: 11–20.
+  Computation and Crowdsourcing* **5**: 11-20.
   [doi](https://doi.org/10.1609/hcomp.v5i1.13306)
 
 # Package index

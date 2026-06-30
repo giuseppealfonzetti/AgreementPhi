@@ -8,12 +8,12 @@ defined for two-way models (raises an error).
 ## Usage
 
 ``` r
-prob_degenerate(object)
+prob_degenerate(OBJECT)
 ```
 
 ## Arguments
 
-- object:
+- OBJECT:
 
   An `agreement_fit` object from
   [`agreement()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/agreement.md).

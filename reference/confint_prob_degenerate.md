@@ -12,17 +12,17 @@ defined for two-way models.
 ## Usage
 
 ``` r
-confint_prob_degenerate(object, level = 0.95)
+confint_prob_degenerate(OBJECT, LEVEL = 0.95)
 ```
 
 ## Arguments
 
-- object:
+- OBJECT:
 
   An `agreement_fit` object from
   [`agreement()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/agreement.md).
 
-- level:
+- LEVEL:
 
   Confidence level. Default `0.95`.
 

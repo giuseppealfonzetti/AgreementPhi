@@ -54,8 +54,8 @@ nrow(topic)
 #> [1] 2196
 ```
 
-As scores were collected on a 0–100 scale, we map them onto `[0,1]` by
-simply dividing by 100. To build a `rating_data` object we use the
+As scores were collected on a 0-100 scale, we map them onto `[0,1]` by
+dividing by 100. To build a `rating_data` object we use the
 [`rating_data()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/rating_data.md)
 function. Since exact 0s and 100s are present in the data, the function
 automatically detects the inflated beta ratings.
@@ -135,8 +135,8 @@ coef(fit)[paste0("alpha_", rd$degen_ids)]
 
 The [`confint()`](https://rdrr.io/r/stats/confint.html) method returns
 the confidence intervals for parameter estimates (`phi`, `k0`, `k1`) as
-well as for agreement. Note that, for the latter, intervals are
-constructed via delta method
+well as for agreement. For the latter, intervals are constructed via the
+delta method
 
 ``` r
 

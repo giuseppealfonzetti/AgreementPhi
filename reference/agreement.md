@@ -183,7 +183,7 @@ An S3 object of class `agreement_fit` with the following components:
 - Checco A., Roitero K., Maddalena E., Mizzaro S., Demartini G., (2017).
   "Let's Agree to Disagree: Fixing Agreement Measures for
   Crowdsourcing." *Proceedings of the AAAI Conference on Human
-  Computation and Crowdsourcing* **5**: 11–20.
+  Computation and Crowdsourcing* **5**: 11-20.
   [doi](https://doi.org/10.1609/hcomp.v5i1.13306)
 
 ## Examples

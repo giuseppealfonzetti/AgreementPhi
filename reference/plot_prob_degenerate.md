@@ -9,12 +9,12 @@ in orange; non-degenerate items in blue.
 ## Usage
 
 ``` r
-plot_prob_degenerate(x, LEVEL = 0.95, SORT = TRUE, ...)
+plot_prob_degenerate(X, LEVEL = 0.95, SORT = TRUE, ...)
 ```
 
 ## Arguments
 
-- x:
+- X:
 
   An `agreement_fit` object from
   [`agreement()`](https://giuseppealfonzetti.github.io/AgreementPhi/reference/agreement.md).
