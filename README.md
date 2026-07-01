@@ -12,11 +12,12 @@ coverage](https://codecov.io/gh/giuseppealfonzetti/AgreementPhi/graph/badge.svg)
 <!-- [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) -->
 <!-- badges: end -->
 
-The `AgreementPhi` package is the companion of “Alfonzetti G., Bellio
-R., Vidoni P. *Accurate agreement estimation in crowdsourced relevance
-assessments*”. It allows the accurate estimation of the general $\Phi$
-agreement measure among multiple crowd-workers assessing a given
-collection of items (Checco et al. 2017).
+The `AgreementPhi` package is the companion of “Alfonzetti, G., Bellio,
+R., Vidoni, P., *Accurate agreement estimation in crowdsourced relevance
+assessments via statistical models based on the beta distribution*”. It
+allows the accurate estimation of the general $\Phi$ agreement measure
+among multiple crowd-workers assessing a given collection of items
+(Checco et al. 2017) based on the beta distribution and its extensions.
 
 ## Installation
 
